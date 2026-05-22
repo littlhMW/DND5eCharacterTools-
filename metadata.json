@@ -1,6 +1,0 @@
-{
-  "name": "5e角色创建管理工具",
-  "description": "一个功能强大的 D&D 5e 角色创建与管理系统，集成了 5etools 数据库。由 littlh 开发。",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
