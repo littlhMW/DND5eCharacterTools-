@@ -42,7 +42,7 @@ export const EXPANSIONS: ExpansionBook[] = [
     races: '（未提供新增种族）',
     classes: '野蛮人 (风暴先驱/狂热者/先祖守卫)、吟游诗人 (低语/剑舞/迷惑学院)、牧师 (锻造/坟墓领域)、德鲁伊 (梦境/牧人结社)、战士 (魔射手/骑兵/武士)、武僧 (剑圣/日魂/醉拳宗)、圣骑士 (救赎/征服之誓)、游侠 (怪物杀手/境界行者/幽域追踪者)、游荡者 (策士/斥侯/风流剑客/审讯者)、术士 (暴风术法/神圣之魂/幽影魔法)、邪术师 (天界宗主/咒剑士)、法师 (战争魔法) 等27个以上新子职',
     otherFeatures: '「这是你的人生」生平背景事件生成表、大量通用新专长、海量实用各级法术。',
-    enabled: true
+    enabled: false
   },
   {
     id: 'tce',
@@ -192,7 +192,7 @@ export const EXPANSIONS: ExpansionBook[] = [
     races: '（未提供新增种族）',
     classes: '（未提供新增子职业）',
     otherFeatures: '「魔鬼契约」系统、地狱战车载具改装和燃料规则、终极灵魂钱币。',
-    enabled: true
+    enabled: false
   },
   {
     id: 'cos',
