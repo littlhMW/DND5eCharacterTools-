@@ -135,10 +135,7 @@ export function BackgroundStep() {
                         if (selectedBackground.specialty?.options && selectedBackground.specialty.options.length > 0) {
                           const randomIndex = Math.floor(Math.random() * selectedBackground.specialty.options.length);
                           const opt = selectedBackground.specialty.options[randomIndex];
-                          const prev = state.character.backstory ? state.character.backstory + '\n' : '';
-                          if (!state.character.backstory?.includes(opt)) {
-                            dispatch({ type: 'UPDATE_BASIC_INFO', payload: { backstory: prev + opt } });
-                          }
+                          dispatch({ type: 'UPDATE_BASIC_INFO', payload: { backstory: opt } });
                         }
                       }}
                       className="p-1.5 text-stone-400 hover:text-amber-600 hover:bg-amber-50 rounded-full transition-colors flex items-center text-xs font-sans gap-1"
@@ -155,21 +152,18 @@ export function BackgroundStep() {
                   onChange={(e) => dispatch({ type: 'UPDATE_BASIC_INFO', payload: { backstory: e.target.value } })}
                   placeholder="点击下方选项或通过掷骰选择特色，你也可以直接在这里完善背景故事..."
                   className="w-full bg-white border border-stone-200 rounded-xl p-3 text-stone-900 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors shadow-sm resize-none font-sans text-sm mb-3"
-                  rows={4}
+                  rows={1}
                 />
 
                 <ul className="space-y-2">
                   {selectedBackground.specialty.options.map((opt, index) => {
-                    const isSelected = state.character.backstory?.includes(opt);
+                    const isSelected = state.character.backstory === opt;
                     return (
                       <li 
                         key={index} 
                         className="text-stone-600 text-sm font-sans flex items-start gap-2 cursor-pointer hover:text-amber-700 transition-colors p-1.5 rounded-lg hover:bg-white"
                         onClick={() => {
-                          if (!isSelected) {
-                            const prev = state.character.backstory ? state.character.backstory + '\n' : '';
-                            dispatch({ type: 'UPDATE_BASIC_INFO', payload: { backstory: prev + opt } });
-                          }
+                          dispatch({ type: 'UPDATE_BASIC_INFO', payload: { backstory: opt } });
                         }}
                       >
                         <span className="text-amber-600/50 mt-0.5 font-mono text-xs">{index + 1}.</span>
