@@ -10,6 +10,7 @@ import { backgrounds } from '../../data/backgrounds';
 import { feats } from '../../data/feats';
 import { getSpellcastingConfig, getMaxSpellLevel, calcExpectedCantrips, calcExpectedKnownSpells, calcMaxPrepared } from '../steps/SpellsStep';
 import { getProficiencies } from '../../utils/proficiencies';
+import { isSourceEnabled } from '../../utils/expansionHelper';
 
 import { EquipmentText } from './EquipmentText';
 import { FormattedDescription } from './FormattedDescription';
@@ -59,23 +60,37 @@ export const TraitSelection: React.FC<TraitSelectionProps> = ({ choice }) => {
             选择 {chooseNum} 个 ({selectedIds.length}/{chooseNum})
           </span>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
           {(choice.options || []).map(option => {
             const isSelected = selectedIds.includes(option.id);
             const isDisabled = !isSelected && selectedIds.length >= chooseNum && chooseNum > 1;
             return (
-              <label key={option.id} className={`flex items-start p-3 rounded-xl border cursor-pointer transition-all ${isSelected ? 'border-amber-500 bg-amber-50' : 'border-stone-200 bg-stone-50 hover:bg-stone-100'} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                <input type={chooseNum === 1 ? 'radio' : 'checkbox'} disabled={isDisabled} checked={isSelected} onChange={() => handleToggle(option.id)} className="w-4 h-4 mt-0.5 text-amber-600" />
-                <div className="ml-3">
-                  <span className="block text-sm font-medium text-stone-900">
+              <label key={option.id} className={`flex items-start p-2 rounded-lg border cursor-pointer transition-all ${isSelected ? 'border-amber-500 bg-amber-50/70 ring-1 ring-amber-500/20 shadow-sm' : 'border-stone-200 bg-stone-50/50 hover:bg-stone-100'} ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}>
+                <input type={chooseNum === 1 ? 'radio' : 'checkbox'} disabled={isDisabled} checked={isSelected} onChange={() => handleToggle(option.id)} className="w-3.5 h-3.5 mt-0.5 text-amber-600 rounded border-stone-300 focus:ring-amber-500 cursor-pointer" />
+                <div className="ml-2.5 min-w-0 flex-1">
+                  <span className="block text-xs font-semibold text-stone-900 truncate" title={option.name}>
                     {choice.id.includes('equip') ? <EquipmentText text={option.name} /> : option.name}
                   </span>
-                  {option.description && <span className="block text-xs text-stone-500 mt-0.5">{option.description}</span>}
+                  {option.description && <span className="block text-[10px] text-stone-500 mt-0.5 leading-tight line-clamp-2" title={option.description}>{option.description}</span>}
                 </div>
               </label>
             );
           })}
         </div>
+        {choice.id === 'sun-elf-descent-choice' && selectedIds.includes('sun-elf-cantrip') && (
+          <div className="mt-4 border-t border-stone-200/50 pt-4 animate-in fade-in slide-in-from-top-2 duration-200">
+            <TraitSelection 
+              choice={{
+                id: 'sun-elf-cantrip-cantrip-choice',
+                name: '选择一个法师戏法',
+                chooseNumber: 1,
+                dynamic: 'spell',
+                spellType: 'cantrip',
+                spellList: 'wizard'
+              }}
+            />
+          </div>
+        )}
       </div>
     );
   }
@@ -130,45 +145,47 @@ export const TraitSelection: React.FC<TraitSelectionProps> = ({ choice }) => {
 
     const proficiencies = getProficiencies(state.character, cls, race, subrace, bg);
     
-    // 检查是否有盗贼工具熟练 (在背景或职业选择中)
-    let hasThievesTools = false;
-    if (bg?.toolProficiencies?.includes('盗贼工具') || cls?.toolProficiencies?.includes('盗贼工具')) {
-      hasThievesTools = true;
-    }
-    // Also check traitSelections for "thieves-tools"
-    Object.entries(state.character.traitSelections).forEach(([, ids]) => {
-      if (Array.isArray(ids) && ids.includes('thieves-tools')) hasThievesTools = true;
-    });
+    // 过滤掉已经在其他专精选项中选择过的项
+    const otherExpertise = proficiencies.expertise.filter(e => !selectedIds.includes(e));
 
     const expertiseOptions = allExpertiseOptions.filter(opt => 
-      proficiencies.skills.includes(opt.id) || (opt.id === 'thieves-tools' && hasThievesTools)
+      (proficiencies.skills.includes(opt.id) || proficiencies.tools.includes(opt.id)) &&
+      !otherExpertise.includes(opt.id)
     );
 
     return (
-      <div className="mt-4 p-4 bg-white border border-amber-200/50 rounded-md">
-        <div className="flex items-center justify-between mb-3">
+      <div className="mt-4 p-4 bg-white border border-amber-200/50 rounded-md shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="flex items-center justify-between mb-3 border-b border-stone-100 pb-2">
           <div className="flex items-center">
+            <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-2" />
             <h6 className="font-semibold text-stone-800">{choice.name || '选择专精'}</h6>
           </div>
-          <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-lg">
-            选择 {chooseNum} 个 ({selectedIds.length}/{chooseNum})
+          <span className="text-[10px] font-mono font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">
+            {selectedIds.length} / {chooseNum}
           </span>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {expertiseOptions.map(option => {
-            const isSelected = selectedIds.includes(option.id);
-            const isDisabled = !isSelected && selectedIds.length >= chooseNum && chooseNum > 1;
-            return (
-              <label key={option.id} className={`flex items-start p-3 rounded-xl border cursor-pointer transition-all ${isSelected ? 'border-amber-500 bg-amber-50' : 'border-stone-200 bg-stone-50 hover:bg-stone-100'} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                <input type={chooseNum === 1 ? 'radio' : 'checkbox'} disabled={isDisabled} checked={isSelected} onChange={() => handleToggle(option.id)} className="w-4 h-4 mt-0.5 text-amber-600" />
-                <div className="ml-3">
-                  <span className="block text-sm font-medium text-stone-900">{option.name}</span>
-                  {option.description && <span className="block text-xs text-stone-500 mt-0.5">{option.description}</span>}
-                </div>
-              </label>
-            );
-          })}
-        </div>
+        
+        {expertiseOptions.length === 0 ? (
+          <div className="text-xs text-stone-400 py-4 text-center bg-stone-50/50 rounded-lg border border-dashed border-stone-200">
+            暂无可选的熟练项（需已获得该项熟练）
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {expertiseOptions.map(option => {
+              const isSelected = selectedIds.includes(option.id);
+              const isDisabled = !isSelected && selectedIds.length >= chooseNum && (typeof chooseNum === 'number' ? chooseNum > 1 : true);
+              return (
+                <label key={option.id} className={`flex items-start p-3 rounded-xl border cursor-pointer transition-all ${isSelected ? 'border-amber-500 bg-amber-50 shadow-sm' : 'border-stone-200 bg-stone-50 hover:bg-stone-100'} ${isDisabled ? 'opacity-40 cursor-not-allowed grayscale-[0.5]' : 'hover:border-amber-200'}`}>
+                  <input type={chooseNum === 1 ? 'radio' : 'checkbox'} disabled={isDisabled} checked={isSelected} onChange={() => handleToggle(option.id)} className="w-4 h-4 mt-0.5 text-amber-600 rounded border-stone-300 focus:ring-amber-500 cursor-pointer" />
+                  <div className="ml-3">
+                    <span className={`block text-sm font-medium ${isSelected ? 'text-amber-900' : 'text-stone-900'}`}>{option.name}</span>
+                    {option.description && <span className="block text-[10px] text-stone-500 mt-0.5 uppercase tracking-wider">{option.description}</span>}
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+        )}
       </div>
     );
   }
@@ -288,7 +305,7 @@ export const TraitSelection: React.FC<TraitSelectionProps> = ({ choice }) => {
               </span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-80 overflow-y-auto pr-2">
-              {feats.map(feat => {
+              {feats.filter(f => isSourceEnabled(f.source || 'phb')).map(feat => {
                 const isSelected = selectedIds.includes(`feat-${feat.id}`);
                 const isDisabled = !isSelected && selectedIds.length >= 1;
                 return (
@@ -306,7 +323,7 @@ export const TraitSelection: React.FC<TraitSelectionProps> = ({ choice }) => {
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="block text-sm font-medium text-stone-900">{feat.name}</span>
                     <div onClick={(e) => e.stopPropagation()}>
-                      <DictyTwisterLink type="feat" name={feat.name} source="phb" />
+                      <DictyTwisterLink type="feat" name={feat.name} source={feat.source || 'phb'} />
                     </div>
                   </div>
                   <FormattedDescription text={feat.description} className="text-xs text-stone-500 mt-0.5 leading-relaxed" />
@@ -352,7 +369,7 @@ export const TraitSelection: React.FC<TraitSelectionProps> = ({ choice }) => {
           </span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-2">
-          {feats.map(feat => {
+          {feats.filter(f => isSourceEnabled(f.source || 'phb')).map(feat => {
             const isSelected = selectedIds.includes(feat.id);
             const isDisabled = !isSelected && selectedIds.length >= chooseNum && chooseNum > 1;
             return (
@@ -370,7 +387,7 @@ export const TraitSelection: React.FC<TraitSelectionProps> = ({ choice }) => {
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="block text-sm font-medium text-stone-900">{feat.name}</span>
                     <div onClick={(e) => e.stopPropagation()}>
-                      <DictyTwisterLink type="feat" name={feat.name} source="phb" />
+                      <DictyTwisterLink type="feat" name={feat.name} source={feat.source || 'phb'} />
                     </div>
                   </div>
                   <FormattedDescription text={feat.description} className="block text-xs text-stone-500 mt-0.5 leading-relaxed" />

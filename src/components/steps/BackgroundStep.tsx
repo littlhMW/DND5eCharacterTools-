@@ -1,6 +1,7 @@
 import React from 'react';
 import { useCharacter } from '../../context/CharacterContext';
 import { backgrounds } from '../../data/backgrounds';
+import { isSourceEnabled } from '../../utils/expansionHelper';
 import { DictyTwisterLink } from '../DictyTwisterLink';
 import { TraitSelection } from '../shared/TraitSelection';
 import { Dices } from 'lucide-react';
@@ -14,6 +15,7 @@ export function BackgroundStep() {
   const aiLocalConfig = getAIConfig();
   
   const selectedBackground = backgrounds.find(bg => bg.id === state.character.backgroundId);
+  const availableBackgrounds = backgrounds.filter(bg => isSourceEnabled(bg.source || 'phb'));
 
   const handleXgeGenerate = () => {
     const xgeText = generateXgeBackstory({
@@ -63,7 +65,7 @@ export function BackgroundStep() {
       <section>
         <h2 className="text-2xl font-serif text-amber-600 border-b border-stone-200 pb-3 mb-6">选择背景</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {backgrounds.map(bg => (
+          {availableBackgrounds.map(bg => (
             <div 
               key={bg.id}
               onClick={() => dispatch({ type: 'SET_BACKGROUND', payload: bg.id })}
@@ -74,8 +76,11 @@ export function BackgroundStep() {
               }`}
             >
               <div className="flex justify-between items-center mb-3">
-                <h3 className="text-xl font-serif text-stone-900">{bg.name}</h3>
-                <DictyTwisterLink type="background" name={bg.name} source={bg.source} />
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl font-serif text-stone-900">{bg.name}</h3>
+                  {bg.source && <span className="text-[10px] bg-stone-100 text-stone-500 border border-stone-200 px-1.5 py-0.5 rounded uppercase tracking-wider">{bg.source}</span>}
+                </div>
+                {bg.source && <DictyTwisterLink type="background" name={bg.name} source={bg.source} />}
               </div>
               <p className="text-stone-600 line-clamp-3 leading-relaxed font-sans text-xs">{bg.description}</p>
             </div>
@@ -265,15 +270,13 @@ export function BackgroundStep() {
           <div className="pt-6 border-t border-stone-200 mt-6 font-sans text-left">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-sm font-sans uppercase tracking-[0.15em] text-stone-400">背景故事</h4>
-              {aiLocalConfig.xgeEnabled && (
-                <button
-                  type="button"
-                  onClick={handleXgeGenerate}
-                  className="px-2.5 py-1 text-xs font-semibold text-amber-700 bg-amber-50 rounded border border-amber-200 hover:bg-amber-100/50 hover:border-amber-300 transition-all flex items-center gap-1 cursor-pointer active:scale-95 border-none"
-                >
-                  生成生平经历
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleXgeGenerate}
+                className="px-2.5 py-1 text-xs font-semibold text-amber-700 bg-amber-50 rounded border border-amber-200 hover:bg-amber-100/50 hover:border-amber-300 transition-all flex items-center gap-1 cursor-pointer active:scale-95 border-none"
+              >
+                生成生平经历
+              </button>
             </div>
             <textarea 
               value={state.character.backstory || ''}

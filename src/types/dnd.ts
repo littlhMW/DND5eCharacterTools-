@@ -54,6 +54,7 @@ export interface Subrace {
   armorProficiencies?: string[];
   toolProficiencies?: string[];
   skillProficiencies?: string[];
+  source?: string;
 }
 
 export interface Race {
@@ -149,6 +150,16 @@ export interface Background {
     flaws: string[];
   };
   source: string;
+}
+
+export interface Feat {
+  id: string;
+  name: string;
+  description: string;
+  prerequisite?: string;
+  source?: string;
+  abilityIncrease?: Partial<Record<Ability, number>>;
+  choices?: TraitChoice[];
 }
 
 export interface CharacterData {

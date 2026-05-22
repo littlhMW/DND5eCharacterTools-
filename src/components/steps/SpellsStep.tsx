@@ -3,6 +3,7 @@ import { useCharacter } from '../../context/CharacterContext';
 import { classes } from '../../data/classes';
 import { spells as allSpells } from '../../data/spells';
 import { classSpellLists } from '../../data/spellLists';
+import { isSourceEnabled } from '../../utils/expansionHelper';
 import { DictyTwisterLink } from '../DictyTwisterLink';
 import { races } from '../../data/races';
 
@@ -197,7 +198,8 @@ const autoSpells = useMemo(() => {
     const idsSet = new Set(availableIds);
     const autoIdsSet = new Set(autoSpells.map(s => s.id));
     return allSpells.filter(s => 
-      (idsSet.has(s.id) && s.level <= maxSpellLevel) || autoIdsSet.has(s.id)
+      ((idsSet.has(s.id) && s.level <= maxSpellLevel) || autoIdsSet.has(s.id)) &&
+      isSourceEnabled(s.source || 'phb')
     );
   }, [availableIds, autoSpells, maxSpellLevel]);
 
@@ -266,7 +268,6 @@ const spellsToDisplay = cls?.id === 'wizard'
       <section>
         <h2 className="text-2xl font-serif text-amber-600 border-b border-stone-200 pb-3 mb-4">{cls?.name}法术管理</h2>
         <p className="text-stone-600 font-sans text-sm mb-2">{isPrepared ? '准备施法者' : '已知施法者'}{spellcasting.ability && <> · 施法关键属性：{spellcasting.ability}</>}</p>
-        <p className="text-stone-500 font-sans text-sm italic">{descriptionText}</p>
       </section>
 
       {/* 戏法 */}

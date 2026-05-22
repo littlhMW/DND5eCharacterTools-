@@ -25,6 +25,7 @@ export function CharacterSheet() {
   const cls = classes.find(cl => cl.id === c.classId);
   const subclass = cls?.subclasses.find(sc => sc.id === c.subclassId);
   const bg = backgrounds.find(b => b.id === c.backgroundId);
+  const finalRaceSpells = (race?.id === 'tiefling' && subrace) ? [] : (race?.spells || []);
 
   const getAsiBonus = (ab: Ability) => {
     let bonus = 0;
@@ -39,7 +40,7 @@ export function CharacterSheet() {
   };
 
   const getMod = (ab: Ability) => {
-    const rBonus = race?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0;
+    const rBonus = (race?.id === 'human' && subrace?.id === 'human-variant') ? 0 : (race?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0);
     const srBonus = subrace?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0;
     const asiBonus = getAsiBonus(ab);
     const total = c.baseAbilities[ab] + rBonus + srBonus + asiBonus;
@@ -47,7 +48,7 @@ export function CharacterSheet() {
   };
 
   const getScore = (ab: Ability) => {
-    const rBonus = race?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0;
+    const rBonus = (race?.id === 'human' && subrace?.id === 'human-variant') ? 0 : (race?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0);
     const srBonus = subrace?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0;
     const asiBonus = getAsiBonus(ab);
     return c.baseAbilities[ab] + rBonus + srBonus + asiBonus;
@@ -108,10 +109,10 @@ const knownIds = useMemo(() => {
       }
     });
     // 种族自动戏法
-    race?.spells?.forEach(s => { if (spellData.find(sp => sp.id === s.spellId)?.level === 0) ids.add(s.spellId); });
+    finalRaceSpells?.forEach(s => { if (spellData.find(sp => sp.id === s.spellId)?.level === 0) ids.add(s.spellId); });
     subrace?.spells?.forEach(s => { if (spellData.find(sp => sp.id === s.spellId)?.level === 0) ids.add(s.spellId); });
     return Array.from(ids);
-  }, [c.traitSelections, race, subrace]);
+  }, [c.traitSelections, race, subrace, finalRaceSpells]);
 
   const isPreparedCaster = cls?.spellcasting?.type === 'prepared';
 
@@ -247,8 +248,8 @@ if (cls.id === 'wizard') {
 }
 
     // 无论如何，追加种族/亚种/亚职的自动法术（除去戏法）
-    const extraSpells = [...(race?.spells || []), ...(subrace?.spells || []), ...(subclass?.spells || [])]
-      .filter(s => s.level > 0)
+    const extraSpells = [...finalRaceSpells, ...(subrace?.spells || []), ...(subclass?.spells || [])]
+      .filter(s => s.level > 0 && s.level <= c.level)
       .map(s => spellData.find(sp => sp.id === s.spellId))
       .filter(Boolean) as typeof spellData;
       
@@ -259,7 +260,7 @@ if (cls.id === 'wizard') {
     });
 
     const getSpellSource = (spellId: string) => {
-      if (race?.spells?.some(s => s.spellId === spellId)) return '种族';
+      if (finalRaceSpells?.some(s => s.spellId === spellId)) return '种族';
       if (subrace?.spells?.some(s => s.spellId === spellId)) return '亚种';
       if (subclass?.spells?.some(s => s.spellId === spellId)) return '亚职';
       for (const [key, val] of Object.entries(c.traitSelections)) {
@@ -370,16 +371,16 @@ if (cls.id === 'wizard') {
         <div className="px-8 md:px-12 py-12 flex flex-col md:flex-row justify-between items-end bg-gradient-to-br from-[#faf8f5] to-[#f4eee6] relative overflow-hidden border-b-2 border-stone-200">
           <div className="absolute top-0 right-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/handmade-paper.png')] opacity-40 mix-blend-multiply pointer-events-none" />
           <div className="absolute -top-32 -right-32 w-96 h-96 bg-amber-700/5 rounded-full blur-3xl pointer-events-none" />
-          <div className="relative z-10 w-full">
+          <div className="relative z-10 w-full mb-6 md:mb-0 md:mr-6">
             <h1 className="text-5xl md:text-6xl font-serif text-stone-900 font-bold mb-4 drop-shadow-sm tracking-tight">{c.name || '未命名角色'}</h1>
             <div className="text-stone-700 flex gap-3 text-sm font-medium flex-wrap font-sans">
-              <span className="bg-white/80 px-4 py-1.5 rounded-full whitespace-nowrap border border-stone-300 shadow-sm shadow-stone-200/50">等级 <b className="text-amber-800">{c.level}</b></span>
-              <span className="bg-white/80 px-4 py-1.5 rounded-full whitespace-nowrap border border-stone-300 shadow-sm shadow-stone-200/50">{subrace?.name || race?.name || '未知种族'}</span>
-              <span className="bg-white/80 px-4 py-1.5 rounded-full whitespace-nowrap border border-stone-300 shadow-sm shadow-stone-200/50">{subclass?.name || cls?.name || '无职业'}</span>
-              <span className="bg-white/80 px-4 py-1.5 rounded-full whitespace-nowrap border border-stone-300 shadow-sm shadow-stone-200/50">{bg?.name || '未知背景'}</span>
+              <span className="bg-white/80 px-4 py-1.5 rounded-md whitespace-nowrap border border-stone-300 shadow-sm shadow-stone-200/50">等级 <b className="text-amber-800">{c.level}</b></span>
+              <span className="bg-white/80 px-4 py-1.5 rounded-md whitespace-nowrap border border-stone-300 shadow-sm shadow-stone-200/50">{subrace?.name || race?.name || '未知种族'}</span>
+              <span className="bg-white/80 px-4 py-1.5 rounded-md whitespace-nowrap border border-stone-300 shadow-sm shadow-stone-200/50">{subclass?.name || cls?.name || '无职业'}</span>
+              <span className="bg-white/80 px-4 py-1.5 rounded-md whitespace-nowrap border border-stone-300 shadow-sm shadow-stone-200/50">{bg?.name || '未知背景'}</span>
             </div>
           </div>
-          <div className="mt-8 md:mt-0 flex gap-3 flex-wrap relative z-10">
+          <div className="mt-8 md:mt-0 flex gap-2 sm:gap-3 flex-wrap items-center justify-start md:justify-end relative z-10 w-full md:w-auto shrink-0">
             <button onClick={() => {
               let charToSave = { ...c };
               if (!charToSave.id) charToSave.id = crypto.randomUUID();
@@ -398,10 +399,10 @@ if (cls.id === 'wizard') {
               dispatch({ type: 'UPDATE_BASIC_INFO', payload: { id: charToSave.id } });
               setSaveSuccess(true);
               setTimeout(() => setSaveSuccess(false), 2000);
-            }} className="px-6 py-2.5 bg-stone-100/80 text-stone-700 border border-stone-300 rounded-full hover:bg-white transition font-sans font-medium shadow-sm">{saveSuccess ? '已保存 ✓' : '保存角色'}</button>
-            <button onClick={() => dispatch({ type: 'SET_VIEW', payload: 'landing' })} className="px-6 py-2.5 bg-stone-100/80 text-stone-700 border border-stone-300 rounded-full hover:bg-white transition font-sans font-medium shadow-sm">主页</button>
-            <button onClick={() => dispatch({ type: 'SET_VIEW', payload: 'wizard' })} className="px-6 py-2.5 bg-stone-100/80 text-stone-700 border border-stone-300 rounded-full hover:bg-white transition font-sans font-medium shadow-sm">返回编辑</button>
-            <button onClick={() => dispatch({ type: 'LEVEL_UP' })} className="px-8 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 text-amber-50 border border-amber-800 rounded-full hover:from-amber-500 hover:to-amber-600 transition font-sans font-bold shadow-md hover:shadow-lg shadow-amber-900/20 transform hover:-translate-y-0.5">提升等级</button>
+            }} className="px-5 py-2.5 bg-stone-100/80 text-stone-700 border border-stone-300 rounded-md hover:bg-white transition font-sans font-medium shadow-sm active:scale-95 text-sm md:text-base">{saveSuccess ? '已保存 ✓' : '保存角色'}</button>
+            <button onClick={() => dispatch({ type: 'SET_VIEW', payload: 'landing' })} className="px-5 py-2.5 bg-stone-100/80 text-stone-700 border border-stone-300 rounded-md hover:bg-white transition font-sans font-medium shadow-sm active:scale-95 text-sm md:text-base">返回主页</button>
+            <button onClick={() => dispatch({ type: 'SET_VIEW', payload: 'wizard' })} className="px-5 py-2.5 bg-stone-100/80 text-stone-700 border border-stone-300 rounded-md hover:bg-white transition font-sans font-medium shadow-sm active:scale-95 text-sm md:text-base">重新编辑</button>
+            <button onClick={() => dispatch({ type: 'LEVEL_UP' })} className="px-6 py-2.5 bg-gradient-to-r from-amber-700 to-amber-800 text-amber-50 border border-amber-900 rounded-md hover:from-amber-600 hover:to-amber-700 transition font-sans font-bold shadow-md hover:shadow-lg shadow-amber-900/20 active:scale-95 text-sm md:text-base">提升等级</button>
           </div>
         </div>
 
@@ -477,12 +478,20 @@ if (cls.id === 'wizard') {
               <div className="bg-[#faf8f5] rounded-xl border-2 border-stone-300 shadow-sm p-8 h-fit">
                 <h3 className="text-2xl font-serif text-amber-800 mb-6 border-b-2 border-stone-300 pb-3 font-bold tracking-tight">种族与背景特性</h3>
                 <ul className="space-y-6">
-                  {race?.traits.map((t, i) => (
-                    <li key={`race-${t.name}-${i}`} className="relative pl-4 before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-stone-300">
-                      <strong className="text-stone-900 block mb-1 font-serif text-lg">{t.name}</strong>
-                      <FormattedDescription text={t.description} className="text-sm font-sans text-stone-700 leading-relaxed block" />
-                    </li>
-                  ))}
+                  {race?.traits
+                    .filter(t => {
+                      if (subrace) {
+                        if (race.id === 'half-elf' && t.name === '多才多艺') return false;
+                        if (race.id === 'tiefling' && t.name === '炼狱传承') return false;
+                      }
+                      return true;
+                    })
+                    .map((t, i) => (
+                      <li key={`race-${t.name}-${i}`} className="relative pl-4 before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-stone-300">
+                        <strong className="text-stone-900 block mb-1 font-serif text-lg">{t.name}</strong>
+                        <FormattedDescription text={t.description} className="text-sm font-sans text-stone-700 leading-relaxed block" />
+                      </li>
+                    ))}
                   {subrace?.traits.map((t, i) => (
                     <li key={`subrace-${t.name}-${i}`} className="relative pl-4 before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-stone-300">
                       <strong className="text-stone-900 block mb-1 font-serif text-lg">{t.name}</strong>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useCharacter } from '../../context/CharacterContext';
 import { classes } from '../../data/classes';
+import { isSourceEnabled } from '../../utils/expansionHelper';
 import { DictyTwisterLink } from '../DictyTwisterLink';
 import { TraitSelection } from '../shared/TraitSelection';
 import { FormattedDescription } from '../shared/FormattedDescription';
@@ -20,8 +21,9 @@ export function ClassStep() {
   const selectedClass = classes.find(c => c.id === state.character.classId);
   const selectedSubclass = selectedClass?.subclasses?.find(sc => sc.id === state.character.subclassId);
   
+  const availableClasses = classes.filter(c => isSourceEnabled(c.source || 'phb'));
   const getDynamicChooseNumber = (choice: any, level: number, cls: any, subclass: any) => {
-    if (!choice.dynamic) return choice.chooseNumber;
+    if (choice.dynamic !== 'spell') return choice.chooseNumber;
     
     const spellcasting = subclass?.spellcasting && level >= (subclass.spellcastingStartLevel || cls?.subclassAvailableAtLevel)
       ? subclass.spellcasting
@@ -86,7 +88,7 @@ export function ClassStep() {
       <section>
         <h2 className="text-2xl font-serif text-amber-600 border-b border-stone-200 pb-3 mb-6">2. 职业</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {classes.map(cls => (
+          {availableClasses.map(cls => (
             <div 
               key={cls.id}
               onClick={() => {
@@ -106,8 +108,11 @@ export function ClassStep() {
               }`}
             >
               <div className="flex justify-between items-center">
-                <h3 className="text-xl font-serif text-stone-900">{cls.name}</h3>
-                <DictyTwisterLink type="class" name={cls.name} source={cls.source} />
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl font-serif text-stone-900">{cls.name}</h3>
+                  {cls.source && <span className="text-[10px] bg-stone-100 text-stone-500 border border-stone-200 px-1.5 py-0.5 rounded uppercase tracking-wider">{cls.source}</span>}
+                </div>
+                {cls.source && <DictyTwisterLink type="class" name={cls.name} source={cls.source} />}
               </div>
               <FormattedDescription text={cls.description} className="text-stone-600 mt-2 text-xs leading-relaxed font-sans" />
             </div>
@@ -119,7 +124,7 @@ export function ClassStep() {
         <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <h2 className="text-2xl font-serif text-amber-600 border-b border-stone-200 pb-3 mb-6">3. 子职业</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {selectedClass.subclasses.map(subclass => (
+            {selectedClass.subclasses.filter(sc => isSourceEnabled(sc.source || selectedClass.source || 'phb')).map(subclass => (
               <div 
                  key={subclass.id}
                  onClick={() => dispatch({ type: 'SET_SUBCLASS', payload: subclass.id })}
@@ -130,8 +135,11 @@ export function ClassStep() {
                  }`}
                >
                  <div className="flex justify-between items-center">
-                   <h3 className="text-base font-serif text-stone-900">{subclass.name}</h3>
-                   <DictyTwisterLink type="class" name={selectedClass.name} subId={subclass.id} source={selectedClass.source} />
+                   <div className="flex items-center gap-2">
+                     <h3 className="text-base font-serif text-stone-900">{subclass.name}</h3>
+                     {subclass.source && <span className="text-[10px] bg-stone-100 text-stone-500 border border-stone-200 px-1.5 py-0.5 rounded uppercase tracking-wider">{subclass.source}</span>}
+                   </div>
+                   {(subclass.source || selectedClass.source) && <DictyTwisterLink type="class" name={selectedClass.name} subId={subclass.id} source={subclass.source || selectedClass.source!} />}
                  </div>
                  <FormattedDescription text={subclass.description} className="text-stone-600 mt-2 text-xs leading-relaxed font-sans" />
                </div>

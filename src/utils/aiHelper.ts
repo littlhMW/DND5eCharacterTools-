@@ -111,6 +111,8 @@ export async function generateBackstoryAndAppearance(
     ideals: string;
     bonds: string;
     flaws: string;
+    raceDescription?: string;
+    subraceDescription?: string;
   }
 ): Promise<AIResult> {
   const config = getAIConfig();
@@ -136,7 +138,7 @@ export async function generateBackstoryAndAppearance(
 请使用中文撰写。
 
 【撰写要求（关键）】
-1. **结合已有细节与人生经历**：如果玩家已有的粗略背景故事中包含有类似“【XGE 经历：这是你的人生】”等出身起源、生涯抉择或生命旅途中遭遇的命运事件（如特定的童年回忆、父母情况、曾遭受的悲剧或福运神迹），你必须完美保留这些设定细节，并用典雅克制、合乎逻辑的手法将它们融合整理到一篇润色后的整体生平故事中，绝不能丢失或遗漏这些关键信息。
+1. **结合已有细节与人生经历**：如果玩家已有的粗略背景故事中包含有类似“这是你的人生”等出身起源、生涯抉择或生命旅途中遭遇的命运事件（如特定的童年回忆、父母情况、曾遭受的悲剧或福运神迹），你必须完美保留这些设定细节，并用典雅克制、合乎逻辑的手法将它们融合整理到一篇润色后的整体生平故事中，绝不能丢失或遗漏这些关键信息。
 2. **结合年龄、名字、阵营与背景**：角色的决策动机、语气语调，需要与他们现有的年龄（例如是血气方刚的青年、沉稳的中年还是阅历过人的长者）、背景、阵营（如守序善良或混乱中立）相互照应，不可产生明显的设定冲突。
    - **特别注意（D&D 5e 种族寿命常识）**：有些长寿种族的年龄阶段与人类截然不同！
      * 精灵（Elf）：通常在100岁左右才刚刚成年，生命可达750岁。
@@ -159,13 +161,15 @@ export async function generateBackstoryAndAppearance(
   "backstory": "描写其如何习得相应职业、选择当冒险者的过程与动机（完美融合已有的背景细节与人生经历事件），文字质朴克制。通过换行 \\n\\n 分成 2-3 个小段落。字数大约 250-350 字。"
 }`;
 
-  const subraceStr = characterContext.subraceName ? `（亚种：${characterContext.subraceName}）` : '';
+  const raceDescStr = characterContext.raceDescription ? `（种族描述：${characterContext.raceDescription}）` : '';
+  const subraceDescStr = characterContext.subraceDescription ? `（亚种描述：${characterContext.subraceDescription}）` : '';
+  const subraceStr = characterContext.subraceName ? `（亚种：${characterContext.subraceName}${subraceDescStr}）` : '';
   const subclassStr = characterContext.subclassName ? `（子职业：${characterContext.subclassName}）` : '';
 
   const userPrompt = `已经选择的角色基础信息如下：
 - 角色姓名：${characterContext.characterName || '未命名'}
 - 角色年龄：${characterContext.age || '未指定'}
-- 种族：${characterContext.raceName}${subraceStr}
+- 种族：${characterContext.raceName}${raceDescStr}${subraceStr}
 - 职业：${characterContext.className}${subclassStr}
 - 角色背景：${characterContext.backgroundName || '未指定'}
 - 阵营信念：${characterContext.alignment || '偏向中立'}
@@ -200,10 +204,18 @@ export async function generateBackstoryAndAppearance(
   };
 
   try {
-    const response = await fetch(requestUrl, {
+    const response = await fetch('/api/ai/proxy', {
       method: 'POST',
-      headers,
-      body: JSON.stringify(bodyData),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        url: requestUrl,
+        headers: {
+          'Authorization': `Bearer ${config.apiKey.trim()}`,
+        },
+        body: bodyData,
+      }),
     });
 
     if (!response.ok) {

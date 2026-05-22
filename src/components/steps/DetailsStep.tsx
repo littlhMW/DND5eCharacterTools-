@@ -85,6 +85,8 @@ export function DetailsStep() {
         ideals: state.character.ideals || '',
         bonds: state.character.bonds || '',
         flaws: state.character.flaws || '',
+        raceDescription: race?.description || '',
+        subraceDescription: subrace?.description || '',
       };
 
       const result = await generateBackstoryAndAppearance(params);
@@ -147,7 +149,7 @@ export function DetailsStep() {
           <div key={field.id} className={['personality', 'ideals', 'bonds', 'flaws', 'appearance', 'backstory'].includes(field.id) ? 'md:col-span-2' : ''}>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-sm font-semibold text-stone-700 font-sans">{field.label}</label>
-              {field.id === 'backstory' && aiLocalConfig.xgeEnabled && (
+              {field.id === 'backstory' && (
                 <button
                   type="button"
                   onClick={handleXgeGenerate}

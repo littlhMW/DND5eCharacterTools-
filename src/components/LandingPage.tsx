@@ -6,6 +6,7 @@ import { classes } from '../data/classes';
 import { races } from '../data/races';
 import { backgrounds } from '../data/backgrounds';
 import { getAIConfig, saveAIConfig, PROVIDERS } from '../utils/aiHelper';
+import { EXPANSIONS, getActiveExpansions, saveActiveExpansions, ExpansionBook } from '../utils/expansionHelper';
 
 export function LandingPage() {
   const { dispatch } = useCharacter();
@@ -23,6 +24,8 @@ export function LandingPage() {
   const [openPointBuyModal, setOpenPointBuyModal] = useState(false);
   const [openAiModal, setOpenAiModal] = useState(false);
   const [openXgeModal, setOpenXgeModal] = useState(false);
+  const [openExpModal, setOpenExpModal] = useState(false);
+  const [activeExpansions, setActiveExpansions] = useState<string[]>(() => getActiveExpansions());
 
   const [diceLog, setDiceLog] = useState<{ time: string, result: string }[]>([]);
 
@@ -87,20 +90,37 @@ export function LandingPage() {
   const generateRandomCharacter = () => {
     if (races.length === 0 || classes.length === 0) return;
     
+    const isSourceAllowed = (src?: string) => {
+      if (!src || src.toLowerCase() === 'phb') return true;
+      return activeExpansions.includes(src.toLowerCase());
+    };
+
+    const validRaces = races.filter(r => isSourceAllowed(r.source));
+    const validClasses = classes.filter(c => isSourceAllowed(c.source));
+    const validBackgrounds = backgrounds.filter(b => isSourceAllowed(b.source));
+
+    if (validRaces.length === 0 || validClasses.length === 0) return;
+
     // 1. Pick random race
-    const randomRace = races[Math.floor(Math.random() * races.length)];
+    const randomRace = validRaces[Math.floor(Math.random() * validRaces.length)];
     let randomSubraceId = '';
     if (randomRace.subraces && randomRace.subraces.length > 0) {
-      const randomSub = randomRace.subraces[Math.floor(Math.random() * randomRace.subraces.length)];
-      randomSubraceId = randomSub.id;
+      const validSubraces = randomRace.subraces.filter(sr => isSourceAllowed(sr.source));
+      if (validSubraces.length > 0) {
+        const randomSub = validSubraces[Math.floor(Math.random() * validSubraces.length)];
+        randomSubraceId = randomSub.id;
+      }
     }
     
     // 2. Pick random class
-    const randomClass = classes[Math.floor(Math.random() * classes.length)];
+    const randomClass = validClasses[Math.floor(Math.random() * validClasses.length)];
     let randomSubclassId = '';
     if (randomClass.subclasses && randomClass.subclasses.length > 0) {
-      const randomSubclass = randomClass.subclasses[Math.floor(Math.random() * randomClass.subclasses.length)];
-      randomSubclassId = randomSubclass.id;
+      const validSubclasses = randomClass.subclasses.filter(sc => isSourceAllowed(sc.source));
+      if (validSubclasses.length > 0) {
+        const randomSubclass = validSubclasses[Math.floor(Math.random() * validSubclasses.length)];
+        randomSubclassId = randomSubclass.id;
+      }
     }
     
     // 3. Shuffled standard array
@@ -131,8 +151,8 @@ export function LandingPage() {
 
     // 5. Pick random background
     let randomBackgroundId = '';
-    if (backgrounds && backgrounds.length > 0) {
-      const randomBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+    if (validBackgrounds && validBackgrounds.length > 0) {
+      const randomBg = validBackgrounds[Math.floor(Math.random() * validBackgrounds.length)];
       randomBackgroundId = randomBg.id;
     }
     
@@ -245,6 +265,15 @@ export function LandingPage() {
                     className="w-full text-left px-4 py-2.5 text-xs text-stone-700 hover:bg-stone-50 hover:text-stone-900 transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent"
                   >
                     XGE 经历生成设置
+                  </button>
+                  <button
+                    onClick={() => {
+                      setToolboxOpen(false);
+                      setOpenExpModal(true);
+                    }}
+                    className="w-full text-left px-4 py-2.5 text-xs text-stone-700 hover:bg-stone-50 hover:text-stone-900 transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent"
+                  >
+                    📚 扩展书与规则集管理
                   </button>
                 </div>
               </>
@@ -741,6 +770,129 @@ export function LandingPage() {
                 className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white font-medium text-xs rounded transition-colors shadow-sm cursor-pointer border-none"
               >
                 保存关闭
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Expansion Books Modal */}
+      {openExpModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-950/45 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white border border-stone-200 rounded-lg max-w-4xl w-full shadow-xl p-6 relative flex flex-col gap-4 animate-in zoom-in-95 duration-200 text-left font-sans">
+            <button 
+              onClick={() => setOpenExpModal(false)}
+              className="absolute top-4 right-4 text-stone-400 hover:text-stone-600 text-sm p-1 cursor-pointer font-sans bg-transparent border-none"
+              title="关闭"
+            >
+              ✕
+            </button>
+
+            <div className="border-b border-stone-200 pb-3 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
+                  📚 扩展书与规则集管理
+                </h2>
+                <p className="text-xs text-stone-500 mt-1 max-w-xl">
+                  启用或禁用特定的官方扩展书。禁用后，其包含的额外种族、子职及背景选项将在创建流程中被隐藏。
+                  <span className="block mt-1 font-medium text-amber-600">⚠️ 提示：扩展包目前为 Beta 测试版本，内容可能存在翻译或机制错漏，请谨慎参考。</span>
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const allIds = EXPANSIONS.filter(e => !e.isCore).map(e => e.id);
+                    setActiveExpansions(allIds);
+                    saveActiveExpansions(allIds);
+                  }}
+                  className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs rounded transition-colors border border-stone-200 cursor-pointer"
+                >
+                  全选非核心
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveExpansions([]);
+                    saveActiveExpansions([]);
+                  }}
+                  className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs rounded transition-colors border border-stone-200 cursor-pointer"
+                >
+                  全不选
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-[60vh] overflow-y-auto pr-1">
+              {EXPANSIONS.map((exp: ExpansionBook) => (
+                <div key={exp.id} className={`p-2.5 rounded-md border transition-all flex flex-col ${activeExpansions.includes(exp.id) || exp.isCore ? 'bg-amber-50/30 border-amber-200/50' : 'bg-stone-50/50 border-stone-200 opacity-70 hover:opacity-100'}`}>
+                  <div className="flex items-start justify-between gap-2 mb-1.5">
+                    <div className="flex items-center flex-wrap gap-1.5">
+                      <span className="font-bold text-sm text-stone-900">{exp.name}</span>
+                      <span className="text-[9px] bg-stone-200 text-stone-600 px-1 py-0.5 rounded font-mono uppercase leading-none">{exp.shortName}</span>
+                      {exp.isCore ? (
+                        <span className="text-[9px] bg-amber-500 text-white px-1 py-0.5 rounded leading-none">核心</span>
+                      ) : (
+                        <span className="text-[9px] bg-amber-50 text-amber-600 border border-amber-200 px-1 py-0.5 rounded leading-none">Beta 错漏谨用</span>
+                      )}
+                    </div>
+                    {!exp.isCore && (
+                      <div className="shrink-0 flex items-center h-full pt-0.5">
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            className="sr-only peer"
+                            checked={activeExpansions.includes(exp.id)}
+                            onChange={(e) => {
+                              const newActive = e.target.checked 
+                                ? [...activeExpansions, exp.id]
+                                : activeExpansions.filter(id => id !== exp.id);
+                              setActiveExpansions(newActive);
+                              saveActiveExpansions(newActive);
+                            }}
+                          />
+                          <div className="w-7 h-4 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[12px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-amber-500"></div>
+                        </label>
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-[11px] text-stone-600 space-y-1.5 mt-auto pt-2 border-t border-stone-100">
+                    <p className="text-stone-500 leading-relaxed italic mb-1">
+                      {exp.description}
+                    </p>
+                    {exp.races && (
+                      <div className="flex items-start gap-1 text-[11px]">
+                        <span className="shrink-0 text-[10px] bg-amber-100 text-amber-800 px-1 py-0.5 rounded leading-none font-medium">
+                          种族
+                        </span>
+                        <span className="text-stone-700 leading-relaxed">{exp.races}</span>
+                      </div>
+                    )}
+                    {exp.classes && (
+                      <div className="flex items-start gap-1 text-[11px]">
+                        <span className="shrink-0 text-[10px] bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded leading-none font-medium">
+                          职业
+                        </span>
+                        <span className="text-stone-700 leading-relaxed">{exp.classes}</span>
+                      </div>
+                    )}
+                    {exp.otherFeatures && (
+                      <div className="flex items-start gap-1 text-[11px]">
+                        <span className="shrink-0 text-[10px] bg-sky-100 text-sky-900 px-1 py-0.5 rounded leading-none font-medium">
+                          其他
+                        </span>
+                        <span className="text-stone-600 leading-relaxed">{exp.otherFeatures}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="border-t border-stone-200 pt-4 flex justify-end">
+              <button
+                onClick={() => setOpenExpModal(false)}
+                className="px-5 py-2 bg-stone-900 hover:bg-stone-800 text-white font-medium text-sm rounded transition-colors shadow-sm cursor-pointer border-none"
+              >
+                保存并关闭
               </button>
             </div>
           </div>

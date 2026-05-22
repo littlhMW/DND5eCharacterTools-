@@ -23,8 +23,8 @@ export function CharacterSummary() {
   // 根据法术 ID 获取名称的辅助函数
   const getSpellName = (id: string) => allSpells.find(s => s.id === id)?.name || id;
 
-  const conMod = Math.floor((c.baseAbilities.CON + (race?.abilityBonuses?.find(b => b.ability === 'CON')?.bonus || 0) + (subrace?.abilityBonuses?.find(b => b.ability === 'CON')?.bonus || 0) - 10) / 2);
-  const dexMod = Math.floor((c.baseAbilities.DEX + (race?.abilityBonuses?.find(b => b.ability === 'DEX')?.bonus || 0) + (subrace?.abilityBonuses?.find(b => b.ability === 'DEX')?.bonus || 0) - 10) / 2);
+  const conMod = Math.floor((c.baseAbilities.CON + ((race?.id === 'human' && subrace?.id === 'human-variant') ? 0 : (race?.abilityBonuses?.find(b => b.ability === 'CON')?.bonus || 0)) + (subrace?.abilityBonuses?.find(b => b.ability === 'CON')?.bonus || 0) - 10) / 2);
+  const dexMod = Math.floor((c.baseAbilities.DEX + ((race?.id === 'human' && subrace?.id === 'human-variant') ? 0 : (race?.abilityBonuses?.find(b => b.ability === 'DEX')?.bonus || 0)) + (subrace?.abilityBonuses?.find(b => b.ability === 'DEX')?.bonus || 0) - 10) / 2);
   
   const hpPerLevelBonus = c.subraceId === 'hill-dwarf' ? 1 : 0;
   const hitDie = cls?.hitDie || 8;
@@ -43,51 +43,53 @@ export function CharacterSummary() {
     <div className="flex-1 flex flex-col h-full bg-[#f9f8f6] p-8 overflow-y-auto w-full font-serif relative">
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/rice-paper-2.png')] opacity-30 pointer-events-none mix-blend-multiply"></div>
       <div className="relative z-10 w-full flex-1 flex flex-col">
-      <div className="mb-8 border-b-2 border-stone-300 pb-5">
+      <div className="mb-6 border-b-2 border-stone-300 pb-4">
         <h2 className="text-3xl font-serif text-stone-900 mb-3 drop-shadow-sm">{c.name || '未命名'}</h2>
-        <div className="text-stone-600 text-sm flex flex-wrap gap-x-3 mt-1 font-sans">
-          <span className="font-bold bg-white border border-stone-300 shadow-sm px-3 py-1 rounded-full text-amber-800">Level {c.level}</span>
+        <div className="text-stone-600 text-sm flex flex-wrap items-center gap-2 mt-1 font-sans">
+          <span className="font-bold bg-white border border-stone-300 shadow-sm px-2 py-1 rounded-md text-amber-800">
+            Level {c.level} <span className="ml-1 text-xs">{c.level}级</span>
+          </span>
           {race && (
-            <span className="flex items-center gap-1 group relative bg-stone-200/50 px-3 py-1 rounded-full text-stone-700">
-              {subrace?.name || race.name}
+            <span className="flex items-center group relative bg-stone-200/50 pl-2 pr-1 py-1 rounded-md text-stone-700">
+              <span>{subrace?.name || race.name}</span>
               <DictyTwisterLink type="race" name={race.name} source={race.source || 'phb'} />
             </span>
           )}
           {bg && (
-            <span className="flex items-center gap-1 group relative bg-stone-200/50 px-3 py-1 rounded-full text-stone-700">
-              {bg.name}
+            <span className="flex items-center group relative bg-stone-200/50 pl-2 pr-1 py-1 rounded-md text-stone-700">
+              <span>{bg.name}</span>
               <DictyTwisterLink type="background" name={bg.name} source={bg.source || 'phb'} />
             </span>
           )}
           {cls && (
-            <span className="flex items-center gap-1 group relative italic">
-               {subclass?.name || cls.name}
+            <span className="flex items-center group relative italic bg-stone-200/50 pl-2 pr-1 py-1 rounded-md text-stone-700">
+               <span>{subclass?.name || cls.name}</span>
                <DictyTwisterLink type="class" name={cls.name} subId={subclass?.id} source={cls.source || 'phb'} />
             </span>
           )}
         </div>
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div className="flex gap-4">
-          <div className="bg-amber-100/50 border border-amber-200 rounded-xl p-4 flex-1 text-center shrink-0">
-            <div className="text-[10px] font-sans uppercase tracking-[0.15em] text-stone-500 mb-1">最大生命值 HP</div>
-            <div className="text-3xl font-serif text-amber-700 font-bold">{cls ? maxHp : '--'}</div>
+          <div className="bg-amber-100/50 border border-amber-200 rounded-lg p-2.5 flex-1 text-center shrink-0">
+            <div className="text-[10px] font-sans uppercase tracking-[0.15em] text-stone-500 mb-0.5">最大生命值 HP</div>
+            <div className="text-2xl font-serif text-amber-700 font-bold">{cls ? maxHp : '--'}</div>
           </div>
-          <div className="bg-stone-100 border border-stone-200 rounded-xl p-4 flex-1 text-center shrink-0">
-            <div className="text-[10px] font-sans uppercase tracking-[0.15em] text-stone-500 mb-1">无甲防御 AC</div>
-            <div className="text-3xl font-serif text-stone-700 font-bold">{baseAc}</div>
+          <div className="bg-stone-100 border border-stone-200 rounded-lg p-2.5 flex-1 text-center shrink-0">
+            <div className="text-[10px] font-sans uppercase tracking-[0.15em] text-stone-500 mb-0.5">无甲防御 AC</div>
+            <div className="text-2xl font-serif text-stone-700 font-bold">{baseAc}</div>
           </div>
         </div>
 
         {/* Abilities */}
         <div>
-          <h3 className="text-sm font-sans uppercase tracking-[0.15em] text-stone-400 mb-4 border-b border-stone-200 pb-2">基础属性</h3>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+          <h3 className="text-sm font-sans uppercase tracking-[0.15em] text-stone-400 mb-3 border-b border-stone-200 pb-1">基础属性</h3>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
             {(['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'] as Ability[]).map((ab) => {
               const val = c.baseAbilities[ab] || 10;
               const baseVal = val;
-              const bonus = race?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0;
+              const bonus = (race?.id === 'human' && subrace?.id === 'human-variant') ? 0 : (race?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0);
               const subBonus = subrace?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0;
               const asiBonus = Object.values(c.traitSelections).flat().filter(id => id === `asi-${ab}`).length;
               
@@ -139,9 +141,17 @@ export function CharacterSummary() {
 
         {/* Accumulated Traits */}
         <div>
-          <h3 className="text-sm font-sans uppercase tracking-[0.15em] text-stone-400 mb-4 border-b border-stone-200 pb-2">特性</h3>
-          <ul className="space-y-4">
-            {race?.traits?.filter(t => !t.level || t.level <= c.level).map(t => (
+          <h3 className="text-sm font-sans uppercase tracking-[0.15em] text-stone-400 mb-3 border-b border-stone-200 pb-1">特性</h3>
+          <ul className="space-y-3">
+            {race?.traits?.filter(t => !t.level || t.level <= c.level)
+              .filter(t => {
+                if (subrace) {
+                  if (race.id === 'half-elf' && t.name === '多才多艺') return false;
+                  if (race.id === 'tiefling' && t.name === '炼狱传承') return false;
+                }
+                return true;
+              })
+              .map(t => (
               <li key={`race-${t.name}`} className="flex flex-col text-sm border-l-4 border-stone-300 pl-3">
                 <span className="font-semibold text-stone-800 text-base mb-0.5">{t.name}</span>
                 <span className="text-stone-500 leading-relaxed font-sans text-xs">{t.description}</span>
@@ -185,14 +195,14 @@ export function CharacterSummary() {
           const featsList = selectedFeats.map(fid => feats.find(f => f.id === fid)).filter(Boolean);
           if (featsList.length === 0) return null;
           return (
-            <div className="mt-8">
-              <h3 className="text-sm font-sans uppercase tracking-[0.15em] text-stone-400 mb-4 border-b border-stone-200 pb-2">专长</h3>
-              <ul className="space-y-4">
+            <div className="mt-6">
+              <h3 className="text-sm font-sans uppercase tracking-[0.15em] text-stone-400 mb-3 border-b border-stone-200 pb-1">专长</h3>
+              <ul className="space-y-3">
                 {featsList.map((f, i) => (
                   <li key={`feat-${f?.id}-${i}`} className="flex flex-col text-sm border-l-4 border-stone-400 pl-3">
                     <span className="font-semibold text-stone-800 text-base mb-0.5 flex items-center gap-2">
                        {f?.name} 
-                       <DictyTwisterLink type="feat" name={f?.name!} source="phb" />
+                       <DictyTwisterLink type="feat" name={f?.name!} source={f?.source || 'phb'} />
                     </span>
                     <span className="text-stone-500 leading-relaxed font-sans text-xs">{f?.description}</span>
                   </li>
@@ -212,6 +222,20 @@ function renderChoiceSelection(choice: any, traitSelections: Record<string, stri
   const selectedIds = traitSelections[choice.id] || [];
   if (selectedIds.length === 0) return null;
 
+  const toolMap: Record<string, string> = {
+    'thieves-tools': '盗贼工具',
+    'smiths-tools': '铁匠工具',
+    'brewers-supplies': '酿酒工具',
+    'masons-tools': '石匠工具',
+    'disguise-kit': '易容工具',
+    'forgery-kit': '造假工具',
+    'herbalism-kit': '草药志',
+    'navigators-tools': '航海工具',
+    'poisoners-kit': '制毒工具',
+    'land-vehicles': '陆地载具',
+    'water-vehicles': '水上载具'
+  };
+
   // 动态法术选择：显示法术名称
   if (choice.dynamic === 'spell') {
     const names = selectedIds.map(id => allSpells.find(s => s.id === id)?.name || id).join(', ');
@@ -226,13 +250,13 @@ function renderChoiceSelection(choice: any, traitSelections: Record<string, stri
   // 动态技能或专精
   if (choice.dynamic === 'skill' || choice.dynamic === 'expertise') {
     const names = selectedIds.map(id => {
-      let skillId = id;
-      if (id.startsWith('skill-')) skillId = id.substring(6);
-      return SKILL_NAMES[skillId as keyof typeof SKILL_NAMES] || id;
+      let currentId = id;
+      if (id.startsWith('skill-')) currentId = id.substring(6);
+      return toolMap[currentId] || SKILL_NAMES[currentId as keyof typeof SKILL_NAMES] || id;
     });
     return (
       <div key={choice.id} className="mt-1 text-xs font-sans">
-        <span className="font-semibold text-stone-700">{choice.name || '技能'}: </span>
+        <span className="font-semibold text-stone-700">{choice.name || '选择'}: </span>
         <span className="text-amber-700">{names.join(', ')}</span>
       </div>
     );
@@ -257,19 +281,6 @@ function renderChoiceSelection(choice: any, traitSelections: Record<string, stri
 
   // 工具熟练
   if (choice.dynamic === 'tool') {
-    const toolMap: Record<string, string> = {
-      'thieves-tools': '盗贼工具',
-      'smiths-tools': '铁匠工具',
-      'brewers-supplies': '酿酒工具',
-      'asons-tools': '石匠工具',
-      'disguise-kit': '易容工具',
-      'forgery-kit': '造假工具',
-      'herbalism-kit': '草药志',
-      'navigators-tools': '航海工具',
-      'poisoners-kit': '制毒工具',
-      'land-vehicles': '陆地载具',
-      'water-vehicles': '水上载具'
-    };
     const names = selectedIds.map(id => toolMap[id] || id);
     return (
       <div key={choice.id} className="mt-1 text-xs font-sans">

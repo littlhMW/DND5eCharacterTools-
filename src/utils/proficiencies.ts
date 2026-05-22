@@ -25,7 +25,7 @@ export const SKILL_NAMES: Record<string, string> = {
 export function getAbilityTotal(c: Character, race?: Race, subrace?: Subrace, ab?: Ability) {
   if (!ab) return 10;
   const base = c.baseAbilities[ab] || 10;
-  const raceBonus = race?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0;
+  const raceBonus = (race?.id === 'human' && subrace?.id === 'human-variant') ? 0 : (race?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0);
   const subraceBonus = subrace?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0;
   return base + raceBonus + subraceBonus;
 }
@@ -34,30 +34,60 @@ export function getProficiencyBonus(level: number) {
   return Math.ceil(level / 4) + 1;
 }
 
+const ID_MAP: Record<string, string> = {
+  '医疗': 'medicine',
+  '盗贼工具': 'thieves-tools',
+};
+
 export function getProficiencies(c: Character, cls?: Class, race?: Race, subrace?: Subrace, bg?: Background) {
   const saves = cls ? [...cls.saves] : [];
   
   const skills = new Set<string>();
-  if (race?.skillProficiencies) race.skillProficiencies.forEach(s => skills.add(s));
-  if (subrace?.skillProficiencies) subrace.skillProficiencies.forEach(s => skills.add(s));
-  if (bg?.skillProficiencies) bg.skillProficiencies.forEach(s => skills.add(s));
+  const tools = new Set<string>();
+
+  if (race?.skillProficiencies) race.skillProficiencies.forEach(s => skills.add(ID_MAP[s] || s));
+  if (race?.toolProficiencies) race.toolProficiencies.forEach(t => tools.add(ID_MAP[t] || t));
+
+  if (subrace?.skillProficiencies) subrace.skillProficiencies.forEach(s => skills.add(ID_MAP[s] || s));
+  if (subrace?.toolProficiencies) subrace.toolProficiencies.forEach(t => tools.add(ID_MAP[t] || t));
+
+  if (bg?.skillProficiencies) bg.skillProficiencies.forEach(s => skills.add(ID_MAP[s] || s));
+  if (bg?.toolProficiencies) bg.toolProficiencies.forEach(t => tools.add(ID_MAP[t] || t));
+
+  if (cls?.toolProficiencies) cls.toolProficiencies.forEach(t => tools.add(ID_MAP[t] || t));
   
+  if (c.skillSelections) c.skillSelections.forEach(s => skills.add(ID_MAP[s] || s));
+
   const expertise = new Set<string>();
 
   Object.entries(c.traitSelections).forEach(([choiceId, ids]) => {
-    if (!ids) return;
+    if (!ids || !Array.isArray(ids)) return;
     const isExpertise = choiceId.toLowerCase().includes('expertise') || choiceId.includes('knowledge-domain-skills');
     (ids as string[]).forEach(id => {
-      if (ALL_SKILLS.includes(id)) {
+      const normalizedId = ID_MAP[id] || id;
+      if (ALL_SKILLS.includes(normalizedId)) {
+        if (isExpertise) {
+          expertise.add(normalizedId);
+          skills.add(normalizedId);
+        } else {
+          skills.add(normalizedId);
+        }
+      } else {
+        // If it's not a skill, maybe it's a tool (like thieves-tools)
         if (isExpertise) {
           expertise.add(id);
-          skills.add(id); // Expertise implies proficiency
+          tools.add(id);
         } else {
-          skills.add(id);
+          tools.add(id);
         }
       }
     });
   });
 
-  return { saves, skills: Array.from(skills), expertise: Array.from(expertise) };
+  return { 
+    saves, 
+    skills: Array.from(skills), 
+    expertise: Array.from(expertise),
+    tools: Array.from(tools)
+  };
 }

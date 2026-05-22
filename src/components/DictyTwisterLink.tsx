@@ -13,24 +13,27 @@ interface Props {
 export function DictyTwisterLink({ type, name, subId, source, label }: Props) {
   let url = '';
   const base = 'https://5e.dickytwister.org';
-  const encodedName = encodeURIComponent(name);
+  let dtSource = source;
+  if (dtSource === 'mtof') dtSource = 'mtf';
+  if (dtSource === 'vgtm') dtSource = 'vgm'; // VGtM is often vgm
+  if (dtSource === 'erlw') dtSource = 'erlw'; // Wait, let's keep it
 
   if (type === 'rule') {
     url = `${base}/${name}`;
   } else if (type === 'race') {
-    url = `${base}/races.html#${name}_${source}`;
+    url = `${base}/races.html#${name}_${dtSource}`;
   } else if (type === 'class') {
     if (subId) {
-      url = `${base}/classes.html#${name}_${source},state:sub-${subId}-${source}=b1`;
+      url = `${base}/classes.html#${name}_${dtSource},state:sub-${subId}-${dtSource}=b1`;
     } else {
-      url = `${base}/classes.html#${name}_${source}`;
+      url = `${base}/classes.html#${name}_${dtSource}`;
     }
   } else if (type === 'background') {
-    url = `${base}/backgrounds.html#${name}_${source}`;
+    url = `${base}/backgrounds.html#${name}_${dtSource}`;
   } else if (type === 'spell') {
-    url = `${base}/spells.html#${name}_${source}`;
+    url = `${base}/spells.html#${name}_${dtSource}`;
   } else if (type === 'feat') {
-    url = `${base}/feats.html#${name}_${source}`;
+    url = `${base}/feats.html#${name}_${dtSource}`;
   }
 
   return (

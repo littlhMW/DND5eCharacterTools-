@@ -1,13 +1,21 @@
 import React from 'react';
 import { useCharacter } from '../../context/CharacterContext';
 import { races } from '../../data/races';
+import { isSourceEnabled } from '../../utils/expansionHelper';
 import { DictyTwisterLink } from '../DictyTwisterLink';
 import { TraitSelection } from '../shared/TraitSelection';
 
 export function OriginStep() {
   const { state, dispatch } = useCharacter();
   
-  const selectedRace = races.find(r => r.id === state.character.raceId);
+  const availableRaces = races.filter(r => isSourceEnabled(r.source || 'phb')).map(race => {
+    return {
+      ...race,
+      subraces: race.subraces?.filter(sr => isSourceEnabled(sr.source || race.source || 'phb'))
+    };
+  });
+
+  const selectedRace = availableRaces.find(r => r.id === state.character.raceId);
   const selectedSubrace = selectedRace?.subraces?.find(sr => sr.id === state.character.subraceId);
 
   // 生成属性加值文本
@@ -31,7 +39,7 @@ export function OriginStep() {
       <section>
         <h2 className="text-2xl font-serif text-amber-600 border-b border-stone-200 pb-3 mb-6">1. 种族</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {races.map(race => (
+          {availableRaces.map(race => (
             <div 
               key={race.id}
               onClick={() => dispatch({ type: 'SET_RACE', payload: { raceId: race.id, subraceId: race.subraces?.[0]?.id } })}
@@ -42,12 +50,17 @@ export function OriginStep() {
               }`}
             >
               <div className="flex justify-between items-center">
-                <h3 className="text-xl font-serif text-stone-900">{race.name}</h3>
-                <DictyTwisterLink type="race" name={race.name} source={race.source} />
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl font-serif text-stone-900">{race.name}</h3>
+                  {race.source && <span className="text-[10px] bg-stone-100 text-stone-500 border border-stone-200 px-1.5 py-0.5 rounded uppercase tracking-wider">{race.source}</span>}
+                </div>
+                {race.source && <DictyTwisterLink type="race" name={race.name} source={race.source} />}
               </div>
               <p className="text-stone-600 mt-2 text-xs leading-relaxed font-sans">{race.description}</p>
               {race.abilityBonuses?.length > 0 && (
-                <p className="text-[10px] text-stone-500 mt-2 font-sans">属性加值：{getAbilityBonusText(race)}</p>
+                <p className="text-[10px] text-stone-500 mt-2 font-sans">
+                  属性加值：{race.id === 'human' && state.character.subraceId === 'human-variant' ? '(已被变体替换)' : getAbilityBonusText(race)}
+                </p>
               )}
             </div>
           ))}
@@ -69,7 +82,13 @@ export function OriginStep() {
                     : 'border-stone-200 hover:border-stone-300 bg-white shadow-sm hover:shadow-md'
                 }`}
               >
-                <h3 className="text-lg font-serif text-stone-900">{subrace.name}</h3>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-serif text-stone-900">{subrace.name}</h3>
+                    {subrace.source && <span className="text-[10px] bg-stone-100 text-stone-500 border border-stone-200 px-1.5 py-0.5 rounded uppercase tracking-wider">{subrace.source}</span>}
+                  </div>
+                  {subrace.source && <DictyTwisterLink type="race" name={`${selectedRace.name} (${subrace.name.replace(selectedRace.name, '').trim()})`} source={subrace.source} />}
+                </div>
                 <p className="text-stone-600 mt-2 text-xs leading-relaxed font-sans">{subrace.description}</p>
                 {subrace.abilityBonuses?.length > 0 && (
                   <p className="text-[10px] text-stone-500 mt-2 font-sans">额外属性：{getAbilityBonusText(subrace)}</p>
@@ -88,16 +107,42 @@ export function OriginStep() {
           <div className="space-y-8">
             <div>
               <h4 className="text-sm font-sans uppercase tracking-[0.15em] text-stone-400 mb-4">基础种族: {selectedRace.name}</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-xs font-sans text-stone-600 bg-stone-50 p-4 rounded-md border border-stone-100">
+                <div>
+                  <span className="font-semibold text-stone-800 block mb-1">体型</span>
+                  {selectedRace.size === 'Medium' ? '中型' : selectedRace.size === 'Small' ? '小型' : selectedRace.size}
+                </div>
+                <div>
+                  <span className="font-semibold text-stone-800 block mb-1">速度</span>
+                  {selectedRace.speed} 尺
+                </div>
+                <div>
+                  <span className="font-semibold text-stone-800 block mb-1">感官</span>
+                  {selectedRace.vision || '普通视觉'}
+                </div>
+                <div>
+                  <span className="font-semibold text-stone-800 block mb-1">语言</span>
+                  {selectedRace.languages.join(', ')}
+                </div>
+              </div>
               <div className="grid gap-4">
-                {selectedRace.traits.map((t, index) => (
-                  <div key={`race-trait-${index}`} className="bg-stone-50 p-3 rounded-md border border-stone-100">
-                    <h5 className="font-semibold text-stone-800 text-base">{t.name}</h5>
-                    <p className="text-stone-600 text-xs mt-1.5 leading-relaxed font-sans">{t.description}</p>
-                    {t.choices && t.choices.map(choice => (
-                      <TraitSelection key={choice.id} choice={choice} />
-                    ))}
-                  </div>
-                ))}
+                {selectedRace.traits
+                  .filter(t => {
+                    if (selectedSubrace) {
+                      if (selectedRace.id === 'half-elf' && t.name === '多才多艺') return false;
+                      if (selectedRace.id === 'tiefling' && t.name === '炼狱传承') return false;
+                    }
+                    return true;
+                  })
+                  .map((t, index) => (
+                    <div key={`race-trait-${index}`} className="bg-stone-50 p-3 rounded-md border border-stone-100">
+                      <h5 className="font-semibold text-stone-800 text-base">{t.name}</h5>
+                      <p className="text-stone-600 text-xs mt-1.5 leading-relaxed font-sans">{t.description}</p>
+                      {t.choices && t.choices.map(choice => (
+                        <TraitSelection key={choice.id} choice={choice} />
+                      ))}
+                    </div>
+                  ))}
               </div>
             </div>
 
