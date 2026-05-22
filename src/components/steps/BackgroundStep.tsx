@@ -6,11 +6,39 @@ import { TraitSelection } from '../shared/TraitSelection';
 import { Dices } from 'lucide-react';
 
 import { SKILL_NAMES } from '../../utils/proficiencies';
+import { getAIConfig } from '../../utils/aiHelper';
+import { generateXgeBackstory } from '../../utils/xgeLifeGenerator';
 
 export function BackgroundStep() {
   const { state, dispatch } = useCharacter();
+  const aiLocalConfig = getAIConfig();
   
   const selectedBackground = backgrounds.find(bg => bg.id === state.character.backgroundId);
+
+  const handleXgeGenerate = () => {
+    const xgeText = generateXgeBackstory({
+      backgroundId: state.character.backgroundId,
+      classId: state.character.classId,
+    });
+    
+    const currentBackstory = state.character.backstory || '';
+    const match = currentBackstory.match(/(这是你的人生[:：]|【XGE 经历：这是你的人生】[:：]?)/);
+    
+    let newBackstory = '';
+    if (match && typeof match.index === 'number') {
+      const preText = currentBackstory.substring(0, match.index).trim();
+      newBackstory = preText ? `${preText}\n\n${xgeText}` : xgeText;
+    } else {
+      newBackstory = currentBackstory 
+        ? `${currentBackstory}\n\n${xgeText}`
+        : xgeText;
+    }
+      
+    dispatch({
+      type: 'UPDATE_BASIC_INFO',
+      payload: { backstory: newBackstory },
+    });
+  };
 
   const rollTrait = (field: 'personality' | 'ideals' | 'bonds' | 'flaws', options: string[]) => {
     if (options && options.length > 0) {
@@ -131,14 +159,18 @@ export function BackgroundStep() {
                   <h5 className="font-semibold text-amber-600 flex items-center gap-2">
                     {selectedBackground.specialty.name}
                     <button
+                      type="button"
                       onClick={() => {
                         if (selectedBackground.specialty?.options && selectedBackground.specialty.options.length > 0) {
                           const randomIndex = Math.floor(Math.random() * selectedBackground.specialty.options.length);
                           const opt = selectedBackground.specialty.options[randomIndex];
-                          dispatch({ type: 'UPDATE_BASIC_INFO', payload: { backstory: opt } });
+                          dispatch({ type: 'UPDATE_BASIC_INFO', payload: { specialty: opt } });
+                          if (!state.character.backstory) {
+                            dispatch({ type: 'UPDATE_BASIC_INFO', payload: { backstory: opt } });
+                          }
                         }
                       }}
-                      className="p-1.5 text-stone-400 hover:text-amber-600 hover:bg-amber-50 rounded-full transition-colors flex items-center text-xs font-sans gap-1"
+                      className="p-1.5 text-stone-400 hover:text-amber-600 hover:bg-amber-50 rounded-full transition-colors flex items-center text-xs font-sans gap-1 cursor-pointer border-none bg-transparent"
                       title="随机投掷"
                     >
                       <Dices className="w-4 h-4" />
@@ -147,23 +179,26 @@ export function BackgroundStep() {
                   </h5>
                 </div>
                 
-                <textarea 
-                  value={state.character.backstory || ''}
-                  onChange={(e) => dispatch({ type: 'UPDATE_BASIC_INFO', payload: { backstory: e.target.value } })}
-                  placeholder="点击下方选项或通过掷骰选择特色，你也可以直接在这里完善背景故事..."
-                  className="w-full bg-white border border-stone-200 rounded-xl p-3 text-stone-900 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors shadow-sm resize-none font-sans text-sm mb-3"
-                  rows={1}
+                <input 
+                  type="text"
+                  value={state.character.specialty || ''}
+                  onChange={(e) => handleTraitChange('specialty', e.target.value)}
+                  placeholder={`输入你的${selectedBackground.specialty.name}...`}
+                  className="w-full bg-white border border-stone-200 rounded-md p-3 text-stone-900 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors shadow-sm font-sans text-sm mb-4 h-[44px]"
                 />
 
                 <ul className="space-y-2">
                   {selectedBackground.specialty.options.map((opt, index) => {
-                    const isSelected = state.character.backstory === opt;
+                    const isSelected = state.character.specialty === opt;
                     return (
                       <li 
                         key={index} 
                         className="text-stone-600 text-sm font-sans flex items-start gap-2 cursor-pointer hover:text-amber-700 transition-colors p-1.5 rounded-lg hover:bg-white"
                         onClick={() => {
-                          dispatch({ type: 'UPDATE_BASIC_INFO', payload: { backstory: opt } });
+                          handleTraitChange('specialty', opt);
+                          if (!state.character.backstory) {
+                            dispatch({ type: 'UPDATE_BASIC_INFO', payload: { backstory: opt } });
+                          }
                         }}
                       >
                         <span className="text-amber-600/50 mt-0.5 font-mono text-xs">{index + 1}.</span>
@@ -191,8 +226,9 @@ export function BackgroundStep() {
                       <h5 className="font-semibold text-amber-600 flex items-center gap-2">
                         {label}
                         <button
+                          type="button"
                           onClick={() => rollTrait(id, data)}
-                          className="p-1.5 text-stone-400 hover:text-amber-600 hover:bg-amber-50 rounded-full transition-colors flex items-center text-xs font-sans gap-1"
+                          className="p-1.5 text-stone-400 hover:text-amber-600 hover:bg-amber-50 rounded-full transition-colors flex items-center text-xs font-sans gap-1 cursor-pointer border-none bg-transparent"
                           title="随机投掷"
                         >
                           <Dices className="w-4 h-4" />
@@ -200,7 +236,6 @@ export function BackgroundStep() {
                         </button>
                       </h5>
                     </div>
-                    {/* Render the current chosen text for this trait */}
                     <textarea 
                       value={state.character[id] || ''}
                       onChange={(e) => handleTraitChange(id, e.target.value)}
@@ -225,6 +260,28 @@ export function BackgroundStep() {
               </div>
             </div>
           )}
+
+          {/* 背景故事 section - unconditionally always present */}
+          <div className="pt-6 border-t border-stone-200 mt-6 font-sans text-left">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-sans uppercase tracking-[0.15em] text-stone-400">背景故事</h4>
+              {aiLocalConfig.xgeEnabled && (
+                <button
+                  type="button"
+                  onClick={handleXgeGenerate}
+                  className="px-2.5 py-1 text-xs font-semibold text-amber-700 bg-amber-50 rounded border border-amber-200 hover:bg-amber-100/50 hover:border-amber-300 transition-all flex items-center gap-1 cursor-pointer active:scale-95 border-none"
+                >
+                  生成生平经历
+                </button>
+              )}
+            </div>
+            <textarea 
+              value={state.character.backstory || ''}
+              onChange={(e) => dispatch({ type: 'UPDATE_BASIC_INFO', payload: { backstory: e.target.value } })}
+              placeholder="在此处手动编写角色的背景故事，它们会在最终的角色卡中完整展现。若开启了生平配置，可点击上方按钮生成并追加精彩的人生轨迹经历。"
+              className="w-full bg-white border border-stone-200 rounded-xl p-4 text-stone-900 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors shadow-sm font-sans text-sm h-32 leading-relaxed"
+            />
+          </div>
         </section>
       )}
     </div>
