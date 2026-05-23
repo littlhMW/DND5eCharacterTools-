@@ -515,10 +515,14 @@ export const classes: DndClass[] = [
             "options": [
               {
                 "id": "opt-0",
-                "name": "(a)一把刺剑, (b)一把长剑,"
+                "name": "(a)一把刺剑"
               },
               {
                 "id": "opt-1",
+                "name": "(b)一把长剑"
+              },
+              {
+                "id": "opt-2",
                 "name": "(c)任何一把简易武器"
               }
             ]
@@ -1323,10 +1327,14 @@ export const classes: DndClass[] = [
             "options": [
               {
                 "id": "opt-0",
-                "name": "(a)一件鳞甲, (b)一件皮甲,"
+                "name": "(a)一件鳞甲"
               },
               {
                 "id": "opt-1",
+                "name": "(b)一件皮甲"
+              },
+              {
+                "id": "opt-2",
                 "name": "(c)一件锁子甲(若熟练)"
               }
             ]
@@ -6098,10 +6106,14 @@ export const classes: DndClass[] = [
             "options": [
               {
                 "id": "opt-0",
-                "name": "(a)一套窃贼套装, (b)一套地城探险家套装,"
+                "name": "(a)一套窃贼套装"
               },
               {
                 "id": "opt-1",
+                "name": "(b)一套地城探险家套装"
+              },
+              {
+                "id": "opt-2",
                 "name": "(c)一套探索者套装"
               }
             ]
