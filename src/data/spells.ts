@@ -4,8 +4,8 @@ import { spells as dmgSpells } from './dmg/spells';
 import { spells as xgeSpells } from './xge/spells';
 import { spells as tceSpells } from './tce/spells';
 import { spells as scagSpells } from './scag/spells';
-import { spells as vgtmSpells } from './vgtm/spells';
-import { spells as mtofSpells } from './mtof/spells';
+import { spells as vgmSpells } from './vgm/spells';
+import { spells as mtfSpells } from './mtf/spells';
 import { spells as erlwSpells } from './erlw/spells';
 import { spells as egwSpells } from './egw/spells';
 import { spells as ggrSpells } from './ggr/spells';
@@ -14,7 +14,7 @@ import { spells as vrgrSpells } from './vrgr/spells';
 import { spells as rotSpells } from './rot/spells';
 import { spells as aiSpells } from './ai/spells';
 import { spells as eeSpells } from './ee/spells';
-import { spells as ftodSpells } from './ftod/spells';
+import { spells as fodSpells } from './fod/spells';
 import { spells as gosSpells } from './gos/spells';
 import { spells as bgdiaSpells } from './bgdia/spells';
 import { spells as cosSpells } from './cos/spells';
@@ -26,8 +26,8 @@ export const spells: Spell[] = [
   ...xgeSpells,
   ...tceSpells,
   ...scagSpells,
-  ...vgtmSpells,
-  ...mtofSpells,
+  ...vgmSpells,
+  ...mtfSpells,
   ...erlwSpells,
   ...egwSpells,
   ...ggrSpells,
@@ -36,7 +36,7 @@ export const spells: Spell[] = [
   ...rotSpells,
   ...aiSpells,
   ...eeSpells,
-  ...ftodSpells,
+  ...fodSpells,
   ...gosSpells,
   ...bgdiaSpells,
   ...cosSpells,

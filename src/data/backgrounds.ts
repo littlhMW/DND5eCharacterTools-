@@ -4,8 +4,8 @@ import { backgrounds as dmgBackgrounds } from './dmg/backgrounds';
 import { backgrounds as xgeBackgrounds } from './xge/backgrounds';
 import { backgrounds as tceBackgrounds } from './tce/backgrounds';
 import { backgrounds as scagBackgrounds } from './scag/backgrounds';
-import { backgrounds as vgtmBackgrounds } from './vgtm/backgrounds';
-import { backgrounds as mtofBackgrounds } from './mtof/backgrounds';
+import { backgrounds as vgmBackgrounds } from './vgm/backgrounds';
+import { backgrounds as mtfBackgrounds } from './mtf/backgrounds';
 import { backgrounds as erlwBackgrounds } from './erlw/backgrounds';
 import { backgrounds as egwBackgrounds } from './egw/backgrounds';
 import { backgrounds as ggrBackgrounds } from './ggr/backgrounds';
@@ -14,7 +14,7 @@ import { backgrounds as vrgrBackgrounds } from './vrgr/backgrounds';
 import { backgrounds as rotBackgrounds } from './rot/backgrounds';
 import { backgrounds as aiBackgrounds } from './ai/backgrounds';
 import { backgrounds as eeBackgrounds } from './ee/backgrounds';
-import { backgrounds as ftodBackgrounds } from './ftod/backgrounds';
+import { backgrounds as fodBackgrounds } from './fod/backgrounds';
 import { backgrounds as gosBackgrounds } from './gos/backgrounds';
 import { backgrounds as bgdiaBackgrounds } from './bgdia/backgrounds';
 import { backgrounds as cosBackgrounds } from './cos/backgrounds';
@@ -26,8 +26,8 @@ export const backgrounds: Background[] = [
   ...xgeBackgrounds,
   ...tceBackgrounds,
   ...scagBackgrounds,
-  ...vgtmBackgrounds,
-  ...mtofBackgrounds,
+  ...vgmBackgrounds,
+  ...mtfBackgrounds,
   ...erlwBackgrounds,
   ...egwBackgrounds,
   ...ggrBackgrounds,
@@ -36,7 +36,7 @@ export const backgrounds: Background[] = [
   ...rotBackgrounds,
   ...aiBackgrounds,
   ...eeBackgrounds,
-  ...ftodBackgrounds,
+  ...fodBackgrounds,
   ...gosBackgrounds,
   ...bgdiaBackgrounds,
   ...cosBackgrounds,

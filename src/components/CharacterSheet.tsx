@@ -11,6 +11,7 @@ import { DictyTwisterLink } from './DictyTwisterLink';
 import { EquipmentText } from './shared/EquipmentText';
 import { FormattedDescription } from './shared/FormattedDescription';
 import { getProficiencies, getProficiencyBonus, SKILL_NAMES, SKILL_ABILITIES } from '../utils/proficiencies';
+import { getCleanDescription } from '../utils/customRollTraits';
 
 const TABS = ['概览', '职业特性', '专长', '法术', '状态与装备', '背景与细节'];
 
@@ -23,7 +24,7 @@ export function CharacterSheet() {
   const race = races.find(r => r.id === c.raceId);
   const subrace = race?.subraces?.find(sr => sr.id === c.subraceId);
   const cls = classes.find(cl => cl.id === c.classId);
-  const subclass = cls?.subclasses.find(sc => sc.id === c.subclassId);
+  const subclass = cls?.subclasses?.find(sc => sc.id === c.subclassId);
   const bg = backgrounds.find(b => b.id === c.backgroundId);
   const finalRaceSpells = (race?.id === 'tiefling' && subrace) ? [] : (race?.spells || []);
 
@@ -437,7 +438,7 @@ if (cls.id === 'wizard') {
                   ].sort((a, b) => (a.level || 0) - (b.level || 0)).map((t, index) => (
                     <li key={`${t.name}-${t.level}-${index}`} className="relative pl-4 before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-stone-300">
                       <strong className="text-stone-900 block mb-1 font-serif text-lg">{t.name} <span className="text-[10px] text-stone-500 bg-stone-200 px-2 py-0.5 rounded-full ml-2 uppercase tracking-widest font-bold">LV {t.level}</span></strong>
-                      <FormattedDescription text={t.description} className="text-sm font-sans text-stone-700 leading-relaxed block" />
+                      <FormattedDescription text={getCleanDescription(t.name, t.description, c.traitSelections)} className="text-sm font-sans text-stone-700 leading-relaxed block" />
                       {t.choices && t.choices.map(choice => {
                         const ids = c.traitSelections[choice.id] || [];
                         if (ids.length === 0) return null;

@@ -283,7 +283,16 @@ export const races: Race[] = [
     ],
     spells: [],
     source: 'phb',
-    subraces: []
+    subraces: [
+      {
+        id: 'half-elf-normal',
+        name: '半精灵 (本相)',
+        description: '标准半精灵，保留了其多才多艺与精妙的精类血统传承。',
+        abilityBonuses: [],
+        traits: [],
+        spells: []
+      }
+    ]
   },
   {
     id: 'tiefling',
@@ -305,7 +314,16 @@ export const races: Race[] = [
       { level: 5, spellId: 'darkness' }
     ],
     source: 'phb',
-    subraces: []
+    subraces: [
+      {
+        id: 'tiefling-normal',
+        name: '提夫林 (本相)',
+        description: '标准提夫林，传承了古老契约带来的炼狱抗性与天生魔法。',
+        abilityBonuses: [],
+        traits: [],
+        spells: []
+      }
+    ]
   },
   {
     id: 'halfling',
@@ -364,7 +382,16 @@ export const races: Race[] = [
     spells: [],
     skillProficiencies: ['intimidation'],
     source: 'phb',
-    subraces: []
+    subraces: [
+      {
+        id: 'half-orc-normal',
+        name: '半兽人 (本相)',
+        description: '标准半兽人，将永不退缩的顽强耐性与暴烈力量融于一身。',
+        abilityBonuses: [],
+        traits: [],
+        spells: []
+      }
+    ]
   },
   {
     id: 'gnome',

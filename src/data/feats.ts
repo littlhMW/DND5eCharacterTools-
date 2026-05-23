@@ -4,8 +4,8 @@ import { feats as dmgFeats } from './dmg/feats';
 import { feats as xgeFeats } from './xge/feats';
 import { feats as tceFeats } from './tce/feats';
 import { feats as scagFeats } from './scag/feats';
-import { feats as vgtmFeats } from './vgtm/feats';
-import { feats as mtofFeats } from './mtof/feats';
+import { feats as vgmFeats } from './vgm/feats';
+import { feats as mtfFeats } from './mtf/feats';
 import { feats as erlwFeats } from './erlw/feats';
 import { feats as egwFeats } from './egw/feats';
 import { feats as ggrFeats } from './ggr/feats';
@@ -14,7 +14,7 @@ import { feats as vrgrFeats } from './vrgr/feats';
 import { feats as rotFeats } from './rot/feats';
 import { feats as aiFeats } from './ai/feats';
 import { feats as eeFeats } from './ee/feats';
-import { feats as ftodFeats } from './ftod/feats';
+import { feats as fodFeats } from './fod/feats';
 import { feats as gosFeats } from './gos/feats';
 import { feats as bgdiaFeats } from './bgdia/feats';
 import { feats as cosFeats } from './cos/feats';
@@ -26,8 +26,8 @@ export const feats: Feat[] = [
   ...xgeFeats,
   ...tceFeats,
   ...scagFeats,
-  ...vgtmFeats,
-  ...mtofFeats,
+  ...vgmFeats,
+  ...mtfFeats,
   ...erlwFeats,
   ...egwFeats,
   ...ggrFeats,
@@ -36,7 +36,7 @@ export const feats: Feat[] = [
   ...rotFeats,
   ...aiFeats,
   ...eeFeats,
-  ...ftodFeats,
+  ...fodFeats,
   ...gosFeats,
   ...bgdiaFeats,
   ...cosFeats,

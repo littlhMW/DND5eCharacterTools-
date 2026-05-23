@@ -9,6 +9,8 @@ import { classSpellLists } from '../data/spellLists';
 import { DictyTwisterLink } from './DictyTwisterLink';
 import { Ability } from '../types/dnd';
 import { getProficiencies, getProficiencyBonus, SKILL_NAMES, SKILL_ABILITIES } from '../utils/proficiencies';
+import { FormattedDescription } from './shared/FormattedDescription';
+import { getCleanDescription } from '../utils/customRollTraits';
 
 export function CharacterSummary() {
   const { state } = useCharacter();
@@ -17,7 +19,7 @@ export function CharacterSummary() {
   const race = races.find(r => r.id === c.raceId);
   const subrace = race?.subraces?.find(sr => sr.id === c.subraceId);
   const cls = classes.find(cl => cl.id === c.classId);
-  const subclass = cls?.subclasses.find(sc => sc.id === c.subclassId);
+  const subclass = cls?.subclasses?.find(sc => sc.id === c.subclassId);
   const bg = backgrounds.find(b => b.id === c.backgroundId);
 
   // 根据法术 ID 获取名称的辅助函数
@@ -64,7 +66,7 @@ export function CharacterSummary() {
           {cls && (
             <span className="flex items-center group relative italic bg-stone-200/50 pl-2 pr-1 py-1 rounded-md text-stone-700">
                <span>{subclass?.name || cls.name}</span>
-               <DictyTwisterLink type="class" name={cls.name} subId={subclass?.id} source={cls.source || 'phb'} />
+               <DictyTwisterLink type="class" name={cls.name} subId={subclass?.id} source={subclass?.source || cls.source || 'phb'} baseSource={cls.source || 'phb'} />
             </span>
           )}
         </div>
@@ -181,7 +183,7 @@ export function CharacterSummary() {
                   {t.name}
                   {t.isSubclass && <span className="text-xs font-sans bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded ml-2 align-middle border border-amber-200/50">子职业</span>}
                 </span>
-                <span className="text-stone-500 leading-relaxed font-sans text-xs">{t.description}</span>
+                <FormattedDescription text={getCleanDescription(t.name, t.description, c.traitSelections)} className="text-stone-500 leading-relaxed font-sans text-xs" />
                 {t.choices?.map(choice => renderChoiceSelection(choice, c.traitSelections))}
               </li>
             ))}

@@ -15,7 +15,7 @@ export function BackgroundStep() {
   const aiLocalConfig = getAIConfig();
   
   const selectedBackground = backgrounds.find(bg => bg.id === state.character.backgroundId);
-  const availableBackgrounds = backgrounds.filter(bg => isSourceEnabled(bg.source || 'phb'));
+  const availableBackgrounds = backgrounds.filter(bg => isSourceEnabled(bg.source || 'phb', 'backgrounds'));
 
   const handleXgeGenerate = () => {
     const xgeText = generateXgeBackstory({

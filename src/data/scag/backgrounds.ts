@@ -5,7 +5,7 @@ export const backgrounds: Background[] = [
     id: "variant_city_watch_investigator",
     name: "变体城市守卫 (调查员)",
     description: "由于你执行法律、与处理犯法者的丰富经验，你对于地方法律和罪犯有着异常敏锐的感觉。",
-    skillProficiencies: ["Insight", "Investigation"],
+    skillProficiencies: ['insight', 'investigation'],
     toolProficiencies: [],
     languages: 2,
     startingEquipment: ["一件代表你军阶的所属组织的制服", "一个用来呼唤帮手的号角", "一副镣铐", "10 gp"],
@@ -55,7 +55,7 @@ export const backgrounds: Background[] = [
     id: "courtier",
     name: "朝臣",
     description: "你对于官僚运作模式的知识，让你得以接触到关于你所遇到的贵族政议院和政府的纪录文件和内部运作。",
-    skillProficiencies: ["Insight", "Persuasion"],
+    skillProficiencies: ['insight', 'persuasion'],
     toolProficiencies: [],
     languages: 2,
     startingEquipment: ["一套高级服装", "5 gp"],
@@ -105,7 +105,7 @@ export const backgrounds: Background[] = [
     id: "urban_bounty_hunter",
     name: "城市赏金猎人",
     description: "你经常与那些你猎物所在社会阶层的人们接触。这些人们可能会关联于某个罪犯里世界、街头暴徒、或是上流社会的成员。",
-    skillProficiencies: ["Deception", "Insight", "Persuasion", "Stealth"], // Choose 2, handled in UI normally, we list all possible
+    skillProficiencies: ['deception', 'insight', 'persuasion', 'stealth'], // Choose 2, handled in UI normally, we list all possible
     toolProficiencies: ["一种赌具", "一种乐器", "盗贼工具"], // Choose 2
     languages: 0,
     startingEquipment: ["一套符合你任务的服装", "20 gp"],
@@ -155,7 +155,7 @@ export const backgrounds: Background[] = [
     id: "city_watch",
     name: "城市守卫",
     description: "由于你执行法律、与处理犯法者的丰富经验，你对于地方法律和罪犯有着异常敏锐的感觉。",
-    skillProficiencies: ["Athletics", "Insight"],
+    skillProficiencies: ['athletics', 'insight'],
     toolProficiencies: [],
     languages: 2,
     startingEquipment: ["一件代表你军阶的所属组织的制服", "一个用来呼唤帮手的号角", "一副镣铐", "10 gp"],
@@ -205,7 +205,7 @@ export const backgrounds: Background[] = [
     id: "inheritor",
     name: "继承者",
     description: "你继承了一件具有特殊意义的遗物。和你的DM一起讨论并决定其细节：你的继承物为什么如此重要，它的来龙去脉又是什么？",
-    skillProficiencies: ["Survival", "Arcana", "History", "Religion"], // Survival + 1 from Arcana/History/Religion
+    skillProficiencies: ['survival', 'arcana', 'history', 'religion'], // Survival + 1 from Arcana/History/Religion
     toolProficiencies: ["一种赌具或乐器"],
     languages: 1,
     startingEquipment: ["你所继承的遗产", "一套旅行者服装", "继承的工具", "15 gp"],
@@ -255,7 +255,7 @@ export const backgrounds: Background[] = [
     id: "knight_of_the_order",
     name: "教团骑士",
     description: "你属于一个具有理想或宗教性质的骑士团，代表其执行任务并行使它的意志。",
-    skillProficiencies: ["Persuasion", "Arcana", "History", "Nature", "Religion"], // Persuasion + 1 from others
+    skillProficiencies: ['persuasion', 'arcana', 'history', 'nature', 'religion'], // Persuasion + 1 from others
     toolProficiencies: ["一种赌具或乐器"],
     languages: 1,
     startingEquipment: ["一套旅行者服装", "代表你在教团中地位的印信", "10 gp"],
@@ -305,7 +305,7 @@ export const backgrounds: Background[] = [
     id: "faction_agent",
     name: "派系特工",
     description: "作为一名派系特工，你为某个秘密或公开的阵营服务，推行它们的理念。",
-    skillProficiencies: ["Insight", "Intelligence/Wisdom/Charisma Skill"], // Insight + 1
+    skillProficiencies: ['insight', '智力/感知/魅力技能'], // Insight + 1
     toolProficiencies: [],
     languages: 2,
     startingEquipment: ["派系的徽章", "派系文件/密文", "一套寻常服装", "15 gp"],
@@ -355,7 +355,7 @@ export const backgrounds: Background[] = [
     id: "waterdhavian_noble",
     name: "深水城贵族",
     description: "你出生并成长在一个赋予你特权与义务的家族，作为深水城的一名贵族。",
-    skillProficiencies: ["History", "Persuasion"],
+    skillProficiencies: ['history', 'persuasion'],
     toolProficiencies: ["一种赌具或乐器"],
     languages: 1,
     startingEquipment: ["一套高级服装", "一枚玺戒或胸针", "一卷家系族谱", "一囊袋的高级札尔酒", "20 gp"],
@@ -405,7 +405,7 @@ export const backgrounds: Background[] = [
     id: "clan_crafter",
     name: "氏族工匠",
     description: "你在矮人氏族中受训，不仅掌握了技艺，还赢得了众矮人的敬重。",
-    skillProficiencies: ["History", "Insight"],
+    skillProficiencies: ['history', 'insight'],
     toolProficiencies: ["一种工匠工具"],
     languages: 1, // 矮人语
     startingEquipment: ["工匠工具", "雕凿标志的凿子", "一套旅行者服装", "5 gp", "10 gp 珠宝"],
@@ -455,7 +455,7 @@ export const backgrounds: Background[] = [
     id: "uthgardt_tribe_member",
     name: "乌斯伽部落成员",
     description: "由于你丰富的野外生活经验以及对乌斯伽文化的了解，你对荒野了如指掌。",
-    skillProficiencies: ["Athletics", "Survival"],
+    skillProficiencies: ['athletics', 'survival'],
     toolProficiencies: ["一种乐器或工匠工具"],
     languages: 1,
     startingEquipment: ["一个狩猎陷阱", "图腾象征物", "一套旅行者服装", "10 gp"],
@@ -505,7 +505,7 @@ export const backgrounds: Background[] = [
     id: "cloistered_scholar",
     name: "修院学士",
     description: "你在与世隔绝的修道院或图书馆中度过了大量时光，掌握了探寻知识的途径。",
-    skillProficiencies: ["History", "Arcana", "Nature", "Religion"], // History + 1 others
+    skillProficiencies: ['history', 'arcana', 'nature', 'religion'], // History + 1 others
     toolProficiencies: [],
     languages: 2,
     startingEquipment: ["学士长袍", "书写工具组", "一本借来的书", "10 gp"],
@@ -555,7 +555,7 @@ export const backgrounds: Background[] = [
     id: "mercenary_veteran",
     name: "佣兵老将",
     description: "你深知佣兵生涯中只有经历过才能理解的一切。",
-    skillProficiencies: ["Athletics", "Persuasion"],
+    skillProficiencies: ['athletics', 'persuasion'],
     toolProficiencies: ["一种赌具", "载具（陆上）"],
     languages: 0,
     startingEquipment: ["佣兵团的制服", "阶级的佩章", "赌具", "10 gp"],
@@ -605,7 +605,7 @@ export const backgrounds: Background[] = [
     id: "far_traveler",
     name: "远行者",
     description: "你的口音、举止和外表都彰显着你是个外地人。所有好奇的目光总会伴随着你。",
-    skillProficiencies: ["Insight", "Perception"],
+    skillProficiencies: ['insight', 'perception'],
     toolProficiencies: ["一种赌具或乐器"],
     languages: 1,
     startingEquipment: ["一套旅行者服装", "乐器或赌具", "家乡的拙劣地图", "5 gp"],

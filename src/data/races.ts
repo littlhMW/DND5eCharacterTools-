@@ -4,8 +4,8 @@ import { races as dmgRaces } from './dmg/races';
 import { races as xgeRaces } from './xge/races';
 import { races as tceRaces } from './tce/races';
 import { races as scagRaces } from './scag/races';
-import { races as vgtmRaces } from './vgtm/races';
-import { races as mtofRaces } from './mtof/races';
+import { races as vgmRaces } from './vgm/races';
+import { races as mtfRaces } from './mtf/races';
 import { races as erlwRaces } from './erlw/races';
 import { races as egwRaces } from './egw/races';
 import { races as ggrRaces } from './ggr/races';
@@ -14,7 +14,7 @@ import { races as vrgrRaces } from './vrgr/races';
 import { races as rotRaces } from './rot/races';
 import { races as aiRaces } from './ai/races';
 import { races as eeRaces } from './ee/races';
-import { races as ftodRaces } from './ftod/races';
+import { races as fodRaces } from './fod/races';
 import { races as gosRaces } from './gos/races';
 import { races as bgdiaRaces } from './bgdia/races';
 import { races as cosRaces } from './cos/races';
@@ -26,8 +26,8 @@ export const races: Race[] = mergeRaces([
   ...xgeRaces,
   ...tceRaces,
   ...scagRaces,
-  ...vgtmRaces,
-  ...mtofRaces,
+  ...vgmRaces,
+  ...mtfRaces,
   ...erlwRaces,
   ...egwRaces,
   ...ggrRaces,
@@ -36,7 +36,7 @@ export const races: Race[] = mergeRaces([
   ...rotRaces,
   ...aiRaces,
   ...eeRaces,
-  ...ftodRaces,
+  ...fodRaces,
   ...gosRaces,
   ...bgdiaRaces,
   ...cosRaces,

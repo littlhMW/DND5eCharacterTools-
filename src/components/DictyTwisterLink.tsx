@@ -1,39 +1,66 @@
+/**
+ * Wiki 外部链接组件与规范说明
+ * 
+ * 格式要求和规范：
+ * 1. 当文本中需要出现指向具体规则、职业、物品、法术的外部Wiki链接时，应该使用统一的超链接系统。
+ * 2. 如果你在描述文本 (如 JSON 的 description 字段) 中直接嵌入链接，请使用 Markdown 格式：
+ *    例如：`[工匠工具](https://5e.dickytwister.org/items.html#工匠工具_phb)`
+ *    带有子分类状态的链接：`[狂野魔法浪涌表](https://5e.dickytwister.org/classes.html#术士_phb,state:sub-wild-magic-phb=b1)`
+ * 3. 来源书籍(source)后缀通常是书籍对应的缩写，例如 _phb, _tce, _xge 等，特殊的会有 _mtf (MToF) 或 _vgm (VGtM)。
+ * 4. DictyTwisterLink 组件专门用于在 React 代码中更优雅地渲染这些外部小标/按钮。
+ */
+
 import React, { useState } from 'react';
 import { BookOpen, Plus, X } from 'lucide-react';
 import { useCharacter } from '../context/CharacterContext';
 
 interface Props {
-  type: 'race' | 'class' | 'background' | 'spell' | 'rule' | 'feat';
+  type: 'race' | 'class' | 'background' | 'spell' | 'rule' | 'feat' | 'item' | 'monster';
   name: string;
   subId?: string;
-  source: string;
+  source?: string;
+  baseSource?: string;
   label?: string;
 }
 
-export function DictyTwisterLink({ type, name, subId, source, label }: Props) {
+export function DictyTwisterLink({ type, name, subId, source, baseSource, label }: Props) {
   let url = '';
   const base = 'https://5e.dickytwister.org';
-  let dtSource = source;
+  let dtSource = (source || '').toLowerCase();
   if (dtSource === 'mtof') dtSource = 'mtf';
   if (dtSource === 'vgtm') dtSource = 'vgm'; // VGtM is often vgm
-  if (dtSource === 'erlw') dtSource = 'erlw'; // Wait, let's keep it
+  if (dtSource === 'erlw') dtSource = 'erlw'; 
+
+  let dtBaseSource = (baseSource || dtSource).toLowerCase();
+  if (dtBaseSource === 'mtof') dtBaseSource = 'mtf';
+  if (dtBaseSource === 'vgtm') dtBaseSource = 'vgm';
+
+  // url encode name properly, but keeping it simple for Chinese strings
+  const encodedName = encodeURIComponent(name).replace(/%20/g, '%20');
+  const encodedSubId = subId ? subId.toLowerCase() : '';
+
+  const getHash = (nameEnc: string, sourceStr: string) => sourceStr ? `#${nameEnc}_${sourceStr}` : `#${nameEnc}`;
 
   if (type === 'rule') {
     url = `${base}/${name}`;
   } else if (type === 'race') {
-    url = `${base}/races.html#${name}_${dtSource}`;
+    url = `${base}/races.html${getHash(encodedName, dtSource)}`;
   } else if (type === 'class') {
-    if (subId) {
-      url = `${base}/classes.html#${name}_${dtSource},state:sub-${subId}-${dtSource}=b1`;
+    if (encodedSubId) {
+      url = `${base}/classes.html${getHash(encodedName, dtBaseSource)},state:sub-${encodedSubId}${dtSource ? '-' + dtSource : ''}=b1`;
     } else {
-      url = `${base}/classes.html#${name}_${dtSource}`;
+      url = `${base}/classes.html${getHash(encodedName, dtSource)}`;
     }
   } else if (type === 'background') {
-    url = `${base}/backgrounds.html#${name}_${dtSource}`;
+    url = `${base}/backgrounds.html${getHash(encodedName, dtSource)}`;
   } else if (type === 'spell') {
-    url = `${base}/spells.html#${name}_${dtSource}`;
+    url = `${base}/spells.html${getHash(encodedName, dtSource)}`;
   } else if (type === 'feat') {
-    url = `${base}/feats.html#${name}_${dtSource}`;
+    url = `${base}/feats.html${getHash(encodedName, dtSource)}`;
+  } else if (type === 'item') {
+    url = `${base}/items.html${getHash(encodedName, dtSource)}`;
+  } else if (type === 'monster') {
+    url = `${base}/bestiary.html${getHash(encodedName, dtSource)}`;
   }
 
   return (

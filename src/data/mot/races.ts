@@ -4,7 +4,7 @@ export const races: Race[] = [
   {
     id: 'triton',
     name: '梭螺鱼人',
-    description: '深海战士，守序善良。',
+    description: '梭螺鱼人是尊贵自豪的深海守护者。他们为剿灭深渊邪物而建立起水下堡垒。虽因长期与陆地隔绝而显得有些傲慢，但其内心极富正意、勇武无畏，是天生的海洋斗士。',
     abilityBonuses: [{ ability: 'STR', bonus: 1 }, { ability: 'CON', bonus: 1 }, { ability: 'CHA', bonus: 1 }],
     size: 'Medium',
     speed: 30,

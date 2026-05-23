@@ -4,7 +4,7 @@ export const races: Race[] = [
   {
     id: 'aarakocra',
     name: '阿兰寇拉鹰人',
-    description: '阿兰寇拉鹰人大约5尺高。他们有着体重介于80到100磅之间，纤细而轻盈的身体。',
+    description: '阿兰寇拉鹰人是源自风元素位面的高空守望者。他们体态纤细轻盈，渴望在无边天际自由飞翔。作为捕猎与侦察大师，他们怀揣着对大地的警惕，誓死守卫高山巢穴与远古盟约。',
     abilityBonuses: [{ ability: 'DEX', bonus: 2 }, { ability: 'WIS', bonus: 1 }],
     size: 'Medium',
     speed: 25,
@@ -20,7 +20,7 @@ export const races: Race[] = [
   {
     id: 'genasi',
     name: '元素裔',
-    description: '独立而自信，元素裔倾向中立阵营。元素裔有着原初血脉。',
+    description: '元素裔是凡人与强大巨灵休戚与共的子嗣，其血管中奔涌着水、火、土、气等位面的原初伟力。他们继承了人类的轮廓，却流露着奇异的元素体征，多游离于社会边缘，孤傲而自由。',
     abilityBonuses: [{ ability: 'CON', bonus: 2 }],
     size: 'Medium',
     speed: 30,

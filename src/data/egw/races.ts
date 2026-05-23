@@ -17,7 +17,7 @@ export const races: Race[] = [
       {
         id: 'lotusden',
         name: '莲源半身人',
-        description: '生活在繁茂森林与自然之中，深谙野外生存与自然魔法。',
+        description: '莲源半身人是深谙荒野法则的神秘隐士。他们扎根于古老森林深处，与植物和自然界奥术低语共鸣，能够自如施展自然魔法，用繁茂草木和棘刺默默守卫林地圣所。',
         abilityBonuses: [{ ability: 'WIS', bonus: 1 }],
         traits: [
           { name: '树林之子', description: '你知晓德鲁伊伎俩戏法。3级能释放一次纠缠术。5级能释放一次荆棘丛生。' },
@@ -48,7 +48,7 @@ export const races: Race[] = [
       {
         id: 'pallid-elf',
         name: '苍白精灵',
-        description: '在漫长的阴影与地下隔离中演化的精灵。',
+        description: '苍白精灵是于巨型阴影与地下隔离中繁衍出的隐秘裔。他们因常年避世而目光雪亮、洞悉人心，身怀月织者的神圣祝福，能悄然踏碎黑夜，于重重迷雾中拨寻真实。',
         abilityBonuses: [{ ability: 'WIS', bonus: 1 }],
         traits: [
           { name: '锐利感知', description: '你在调查和洞悉检定上具有优势。' },
@@ -78,8 +78,8 @@ export const races: Race[] = [
     subraces: [
       {
         id: 'draconblood',
-        name: '龙国血统龙裔',
-        description: '在帝国中握有权柄的龙裔，通过智力与口才治国。',
+         name: '龙国血统龙裔',
+        description: '龙国血统龙裔是生来便在帝国中执掌权柄的高贵统治者。他们虽无传统龙尾，却享有龙祖馈赠的智谋与非凡威仪，擅长用巧妙的辞令同理地位征服人心，平定动荡纷争。',
         abilityBonuses: [{ ability: 'INT', bonus: 2 }, { ability: 'CHA', bonus: 1 }],
         traits: [
           { name: '黑暗视觉', description: '你在看距离你60尺范围内的事物时，微光的照明程度对你而言视作明亮，黑暗则视作微光。' },
@@ -91,7 +91,7 @@ export const races: Race[] = [
       {
         id: 'ravenite',
         name: '拾荒种龙裔',
-        description: '无尾且长期作为奴隶的反叛龙裔。',
+        description: '拾荒种龙裔是曾长期蒙受奴役，后以铁血起义赢回自由的无尾斗士。饱经苦难淬炼的他们拥有极其顽强的体魄，每当在战场遭受创伤，体内的复仇血脉便会爆发出狂暴一击。',
         abilityBonuses: [{ ability: 'STR', bonus: 2 }, { ability: 'CON', bonus: 1 }],
         traits: [
           { name: '黑暗视觉', description: '60尺黑暗视觉。' },
@@ -105,7 +105,7 @@ export const races: Race[] = [
   {
     id: 'orc',
     name: '兽人',
-    description: '有着强壮体魄。',
+    description: '兽人是体魄雄健、崇尚力量的原野开拓者。他们常年与严酷荒野抗争，将对先祖的执着和惊人爆发力熔炼于不屈意志。他们虽性情狂烈，但在行伍中也是绝对可靠的力量支柱。',
     abilityBonuses: [{ ability: 'STR', bonus: 2 }, { ability: 'CON', bonus: 1 }],
     size: 'Medium',
     speed: 30,

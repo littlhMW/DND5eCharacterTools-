@@ -6,7 +6,8 @@ import { classes } from '../data/classes';
 import { races } from '../data/races';
 import { backgrounds } from '../data/backgrounds';
 import { getAIConfig, saveAIConfig, PROVIDERS } from '../utils/aiHelper';
-import { EXPANSIONS, getActiveExpansions, saveActiveExpansions, ExpansionBook } from '../utils/expansionHelper';
+import { EXPANSIONS, getActiveExpansions, saveActiveExpansions, ExpansionBook, getExpansionSettings, saveExpansionSettings, BookSettings, isSourceEnabled } from '../utils/expansionHelper';
+import { generateXgeBackstory } from '../utils/xgeLifeGenerator';
 
 export function LandingPage() {
   const { dispatch } = useCharacter();
@@ -26,8 +27,64 @@ export function LandingPage() {
   const [openXgeModal, setOpenXgeModal] = useState(false);
   const [openExpModal, setOpenExpModal] = useState(false);
   const [activeExpansions, setActiveExpansions] = useState<string[]>(() => getActiveExpansions());
+  const [expansionSettings, setExpansionSettings] = useState<Record<string, BookSettings>>(() => getExpansionSettings());
+  const [xgePreviewBg, setXgePreviewBg] = useState('acolyte');
+  const [xgePreviewText, setXgePreviewText] = useState('');
 
   const [diceLog, setDiceLog] = useState<{ time: string, result: string }[]>([]);
+
+  const [importString, setImportString] = useState('');
+  const [showImportInput, setShowImportInput] = useState(false);
+  const [expMsg, setExpMsg] = useState({ type: '', text: '' });
+
+  const handleExportConfig = () => {
+    const configStr = JSON.stringify(expansionSettings);
+    navigator.clipboard.writeText(configStr)
+      .then(() => {
+        setExpMsg({ type: 'success', text: '✅ 已复制配置到剪贴板！' });
+        setTimeout(() => setExpMsg({ type: '', text: '' }), 4000);
+      })
+      .catch(() => {
+        setImportString(configStr);
+        setShowImportInput(true);
+        setExpMsg({ type: 'success', text: '📋 自动复制失败，已填入输入框，请手动复制。' });
+      });
+  };
+
+  const handleImportConfig = () => {
+    if (!importString.trim()) {
+      setExpMsg({ type: 'error', text: '❌ 导入内容不能为空！' });
+      return;
+    }
+    try {
+      const parsed = JSON.parse(importString.trim());
+      if (typeof parsed !== 'object' || parsed === null) {
+        throw new Error('格式必须为 JSON 对象');
+      }
+      
+      const keys = Object.keys(parsed);
+      if (keys.length === 0) {
+        throw new Error('配置对象为空');
+      }
+      
+      for (const k of keys) {
+        const val = parsed[k];
+        if (typeof val !== 'object' || val === null || val.enabled === undefined) {
+          throw new Error(`扩展 [${k}] 格式不符`);
+        }
+      }
+      
+      setExpansionSettings(parsed);
+      saveExpansionSettings(parsed);
+      setActiveExpansions(getActiveExpansions());
+      setImportString('');
+      setShowImportInput(false);
+      setExpMsg({ type: 'success', text: '🎉 成功导入并应用扩展配置！' });
+      setTimeout(() => setExpMsg({ type: '', text: '' }), 4000);
+    } catch (e: any) {
+      setExpMsg({ type: 'error', text: `❌ 导入失败：${e.message || '无效 JSON'}` });
+    }
+  };
 
   const handleRollDice = (sides: number) => {
     const roll = Math.floor(Math.random() * sides) + 1;
@@ -37,6 +94,43 @@ export function LandingPage() {
       { time: timeStr, result: ` 投骰 d${sides}: 🎲 结果 [ ${roll} ]` },
       ...prev
     ].slice(0, 15));
+  };
+
+  const handleBookMasterToggle = (expId: string, checked: boolean) => {
+    const current = expansionSettings[expId] || { enabled: false, races: false, classes: false, backgrounds: false, other: false };
+    const updated = {
+      ...current,
+      enabled: checked,
+      races: checked ? true : current.races,
+      classes: checked ? true : current.classes,
+      backgrounds: checked ? true : current.backgrounds,
+      other: checked ? true : current.other,
+    };
+    const newSettings = {
+      ...expansionSettings,
+      [expId]: updated
+    };
+    setExpansionSettings(newSettings);
+    saveExpansionSettings(newSettings);
+    setActiveExpansions(getActiveExpansions());
+  };
+
+  const handleCategoryToggle = (expId: string, category: 'races' | 'classes' | 'backgrounds' | 'other', checked: boolean) => {
+    const current = expansionSettings[expId] || { enabled: false, races: false, classes: false, backgrounds: false, other: false };
+    const updated = {
+      ...current,
+      [category]: checked
+    };
+    if (checked) {
+      updated.enabled = true;
+    }
+    const newSettings = {
+      ...expansionSettings,
+      [expId]: updated
+    };
+    setExpansionSettings(newSettings);
+    saveExpansionSettings(newSettings);
+    setActiveExpansions(getActiveExpansions());
   };
 
   useEffect(() => {
@@ -89,15 +183,10 @@ export function LandingPage() {
   // Generate starting adventurers
   const generateRandomCharacter = () => {
     if (races.length === 0 || classes.length === 0) return;
-    
-    const isSourceAllowed = (src?: string) => {
-      if (!src || src.toLowerCase() === 'phb') return true;
-      return activeExpansions.includes(src.toLowerCase());
-    };
 
-    const validRaces = races.filter(r => isSourceAllowed(r.source));
-    const validClasses = classes.filter(c => isSourceAllowed(c.source));
-    const validBackgrounds = backgrounds.filter(b => isSourceAllowed(b.source));
+    const validRaces = races.filter(r => isSourceEnabled(r.source || 'phb', 'races'));
+    const validClasses = classes.filter(c => isSourceEnabled(c.source || 'phb', 'classes'));
+    const validBackgrounds = backgrounds.filter(b => isSourceEnabled(b.source || 'phb', 'backgrounds'));
 
     if (validRaces.length === 0 || validClasses.length === 0) return;
 
@@ -105,7 +194,7 @@ export function LandingPage() {
     const randomRace = validRaces[Math.floor(Math.random() * validRaces.length)];
     let randomSubraceId = '';
     if (randomRace.subraces && randomRace.subraces.length > 0) {
-      const validSubraces = randomRace.subraces.filter(sr => isSourceAllowed(sr.source));
+      const validSubraces = randomRace.subraces.filter(sr => isSourceEnabled(sr.source || randomRace.source || 'phb', 'races'));
       if (validSubraces.length > 0) {
         const randomSub = validSubraces[Math.floor(Math.random() * validSubraces.length)];
         randomSubraceId = randomSub.id;
@@ -116,7 +205,7 @@ export function LandingPage() {
     const randomClass = validClasses[Math.floor(Math.random() * validClasses.length)];
     let randomSubclassId = '';
     if (randomClass.subclasses && randomClass.subclasses.length > 0) {
-      const validSubclasses = randomClass.subclasses.filter(sc => isSourceAllowed(sc.source));
+      const validSubclasses = randomClass.subclasses.filter(sc => isSourceEnabled(sc.source || randomClass.source || 'phb', 'classes'));
       if (validSubclasses.length > 0) {
         const randomSubclass = validSubclasses[Math.floor(Math.random() * validSubclasses.length)];
         randomSubclassId = randomSubclass.id;
@@ -209,14 +298,15 @@ export function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col bg-[#fffdfc] text-stone-900 font-sans selection:bg-amber-200">
       {/* Decorative Navbar */}
-      <nav className="w-full px-6 py-4 flex justify-between items-center border-b border-stone-200 bg-white/50 backdrop-blur-md sticky top-0 z-50">
+      <nav id="landing-navbar" className="w-full px-6 py-4 flex justify-between items-center border-b border-stone-200 bg-white/50 backdrop-blur-md sticky top-0 z-50">
         <div className="flex items-center gap-2 text-stone-800">
           <Book className="w-6 h-6 text-amber-600" />
-          <span className="font-serif font-bold text-xl tracking-tight">D&D 5e Toolkit</span>
+          <span className="font-serif font-bold text-xl tracking-tight">D&D 5e Wiki 角色创建</span>
         </div>
         <div className="hidden md:flex gap-6 text-sm font-medium text-stone-605 items-center">
           <div className="relative">
             <button
+              id="btn-toolbox-toggle"
               onClick={(e) => {
                 e.preventDefault();
                 setToolboxOpen(!toolboxOpen);
@@ -231,6 +321,7 @@ export function LandingPage() {
                 <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setToolboxOpen(false)} />
                 <div className="absolute right-0 mt-2 w-48 bg-white border border-stone-200 rounded shadow-lg py-1 z-50 animate-in fade-in slide-in-from-top-1 duration-100 text-left font-sans">
                   <button
+                    id="lnk-toolbox-dice"
                     onClick={() => {
                       setToolboxOpen(false);
                       setOpenDiceModal(true);
@@ -240,6 +331,7 @@ export function LandingPage() {
                     🎲 快速骰子掷器
                   </button>
                   <button
+                    id="lnk-toolbox-pointbuy"
                     onClick={() => {
                       setToolboxOpen(false);
                       setOpenPointBuyModal(true);
@@ -249,24 +341,27 @@ export function LandingPage() {
                     📊 属性购点速查
                   </button>
                   <button
+                    id="lnk-toolbox-ai"
                     onClick={() => {
                       setToolboxOpen(false);
                       setOpenAiModal(true);
                     }}
                     className="w-full text-left px-4 py-2.5 text-xs text-stone-700 hover:bg-stone-50 hover:text-stone-900 transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent"
                   >
-                    AI 辅助设置
+                    🤖 AI 辅助设置
                   </button>
                   <button
+                    id="lnk-toolbox-xge"
                     onClick={() => {
                       setToolboxOpen(false);
                       setOpenXgeModal(true);
                     }}
                     className="w-full text-left px-4 py-2.5 text-xs text-stone-700 hover:bg-stone-50 hover:text-stone-900 transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent"
                   >
-                    XGE 经历生成设置
+                    📜 XGE 经历生成设置
                   </button>
                   <button
+                    id="lnk-toolbox-exp"
                     onClick={() => {
                       setToolboxOpen(false);
                       setOpenExpModal(true);
@@ -279,9 +374,9 @@ export function LandingPage() {
               </>
             )}
           </div>
-          <a href="#" className="hover:text-amber-600 transition-colors font-sans leading-none">致谢</a>
-          <a href="https://github.com/littlhMW/DND5eCharacterTools-" target="_blank" rel="noreferrer" className="flex items-center gap-1 hover:text-stone-900 transition-colors font-sans leading-none">
-            <Github size={16} /> GitHub
+          <span className="text-stone-400">|</span>
+          <a href="https://github.com/littlhMW/DND5eCharacterTools-" target="_blank" rel="noreferrer" className="flex items-center gap-1 hover:text-stone-900 text-stone-600 transition-colors font-sans leading-none no-underline">
+            <Github size={16} /> GitHub 开源
           </a>
         </div>
       </nav>
@@ -300,21 +395,22 @@ export function LandingPage() {
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-stone-100 border border-stone-200 rounded-full text-stone-600 font-medium text-sm mb-4">
             <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-            基于 5etools 数据与 FVTT-CN 翻译
+            基于 5etools 规则集与中文本地化翻译
           </div>
           <h1 className="text-5xl md:text-7xl font-bold text-stone-900 tracking-tight font-serif leading-[1.1]">
             铸就属于你的<br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-700 to-amber-500">传奇史诗</span>
           </h1>
-          <p className="text-lg md:text-xl text-stone-600 max-w-2xl mx-auto leading-relaxed">
-            Dungeons & Dragons 5e 角色创建与管理平台。流线型向导设计，包含种族、职业、法术与属性分配的一站式体验。
+          <p className="text-lg md:text-xl text-stone-605 max-w-2xl mx-auto leading-relaxed">
+            D&D 5e 中文设定集与向导式角色卡生成系统。包含种族、职业、法术与属性分配的一站式体验，整合大语言模型智能书写。
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
             <motion.button
+              id="btn-hero-start"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleStartCreation}
-              className="flex items-center gap-2 px-8 py-4 bg-stone-900 text-white rounded-md font-medium text-lg hover:bg-stone-800 transition-colors shadow-xl shadow-stone-900/10 w-full sm:w-auto justify-center group"
+              className="flex items-center gap-2 px-8 py-4 bg-stone-900 text-white rounded-md font-medium text-lg hover:bg-stone-800 transition-colors shadow-xl shadow-stone-900/10 w-full sm:w-auto justify-center group border-none cursor-pointer"
             >
               <Swords className="w-5 h-5 group-hover:rotate-12 transition-transform" />
               立刻创建角色
@@ -328,7 +424,7 @@ export function LandingPage() {
             <div className="bg-stone-900 border border-amber-500/30 text-white rounded-lg p-4 shadow-2xl shadow-amber-900/20 text-sm flex items-center gap-3 border-l-4 border-l-amber-500">
               <span className="text-xl">🎲</span>
               <div className="flex-1 font-medium text-stone-100">{toastText}</div>
-              <button onClick={() => setShowToast(false)} className="text-stone-400 hover:text-white ml-2 text-xs">
+              <button onClick={() => setShowToast(false)} className="text-stone-400 hover:text-white ml-2 text-xs bg-transparent border-none cursor-pointer">
                 ✕
               </button>
             </div>
@@ -339,7 +435,7 @@ export function LandingPage() {
         <div className="w-full max-w-5xl mt-16 text-left">
           <h2 className="text-2xl font-serif font-bold text-stone-900 mb-6 flex items-center gap-3 border-b border-stone-200 pb-4">
             <User size={24} className="text-amber-600" />
-            角色档案库
+            已保存的角色卡
           </h2>
 
           {/* Stored Character Cards */}
@@ -364,7 +460,7 @@ export function LandingPage() {
                               localStorage.setItem('dndChars', JSON.stringify(newChars));
                               setDeletingId(null);
                             }}
-                            className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white font-medium text-xs rounded transition-colors"
+                            className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white font-medium text-xs rounded transition-colors border-none cursor-pointer"
                           >
                             确认删除
                           </button>
@@ -374,7 +470,7 @@ export function LandingPage() {
                               e.stopPropagation();
                               setDeletingId(null);
                             }}
-                            className="px-4 py-1.5 bg-stone-700 hover:bg-stone-600 text-stone-200 font-medium text-xs rounded transition-colors"
+                            className="px-4 py-1.5 bg-stone-700 hover:bg-stone-600 text-stone-200 font-medium text-xs rounded transition-colors border-none cursor-pointer"
                           >
                             取消
                           </button>
@@ -383,7 +479,7 @@ export function LandingPage() {
                     )}
                     <h3 className="font-serif font-bold text-lg text-stone-900 group-hover:text-amber-700">{char.name || '未命名'}</h3>
                     <button 
-                      className="absolute top-4 right-4 text-stone-400 hover:text-red-500 transition-colors p-1 z-10"
+                      className="absolute top-4 right-4 text-stone-400 hover:text-red-500 transition-colors p-1 z-10 bg-transparent border-none cursor-pointer"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -391,14 +487,14 @@ export function LandingPage() {
                       }}
                       title="删除角色"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                      <svg xmlns="http://www.w3.org/2005/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
                     </button>
                     <p className="text-sm text-stone-500 mt-1 mb-4 flex items-center gap-2">
-                       <span className="inline-block bg-stone-100 px-2 py-0.5 rounded text-xs font-mono">Lv {char.level || 1}</span>
+                       <span className="inline-block bg-stone-100 px-2 py-0.5 rounded text-xs font-mono">Lv {char.level || 3}</span>
                        <span>{race?.name || '未知种族'}</span>
                        <span>{cls?.name || '无职业'}</span>
                     </p>
-                    <button className="text-sm font-medium text-amber-600 hover:text-amber-700 w-full bg-amber-50 hover:bg-amber-100 py-2 rounded-lg transition-colors">
+                    <button className="text-sm font-medium text-amber-600 hover:text-amber-700 w-full bg-amber-50 hover:bg-amber-100 py-2 rounded-lg transition-colors border-none cursor-pointer">
                       加载角色卡
                     </button>
                   </div>
@@ -407,27 +503,99 @@ export function LandingPage() {
             </div>
           ) : (
             <div className="text-stone-400 text-sm mb-6 py-8 border border-dashed border-stone-200 rounded-md text-center bg-white/40">
-              暂无已保存的角色开发档案
+              暂无已保存的角色。点击下方按钮随机招募一个，或直接点击上方「立刻创建角色」！
             </div>
           )}
 
           {/* Random Character Generation Helper */}
-          <div className="bg-stone-50 border border-stone-200 rounded-lg p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="bg-stone-50 border border-stone-200 rounded-lg p-5 flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
             <div className="space-y-1 text-left">
               <h3 className="text-base font-bold text-stone-900 flex items-center gap-1.5 font-serif">
-                🎲 随机生成 3级角色
+                🎲 快速随机成卡 (Lv. 3)
               </h3>
-              <p className="text-xs text-stone-605 leading-relaxed">
-                掷骰快速生成一名随机种族、职业、子职业及基础属性的 3级 角色。生成完毕后角色将立即被保存在上方的档案库中以便您二次编辑。
+              <p className="text-xs text-stone-505 leading-relaxed">
+                遵循标准属性购点与规则库，随机拼装包含种族、子种族、核心职业、学派子职业、背景在内的 3 级高级角色并加入上方，方便直接二次修饰。
               </p>
             </div>
             <button
+              id="btn-fast-random"
               onClick={generateRandomCharacter}
-              className="bg-stone-900 text-white hover:bg-stone-800 text-xs font-semibold px-4.5 py-2.5 rounded transition-colors shrink-0 flex items-center gap-2 cursor-pointer shadow-sm"
+              className="bg-stone-900 text-white hover:bg-stone-800 text-xs font-semibold px-4.5 py-2.5 rounded transition-colors shrink-0 flex items-center gap-2 cursor-pointer shadow-sm border-none"
             >
               <Swords size={14} />
-              随机生成 3级角色
+              随机成卡
             </button>
+          </div>
+
+          {/* D&D 5e 冒险家工具箱 (首页快捷入口) */}
+          <div id="landing-toolbox-bento" className="bg-stone-50/50 border border-stone-200 rounded-xl p-6 shadow-xs mt-8">
+            <h3 className="text-base font-bold text-stone-900 mb-2 flex items-center gap-2 font-serif">
+              🛠️ 冒险家工具小站
+            </h3>
+            <p className="text-xs text-stone-505 mb-6 max-w-2xl leading-relaxed">
+              独立交互式模块。可以为您快速模拟离线购点、概率投骰测试，或精细调整大模型接口方案及扩展规则开关。
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              <div 
+                id="bento-dice"
+                onClick={() => setOpenDiceModal(true)}
+                className="bg-white p-4 rounded-lg border border-stone-200 hover:border-amber-400/85 hover:shadow-md transition-all cursor-pointer flex flex-col items-center text-center gap-2 group"
+              >
+                <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-lg group-hover:scale-110 transition-transform">
+                  🎲
+                </div>
+                <h4 className="text-xs font-bold text-stone-900">快速骰子掷器</h4>
+                <p className="text-[10px] text-stone-500 leading-relaxed font-sans">提供 d4 到 d100 各种常用多面骰子</p>
+              </div>
+
+              <div 
+                id="bento-pointbuy"
+                onClick={() => setOpenPointBuyModal(true)}
+                className="bg-white p-4 rounded-lg border border-stone-200 hover:border-amber-400/85 hover:shadow-md transition-all cursor-pointer flex flex-col items-center text-center gap-2 group"
+              >
+                <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg group-hover:scale-110 transition-transform">
+                  📊
+                </div>
+                <h4 className="text-xs font-bold text-stone-900">属性购点速查</h4>
+                <p className="text-[10px] text-stone-500 leading-relaxed font-sans">标准27点预算，分配与修正常数表</p>
+              </div>
+
+              <div 
+                id="bento-ai"
+                onClick={() => setOpenAiModal(true)}
+                className="bg-white p-4 rounded-lg border border-stone-200 hover:border-amber-400/85 hover:shadow-md transition-all cursor-pointer flex flex-col items-center text-center gap-2 group"
+              >
+                <div className="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-lg group-hover:scale-110 transition-transform">
+                  🤖
+                </div>
+                <h4 className="text-xs font-bold text-stone-900">AI 辅助设置</h4>
+                <p className="text-[10px] text-stone-500 leading-relaxed font-sans">配置第三方大模型提供文本一键扩润功能</p>
+              </div>
+
+              <div 
+                id="bento-xge"
+                onClick={() => setOpenXgeModal(true)}
+                className="bg-white p-4 rounded-lg border border-stone-200 hover:border-amber-400/85 hover:shadow-md transition-all cursor-pointer flex flex-col items-center text-center gap-2 group"
+              >
+                <div className="w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-lg group-hover:scale-110 transition-transform">
+                  📜
+                </div>
+                <h4 className="text-xs font-bold text-stone-900">XGE 经历测试</h4>
+                <p className="text-[10px] text-stone-500 leading-relaxed font-sans">模拟 Xanathar 骰表级联生成随机生平</p>
+              </div>
+
+              <div 
+                id="bento-exp"
+                onClick={() => setOpenExpModal(true)}
+                className="col-span-2 sm:col-span-1 bg-white p-4 rounded-lg border border-stone-200 hover:border-amber-400/85 hover:shadow-md transition-all cursor-pointer flex flex-col items-center text-center gap-2 group"
+              >
+                <div className="w-10 h-10 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center font-bold text-lg group-hover:scale-110 transition-transform">
+                  📚
+                </div>
+                <h4 className="text-xs font-bold text-stone-900">规则集细分开关</h4>
+                <p className="text-[10px] text-stone-500 leading-relaxed font-sans">可以分种族职业背景类细分控制书集开关</p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -442,8 +610,8 @@ export function LandingPage() {
             <div className="w-12 h-12 bg-amber-50 rounded-md flex items-center justify-center text-amber-600 border border-amber-100">
               <Scroll size={24} />
             </div>
-            <h3 className="font-serif font-bold text-xl text-stone-900">核心规则全覆盖</h3>
-            <p className="text-stone-650 leading-relaxed text-sm">
+            <h3 className="font-serif font-bold text-xl text-stone-900">核心设定全包含</h3>
+            <p className="text-stone-605 leading-relaxed text-sm">
               内建 5e 玩家手册的核心种族、职业与背景支持。清晰直观的法术筛选及豁免计算。
             </p>
           </div>
@@ -451,18 +619,18 @@ export function LandingPage() {
             <div className="w-12 h-12 bg-blue-50 rounded-md flex items-center justify-center text-blue-600 border border-blue-100">
               <Wand2 size={24} />
             </div>
-            <h3 className="font-serif font-bold text-xl text-stone-900">自动属性推源</h3>
-            <p className="text-stone-650 leading-relaxed text-sm">
-              掷骰或购点自动计算属性值、调整值以及熟练加值。支持职业特性的智能推送与法术位管理。
+            <h3 className="font-serif font-bold text-xl text-stone-900">自动属性换算</h3>
+            <p className="text-stone-605 leading-relaxed text-sm">
+              属性更改自动引发调整值变化。技能、熟练、豁免、先攻及被动察觉、特殊感官自动合并计算。
             </p>
           </div>
           <div className="bg-stone-50 p-8 rounded-lg border border-dashed border-stone-300 flex flex-col gap-4 opacity-70">
             <div className="w-12 h-12 bg-stone-200 rounded-md flex items-center justify-center text-stone-600 border border-stone-300">
               <Shield size={24} />
             </div>
-            <h3 className="font-serif font-bold text-xl text-stone-500">即将推出: 导出表格</h3>
+            <h3 className="font-serif font-bold text-xl text-stone-500">即将推出: PDF导出</h3>
             <p className="text-stone-500 leading-relaxed text-sm">
-              直接导出可用角色卡，在线调整角色卡等功能将在后续更新中陆续加入。
+              本地离线导出标准的空白或已填色DND 5e经典三页A4 PDF角色卡，后续持续进行功能迭新。
             </p>
           </div>
         </motion.div>
@@ -504,10 +672,10 @@ export function LandingPage() {
 
               <div className="mt-3">
                 <div className="text-[11px] font-semibold text-stone-500 mb-1 flex justify-between items-center">
-                  <span>投掷历史 (只在本次存储)</span>
+                  <span>投掷历史 (仅限本次)</span>
                   {diceLog.length > 0 && (
-                    <button onClick={() => setDiceLog([])} className="text-stone-400 hover:text-stone-600 text-[10px] cursor-pointer bg-transparent border-none">
-                      清空
+                    <button onClick={() => setDiceLog([])} className="text-stone-400 hover:text-stone-605 text-[10px] cursor-pointer bg-transparent border-none">
+                      清空听
                     </button>
                   )}
                 </div>
@@ -518,7 +686,7 @@ export function LandingPage() {
                     diceLog.map((log, idx) => (
                       <div key={idx} className="text-stone-700 flex justify-between text-[11px] border-b border-stone-100/50 pb-0.5 animate-in slide-in-from-top-1 duration-100">
                         <span>{log.time}</span>
-                        <span className="font-bold text-amber-850">{log.result}</span>
+                        <span className="font-bold text-amber-800">{log.result}</span>
                       </div>
                     ))
                   )}
@@ -563,9 +731,9 @@ export function LandingPage() {
               <table className="w-full text-[11px] text-stone-700 border-collapse border border-stone-200 rounded overflow-hidden">
                 <thead>
                   <tr className="bg-stone-100 text-stone-800 border-b border-stone-200">
-                    <th className="py-2 px-2.5 text-left font-serif">属性数值</th>
-                    <th className="py-2 px-2.5 text-left">点数消耗 (Cost)</th>
-                    <th className="py-2 px-2.5 text-left">修正加值 (Mod)</th>
+                     <th className="py-2 px-2.5 text-left font-serif">属性数值</th>
+                     <th className="py-2 px-2.5 text-left">消耗点数 (Cost)</th>
+                     <th className="py-2 px-2.5 text-left">修正加值 (Mod)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -617,7 +785,7 @@ export function LandingPage() {
               <h2 className="text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
                 AI 辅助书写配置说明
               </h2>
-              <p className="text-xs text-stone-500 mt-1">
+              <p className="text-xs text-stone-505 mt-1">
                 启用与配置您的本地大模型 API 接口，实现平实有度、段落合理的文本扩写。
               </p>
             </div>
@@ -677,25 +845,11 @@ export function LandingPage() {
                       value={aiConfig.apiKey}
                       onChange={(e) => handleAiConfigChange('apiKey', e.target.value)}
                       placeholder={aiConfig.provider === 'deepseek' ? 'sk-...' : '输入 API Key'}
-                      className="w-full text-xs bg-white border border-stone-200 rounded px-2.5 py-1.5 focus:border-amber-500 focus:outline-none font-mono h-[34px]"
+                      className="w-full text-xs bg-white border border-stone-200 rounded px-2.5 py-1.5 focus:border-amber-500 focus:outline-none"
                     />
                   </div>
-
-                  {aiConfig.provider === 'custom' && (
-                    <div>
-                      <label className="block text-[10px] font-semibold text-stone-500 mb-0.5">网关基点 (API Base URL)</label>
-                      <input
-                        type="text"
-                        value={aiConfig.apiBaseUrl}
-                        onChange={(e) => handleAiConfigChange('apiBaseUrl', e.target.value)}
-                        placeholder="https://api.yourcom.com/v1"
-                        className="w-full text-xs bg-white border border-stone-200 rounded px-2.5 py-1.5 focus:border-amber-500 focus:outline-none text-[10px] h-[34px]"
-                      />
-                    </div>
-                  )}
-
-                  <div className="bg-amber-50/50 border border-amber-200/50 text-[10px] text-amber-800 p-2 rounded leading-relaxed font-sans">
-                    * 纯本地存储承诺：所有密钥均存储在您当前浏览器 localStorage 中，绝不离开本地，安全放心。
+                  <div className="text-[10px] text-stone-500 italic mt-1 pb-1">
+                    * 所有配置和 API 密钥均保存在您的本地浏览器中，绝不上传至任何服务器，安全放心。
                   </div>
                 </div>
               ) : (
@@ -720,7 +874,7 @@ export function LandingPage() {
       {/* XGE This Is Your Life Config Modal */}
       {openXgeModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-950/45 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white border border-stone-200 rounded-lg max-w-md w-full shadow-xl p-6 relative flex flex-col gap-4 animate-in zoom-in-95 duration-200 text-left font-sans">
+          <div className="bg-white border border-stone-200 rounded-lg max-w-lg w-full shadow-xl p-6 relative flex flex-col gap-4 animate-in zoom-in-95 duration-200 text-left font-sans">
             <button 
               onClick={() => setOpenXgeModal(false)}
               className="absolute top-4 right-4 text-stone-400 hover:text-stone-600 text-sm p-1 cursor-pointer font-sans bg-transparent border-none"
@@ -731,37 +885,67 @@ export function LandingPage() {
 
             <div className="border-b border-stone-200 pb-3">
               <h2 className="text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
-                XGE "这是你的人生" 配置
+                📜 XGE "这是你的人生" 掷骰面板
               </h2>
-              <p className="text-xs text-stone-500 mt-1">
-                独立于大语言模型，完全由纯核心规则书表格组成的随机历史投骰计算器。
+              <p className="text-xs text-stone-500 mt-1 leading-relaxed font-sans">
+                根据《万事指南》（Xanathar's Guide to Everything）核心级联表离线运行。您可以选取特定背景并执行一次级联掷骰试验，预览系统运算产出的纯中文化史诗轨迹。
               </p>
             </div>
 
-            <div className="space-y-4 text-sm font-sans">
-              <div className="flex flex-col gap-2.5">
-                <label className="flex items-center gap-1.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={aiConfig.xgeEnabled || false}
-                    onChange={(e) => handleAiConfigChange('xgeEnabled', e.target.checked)}
-                    className="w-4 h-4 text-amber-600 border-stone-300 rounded focus:ring-amber-500 cursor-pointer"
-                  />
-                  <span className="text-xs font-semibold text-stone-700">启用 XGE "这是你的人生" 背景故事掷骰</span>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                  选择测试背景：
                 </label>
+                <select
+                  value={xgePreviewBg}
+                  onChange={(e) => setXgePreviewBg(e.target.value)}
+                  className="w-full text-xs bg-white border border-stone-200 rounded px-2.5 py-1.5 focus:border-amber-500 focus:outline-none cursor-pointer h-[34px]"
+                >
+                  <option value="acolyte">侍祭 (Acolyte)</option>
+                  <option value="charlatan">骗子 (Charlatan)</option>
+                  <option value="criminal">罪犯 (Criminal)</option>
+                  <option value="entertainer">艺人 (Entertainer)</option>
+                  <option value="folk-hero">平民英雄 (Folk Hero)</option>
+                  <option value="guild-artisan">工匠行会 (Guild Artisan)</option>
+                  <option value="noble">贵族 (Noble)</option>
+                  <option value="outlander">荒野隐士 (Outlander)</option>
+                  <option value="sage">贤者 (Sage)</option>
+                  <option value="sailor">水手 (Sailor)</option>
+                  <option value="soldier">士兵 (Soldier)</option>
+                  <option value="urchin">孤儿 (Urchin)</option>
+                </select>
               </div>
 
-              <div className="space-y-3">
-                <p className="text-xs text-stone-500 leading-relaxed font-sans">
-                  《万事指南》(Xanathar's Guide to Everything) 是龙与地下城 5e 的官方补充规则书。其内置「这是你的人生」一节拥有极其庞杂精妙的双亲、出生、故土、兄弟姐妹及生平历险、机缘、创伤和财富遭遇表。
-                </p>
-                <p className="text-xs text-stone-550 leading-relaxed font-sans">
-                  开启此开关后，在通用的「背景故事」输入框右上方，会<strong>额外增加一个独立的「生成生平经历」动作工具</strong>。
-                </p>
-                <div className="bg-amber-50/50 border border-amber-200/50 text-[11px] text-amber-800 p-3 rounded-md leading-relaxed font-sans">
-                  <strong>如何工作：</strong>在写好或为空的背景文字框旁，只需轻点生成，本工具即会按玩家角色的魅力、故事背景等指标计算全套规则表，生成一段戏剧性张力十足的人生历练并<strong>自动安全拼接</strong>到原文本之后，供您跑团使用。
-                </div>
+              <div className="flex justify-between items-center bg-stone-50 border border-stone-200 rounded p-3">
+                <span className="text-[11px] text-stone-600">
+                  一键执行全表级联生平轨迹模拟：
+                </span>
+                <button
+                  onClick={() => {
+                    const text = generateXgeBackstory({ backgroundId: xgePreviewBg });
+                    setXgePreviewText(text);
+                  }}
+                  className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-medium text-xs rounded transition-colors shadow-xs cursor-pointer border-none flex items-center gap-1 font-sans"
+                >
+                  🎲 立即掷骰
+                </button>
               </div>
+
+              {xgePreviewText ? (
+                <div className="space-y-1.5">
+                  <span className="block text-xs font-semibold text-stone-700">
+                     骰表掷骰生平结果预览:
+                  </span>
+                  <div className="bg-stone-50 border border-stone-200 p-3.5 rounded-lg max-h-[160px] overflow-y-auto text-xs text-stone-700 leading-relaxed font-sans whitespace-pre-wrap">
+                    {xgePreviewText}
+                  </div>
+                </div>
+              ) : (
+                <div className="border border-dashed border-stone-200 rounded-lg p-5 bg-stone-50/50 text-stone-405 text-xs text-center leading-relaxed">
+                  暂无掷骰。选择上述背景并点击右边“立即掷骰”即可一触即发。在正式角色创造流程的第5步中本功能可直接触发，并将结果直接合并到角色的背景故事。
+                </div>
+              )}
             </div>
 
             <div className="border-t border-stone-200 pt-4 flex justify-end">
@@ -769,7 +953,7 @@ export function LandingPage() {
                 onClick={() => setOpenXgeModal(false)}
                 className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white font-medium text-xs rounded transition-colors shadow-sm cursor-pointer border-none"
               >
-                保存关闭
+                关闭面板
               </button>
             </div>
           </div>
@@ -793,8 +977,8 @@ export function LandingPage() {
                 <h2 className="text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
                   📚 扩展书与规则集管理
                 </h2>
-                <p className="text-xs text-stone-500 mt-1 max-w-xl">
-                  启用或禁用特定的官方扩展书。禁用后，其包含的额外种族、子职及背景选项将在创建流程中被隐藏。
+                <p className="text-xs text-stone-500 mt-1 max-w-xl pr-2 leading-relaxed">
+                  启用或禁用特定的官方扩展书。启用后，您可以进一步勾选是否开启该扩展内的 <strong>种族</strong>、<strong>职业</strong> 或 <strong>背景</strong> 功能。
                   <span className="block mt-1 font-medium text-amber-600">⚠️ 提示：扩展包目前为 Beta 测试版本，内容可能存在翻译或机制错漏，请谨慎参考。</span>
                 </p>
               </div>
@@ -802,8 +986,19 @@ export function LandingPage() {
                 <button
                   onClick={() => {
                     const allIds = EXPANSIONS.filter(e => !e.isCore).map(e => e.id);
+                    const newSettings = { ...expansionSettings };
+                    for (const expId of allIds) {
+                      newSettings[expId] = {
+                        enabled: true,
+                        races: true,
+                        classes: true,
+                        backgrounds: true,
+                        other: true
+                      };
+                    }
+                    setExpansionSettings(newSettings);
+                    saveExpansionSettings(newSettings);
                     setActiveExpansions(allIds);
-                    saveActiveExpansions(allIds);
                   }}
                   className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs rounded transition-colors border border-stone-200 cursor-pointer"
                 >
@@ -811,8 +1006,20 @@ export function LandingPage() {
                 </button>
                 <button
                   onClick={() => {
+                    const newSettings = { ...expansionSettings };
+                    for (const exp of EXPANSIONS) {
+                      if (exp.isCore) continue;
+                      newSettings[exp.id] = {
+                        enabled: false,
+                        races: false,
+                        classes: false,
+                        backgrounds: false,
+                        other: false
+                      };
+                    }
+                    setExpansionSettings(newSettings);
+                    saveExpansionSettings(newSettings);
                     setActiveExpansions([]);
-                    saveActiveExpansions([]);
                   }}
                   className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs rounded transition-colors border border-stone-200 cursor-pointer"
                 >
@@ -821,74 +1028,197 @@ export function LandingPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-[60vh] overflow-y-auto pr-1">
-              {EXPANSIONS.map((exp: ExpansionBook) => (
-                <div key={exp.id} className={`p-2.5 rounded-md border transition-all flex flex-col ${activeExpansions.includes(exp.id) || exp.isCore ? 'bg-amber-50/30 border-amber-200/50' : 'bg-stone-50/50 border-stone-200 opacity-70 hover:opacity-100'}`}>
-                  <div className="flex items-start justify-between gap-2 mb-1.5">
-                    <div className="flex items-center flex-wrap gap-1.5">
-                      <span className="font-bold text-sm text-stone-900">{exp.name}</span>
-                      <span className="text-[9px] bg-stone-200 text-stone-600 px-1 py-0.5 rounded font-mono uppercase leading-none">{exp.shortName}</span>
-                      {exp.isCore ? (
-                        <span className="text-[9px] bg-amber-500 text-white px-1 py-0.5 rounded leading-none">核心</span>
-                      ) : (
-                        <span className="text-[9px] bg-amber-50 text-amber-600 border border-amber-200 px-1 py-0.5 rounded leading-none">Beta 错漏谨用</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto pr-1">
+              {EXPANSIONS.map((exp: ExpansionBook) => {
+                const bookSet = expansionSettings[exp.id] || { enabled: false, races: false, classes: false, backgrounds: false, other: false };
+                const isBookEnabled = exp.isCore || bookSet.enabled;
+                
+                return (
+                  <div key={exp.id} className={`p-3 rounded-md border transition-all flex flex-col ${isBookEnabled ? 'bg-amber-50/20 border-amber-200/50' : 'bg-stone-50/50 border-stone-200 opacity-60 hover:opacity-100'}`}>
+                    <div className="flex items-start justify-between gap-2 mb-1.5 border-b border-stone-100 pb-1.5">
+                      <div className="flex items-center flex-wrap gap-1.5">
+                        <span className="font-bold text-sm text-stone-900">{exp.name}</span>
+                        <span className="text-[9px] bg-stone-200 text-stone-505 px-1 py-0.5 rounded font-mono uppercase leading-none">{exp.shortName}</span>
+                        {exp.isCore ? (
+                          <span className="text-[9px] bg-amber-500 text-white px-1 py-0.5 rounded leading-none">核心</span>
+                        ) : (
+                          <span className="text-[9px] bg-amber-50 text-amber-600 border border-amber-200 px-1 py-0.5 rounded leading-none">Beta 错漏谨用</span>
+                        )}
+                      </div>
+                      {!exp.isCore && (
+                        <div className="shrink-0 flex items-center h-full pt-0.5">
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input 
+                              type="checkbox" 
+                              className="sr-only peer"
+                              checked={bookSet.enabled}
+                              onChange={(e) => handleBookMasterToggle(exp.id, e.target.checked)}
+                            />
+                            <div className="w-7 h-4 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[12px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-amber-500"></div>
+                          </label>
+                        </div>
                       )}
                     </div>
-                    {!exp.isCore && (
-                      <div className="shrink-0 flex items-center h-full pt-0.5">
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input 
-                            type="checkbox" 
-                            className="sr-only peer"
-                            checked={activeExpansions.includes(exp.id)}
-                            onChange={(e) => {
-                              const newActive = e.target.checked 
-                                ? [...activeExpansions, exp.id]
-                                : activeExpansions.filter(id => id !== exp.id);
-                              setActiveExpansions(newActive);
-                              saveActiveExpansions(newActive);
-                            }}
-                          />
-                          <div className="w-7 h-4 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[12px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-amber-500"></div>
-                        </label>
+
+                    <div className="text-[11px] text-stone-600 space-y-2.5 mt-1 flex-1 flex flex-col justify-between">
+                      <div>
+                        <p className="text-stone-500 leading-relaxed italic mb-2.5">
+                          {exp.description}
+                        </p>
+                        
+                        {/* Races */}
+                        {exp.races && (
+                          <div className={`flex items-start gap-1.5 text-[11px] mb-2 transition-opacity duration-200 ${!isBookEnabled || (bookSet.races === false && !exp.isCore) ? 'opacity-40' : 'opacity-100'}`}>
+                            <label className="shrink-0 flex items-center gap-1 cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                disabled={exp.isCore || !bookSet.enabled}
+                                checked={exp.isCore ? true : bookSet.races}
+                                onChange={(e) => handleCategoryToggle(exp.id, 'races', e.target.checked)}
+                                className="w-3.5 h-3.5 rounded text-amber-600 focus:ring-amber-500 border-stone-300 accent-amber-600"
+                              />
+                              <span className="text-[10px] bg-amber-100 text-amber-800 px-1 py-0.5 rounded leading-none font-medium">
+                                种族
+                              </span>
+                            </label>
+                            <span className={`text-stone-700 leading-relaxed font-sans ${(!isBookEnabled || (bookSet.races === false && !exp.isCore)) ? 'line-through decoration-stone-400' : ''}`}>
+                              {exp.races}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Classes */}
+                        {exp.classes && (
+                          <div className={`flex items-start gap-1.5 text-[11px] mb-2 transition-opacity duration-200 ${!isBookEnabled || (bookSet.classes === false && !exp.isCore) ? 'opacity-40' : 'opacity-100'}`}>
+                            <label className="shrink-0 flex items-center gap-1 cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                disabled={exp.isCore || !bookSet.enabled}
+                                checked={exp.isCore ? true : bookSet.classes}
+                                onChange={(e) => handleCategoryToggle(exp.id, 'classes', e.target.checked)}
+                                className="w-3.5 h-3.5 rounded text-emerald-600 focus:ring-emerald-500 border-stone-300 accent-emerald-500"
+                              />
+                              <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded leading-none font-medium">
+                                职业
+                              </span>
+                            </label>
+                            <span className={`text-stone-700 leading-relaxed font-sans ${(!isBookEnabled || (bookSet.classes === false && !exp.isCore)) ? 'line-through decoration-stone-400' : ''}`}>
+                              {exp.classes}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Backgrounds */}
+                        {exp.backgrounds && (
+                          <div className={`flex items-start gap-1.5 text-[11px] mb-2 transition-opacity duration-200 ${!isBookEnabled || (bookSet.backgrounds === false && !exp.isCore) ? 'opacity-40' : 'opacity-100'}`}>
+                            <label className="shrink-0 flex items-center gap-1 cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                disabled={exp.isCore || !bookSet.enabled}
+                                checked={exp.isCore ? true : bookSet.backgrounds}
+                                onChange={(e) => handleCategoryToggle(exp.id, 'backgrounds', e.target.checked)}
+                                className="w-3.5 h-3.5 rounded text-indigo-650 focus:ring-indigo-500 border-stone-300 accent-indigo-650"
+                              />
+                              <span className="text-[10px] bg-violet-100 text-violet-800 px-1 py-0.5 rounded leading-none font-medium">
+                                背景
+                              </span>
+                            </label>
+                            <span className={`text-stone-700 leading-relaxed font-sans ${(!isBookEnabled || (bookSet.backgrounds === false && !exp.isCore)) ? 'line-through decoration-stone-400' : ''}`}>
+                              {exp.backgrounds}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Other Features */}
+                        {exp.otherFeatures && (
+                          <div className={`flex items-start gap-1.5 text-[11px] mb-1 transition-opacity duration-200 ${!isBookEnabled || (bookSet.other === false && !exp.isCore) ? 'opacity-40' : 'opacity-100'}`}>
+                            <label className="shrink-0 flex items-center gap-1 cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                disabled={exp.isCore || !bookSet.enabled}
+                                checked={exp.isCore ? true : bookSet.other}
+                                onChange={(e) => handleCategoryToggle(exp.id, 'other', e.target.checked)}
+                                className="w-3.5 h-3.5 rounded text-sky-600 focus:ring-sky-500 border-stone-300 accent-sky-500"
+                              />
+                              <span className="text-[10px] bg-sky-100 text-sky-900 px-1 py-0.5 rounded leading-none font-medium">
+                                其他
+                              </span>
+                            </label>
+                            <span className={`text-stone-605 leading-relaxed font-sans ${(!isBookEnabled || (bookSet.other === false && !exp.isCore)) ? 'line-through decoration-stone-400' : ''}`}>
+                              {exp.otherFeatures}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
-                  <div className="text-[11px] text-stone-600 space-y-1.5 mt-auto pt-2 border-t border-stone-100">
-                    <p className="text-stone-500 leading-relaxed italic mb-1">
-                      {exp.description}
-                    </p>
-                    {exp.races && (
-                      <div className="flex items-start gap-1 text-[11px]">
-                        <span className="shrink-0 text-[10px] bg-amber-100 text-amber-800 px-1 py-0.5 rounded leading-none font-medium">
-                          种族
-                        </span>
-                        <span className="text-stone-700 leading-relaxed">{exp.races}</span>
-                      </div>
-                    )}
-                    {exp.classes && (
-                      <div className="flex items-start gap-1 text-[11px]">
-                        <span className="shrink-0 text-[10px] bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded leading-none font-medium">
-                          职业
-                        </span>
-                        <span className="text-stone-700 leading-relaxed">{exp.classes}</span>
-                      </div>
-                    )}
-                    {exp.otherFeatures && (
-                      <div className="flex items-start gap-1 text-[11px]">
-                        <span className="shrink-0 text-[10px] bg-sky-100 text-sky-900 px-1 py-0.5 rounded leading-none font-medium">
-                          其他
-                        </span>
-                        <span className="text-stone-600 leading-relaxed">{exp.otherFeatures}</span>
-                      </div>
-                    )}
-                  </div>
+                );
+              })}
+            </div>
+
+            {/* 配置备份与同步 */}
+            <div className="mt-2 pt-3 border-t border-stone-200">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-xs font-semibold text-stone-800 flex items-center gap-1.5 font-serif">
+                    📋 规则书配置备份与导入
+                  </span>
+                  {expMsg.text && (
+                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded ${expMsg.type === 'success' ? 'bg-emerald-50 text-emerald-800 animate-in fade-in duration-150' : 'bg-red-50 text-red-800'}`}>
+                      {expMsg.text}
+                    </span>
+                  )}
                 </div>
-              ))}
+                
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={handleExportConfig}
+                    className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded transition-colors shadow-xs border-none cursor-pointer flex items-center gap-1 font-sans"
+                    title="点击复制当前的规则书开启/关闭配置 JSON"
+                  >
+                    📤 点击复制配置
+                  </button>
+
+                  {!showImportInput ? (
+                    <button
+                      onClick={() => setShowImportInput(true)}
+                      className="px-3 py-1.5 bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold rounded transition-colors shadow-xs border-none cursor-pointer flex items-center gap-1 font-sans"
+                    >
+                      📥 点击导入配置
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-1.5 animate-in slide-in-from-right-1 duration-150">
+                      <input
+                        type="text"
+                        placeholder="在此粘贴导出的配置 JSON 文本..."
+                        value={importString}
+                        onChange={(e) => setImportString(e.target.value)}
+                        className="text-white text-xs px-2.5 py-1.5 bg-stone-900 border border-stone-700 rounded focus:border-amber-500 focus:outline-none w-56 font-mono h-[32px] placeholder-stone-500"
+                      />
+                      <button
+                        onClick={handleImportConfig}
+                        className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded transition-colors border-none cursor-pointer h-[32px] flex items-center justify-center"
+                      >
+                        确认
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowImportInput(false);
+                          setImportString('');
+                        }}
+                        className="px-3 py-1 bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs font-semibold rounded transition-colors border-none cursor-pointer h-[32px] flex items-center justify-center"
+                      >
+                        取消
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="border-t border-stone-200 pt-4 flex justify-end">
               <button
+                id="btn-exp-close"
                 onClick={() => setOpenExpModal(false)}
                 className="px-5 py-2 bg-stone-900 hover:bg-stone-800 text-white font-medium text-sm rounded transition-colors shadow-sm cursor-pointer border-none"
               >
@@ -902,31 +1232,31 @@ export function LandingPage() {
       {/* Footer & Credits */}
       <footer className="w-full bg-stone-50 border-t border-stone-200 py-16 px-6 relative z-10">
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-          <div className="lg:col-span-2 space-y-4 text-stone-600 text-sm">
+          <div className="lg:col-span-2 space-y-4 text-stone-650 text-sm">
             <div className="flex items-center gap-2 border-l-4 border-amber-500 pl-3 mb-2">
               <Info className="text-amber-600" size={20} />
               <h3 className="text-lg font-serif font-bold text-stone-900">版权说明与致谢</h3>
             </div>
             <p className="leading-relaxed">
-              本项目由 <strong className="text-stone-900">littlh</strong> 开发维护。工具底层架构与数据库深度参考了 <a href="https://5e.tools/" target="_blank" rel="noreferrer" className="text-amber-700 hover:underline">5etools</a>。中文本地化文本来自于 <a href="https://github.com/fvtt-cn" target="_blank" rel="noreferrer" className="text-amber-700 hover:underline">FVTT-CN Foundry VTT 中文社区翻译组</a>，感谢所有参与过汉化和维护的无偿贡献者们。
+              本项目由 <strong className="text-stone-900">littlh</strong> 开发维护。工具底层架构与数据库深度参考了 <a href="https://5e.tools/" target="_blank" rel="noreferrer" className="text-amber-700 hover:underline no-referrer">5etools</a>。中文本地化文本来自于 <a href="https://github.com/fvtt-cn" target="_blank" rel="noreferrer" className="text-amber-700 hover:underline no-referrer">FVTT-CN Foundry VTT 中文社区翻译组</a>，感谢所有参与过汉化和维护的无偿贡献者们。
             </p>
             <div className="bg-white p-4 rounded-xl border border-stone-200 text-[13px] leading-relaxed relative">
               <strong className="block text-stone-900 mb-1">使用须知:</strong>
-              本工具仅作为辅助参考工具。任何最终的规则结算与法术描述冲突，请以实体出版书籍与官方最新出具的勘误文档为准。
+              本工具仅作为辅助参考工具。任何最终的局内结算与法术描述，请以实体出版书籍与官方出具的最新勘误文档为前提准则。
             </div>
           </div>
           
           <div className="space-y-4">
             <h4 className="font-bold text-stone-900">支持与反馈</h4>
-            <ul className="space-y-3 text-sm text-stone-600">
+            <ul className="space-y-3 text-sm text-stone-605 list-none p-0">
               <li>
-                <a href="https://github.com/littlhMW/DND5eCharacterTools-/issues" target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:text-amber-600 transition-colors">
-                  <Github size={16} /> 提交 Bug 与建议
+                <a href="https://github.com/littlhMW/DND5eCharacterTools-/issues" target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:text-amber-600 transition-colors text-stone-600 no-underline">
+                  <Github size={16} /> 提交建议与问题
                 </a>
               </li>
               <li>
                 <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-green-500 rounded-full" /> 服务器状态: 正常
+                  <span className="w-2 h-2 bg-green-500 rounded-full" /> 本地化状态: 正常
                 </span>
               </li>
             </ul>
@@ -934,14 +1264,14 @@ export function LandingPage() {
 
           <div className="space-y-4">
             <h4 className="font-bold text-stone-900">相关资源</h4>
-            <ul className="space-y-3 text-sm text-stone-600">
+            <ul className="space-y-3 text-sm text-stone-605 list-none p-0">
               <li>
-                <a href="https://5e.tools/" target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:text-amber-600 transition-colors">
+                <a href="https://5e.tools/" target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:text-amber-600 transition-colors text-stone-600 no-underline">
                   <ExternalLink size={16} /> 5etools 原库
                 </a>
               </li>
               <li>
-                <a href="https://github.com/fvtt-cn" target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:text-amber-600 transition-colors">
+                <a href="https://github.com/fvtt-cn" target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:text-amber-600 transition-colors text-stone-600 no-underline">
                   <ExternalLink size={16} /> FVTT-CN 项目
                 </a>
               </li>

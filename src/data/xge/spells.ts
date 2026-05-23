@@ -1,23 +1,184 @@
 import { Spell } from '../../types/dnd';
 
-/**
- * 模板说明:
- * 在此添加扩展法术。
- * 请确保 `source` 字段为小写的扩展名 (例如 'xge')。
- */
 export const spells: Spell[] = [
-  /*
   {
-    id: "sample_spell",
-    name: "示例法术",
-    level: 1,
+    id: "create-bonfire",
+    name: "创造篝火",
+    level: 0,
+    school: "咒法",
+    castingTime: "1 动作",
+    range: "60 尺",
+    components: "V, S",
+    duration: "专注, 至多 1 分钟",
+    description: "你在指定地面创造一丛5尺篝火。进入或者在其内开局回合的生物须过敏捷豁免，失败受1d8火焰伤害。",
+    source: "xge"
+  },
+  {
+    id: "thunderclap",
+    name: "鸣雷破",
+    level: 0,
     school: "塑能",
     castingTime: "1 动作",
-    range: "120 尺",
+    range: "5 尺",
+    components: "S",
+    duration: "瞬间",
+    description: "你体内爆发出一阵雷鸣。你周围5尺内所有生物须进行体质豁免，失败者受1d6雷鸣伤害。",
+    source: "xge"
+  },
+  {
+    id: "magic-stone",
+    name: "魔石术",
+    level: 0,
+    school: "变化",
+    castingTime: "1 附赠动作",
+    range: "触碰",
+    components: "V, S",
+    duration: "1 分钟",
+    description: "触摸至多3颗石子灌注魔法。攻击检定随你施法关键属性，被命中的受到1d6 + 你施法关键属性调整值的力场伤害。",
+    source: "xge"
+  },
+  {
+    id: "frostbite",
+    name: "霜噬",
+    level: 0,
+    school: "塑能",
+    castingTime: "1 动作",
+    range: "60 尺",
     components: "V, S",
     duration: "瞬间",
-    description: "你发射一道耀眼的光束...",
+    description: "你指定寒霜包围一名生物，目标须进行体质豁免，失败者将受1d6冷冻伤害且下一次它的武器攻击检定具劣势。",
+    source: "xge"
+  },
+  {
+    id: "catapult",
+    name: "弹射术",
+    level: 1,
+    school: "变化",
+    castingTime: "1 动作",
+    range: "60 尺",
+    components: "S",
+    duration: "瞬间",
+    description: "你选择一个距你60尺内不重于1至5磅并未被穿着携带的物品成倍加速飞向直线目标。命中首位生物要过敏捷豁免，失败的话受3d8钝击伤害。",
+    source: "xge"
+  },
+  {
+    id: "snare",
+    name: "圈套术",
+    level: 1,
+    school: "防护",
+    castingTime: "1 分钟",
+    range: "触碰",
+    components: "S, M",
+    duration: "8 小时",
+    description: "你利用绳子布下魔法陷阱。踩入其中的生物要过敏捷豁免失败则被倒吊在半空并处于受束缚状态。",
+    source: "xge"
+  },
+  {
+    id: "absorb-elements",
+    name: "吸收元素",
+    level: 1,
+    school: "防护",
+    castingTime: "1 反应",
+    range: "自身",
+    components: "S",
+    duration: "1 轮",
+    description: "受到强酸、冷冻、火焰、闪电或雷鸣伤害时发动。你在该回合对此类伤害获得抗性，并在下一次近战命中时附加1d6同类伤害。",
+    source: "xge"
+  },
+  {
+    id: "skywrite",
+    name: "天空书写",
+    level: 2,
+    school: "变化",
+    castingTime: "1 动作",
+    range: "视线内",
+    components: "V, S",
+    duration: "专注, 至多 1 小时 (仪式)",
+    description: "你令天空显现长达至多十个字的云文传达消息。",
+    source: "xge"
+  },
+  {
+    id: "pyrotechnics",
+    name: "烟火表演",
+    level: 2,
+    school: "变化",
+    castingTime: "1 动作",
+    range: "60 尺",
+    components: "V, S",
+    duration: "瞬间",
+    description: "指定一团范围内的无魔法火焰。可选择令其爆炸让周边失明过体质豁免，或者令其产生浓烟起重度遮蔽效果。",
+    source: "xge"
+  },
+  {
+    id: "flame-arrows",
+    name: "火焰箭矢",
+    level: 3,
+    school: "变化",
+    castingTime: "1 动作",
+    range: "触碰",
+    components: "V, S",
+    duration: "专注, 至多 1 小时",
+    description: "触碰一个箭袋，从中取出的至多十二根箭带有火元素。其命中时额外造成1d6的火焰伤害。",
+    source: "xge"
+  },
+  {
+    id: "tiny-servant",
+    name: "微型仆役",
+    level: 3,
+    school: "变化",
+    castingTime: "1 分钟",
+    range: "触碰",
+    components: "V, S",
+    duration: "8 小时",
+    description: "你碰触一个微型无魔法物体（诸如挂坠，陶罐）唤醒它的生机并长出四肢为你服役。",
+    source: "xge"
+  },
+  {
+    id: "catnap",
+    name: "休憩术",
+    level: 3,
+    school: "惑控",
+    castingTime: "1 动作",
+    range: "30 尺",
+    components: "S, M",
+    duration: "10 分钟",
+    description: "至多三名自愿生物陷入无意识沉入魔眼睡眠，沉睡度过10分钟后，醒来时就如同完成了一次短休。",
+    source: "xge"
+  },
+  {
+    id: "elemental-bane",
+    name: "元素灾祸",
+    level: 4,
+    school: "变化",
+    castingTime: "1 动作",
+    range: "90 尺",
+    components: "V, S",
+    duration: "专注, 至多 1 分钟",
+    description: "选定目标过体质豁免否则剥去其对某一种指定元素的抗性并且此后每次你的这元素打中它都会增加2d6伤害。",
+    source: "xge"
+  },
+  {
+    id: "skill-empowerment",
+    name: "技能赋权",
+    level: 5,
+    school: "变化",
+    castingTime: "1 动作",
+    range: "触碰",
+    components: "V, S",
+    duration: "专注, 至多 1 小时",
+    description: "你碰触一个有技能熟练度的自愿生物让他的这个熟练变成双倍（如果你有专精则不变）。",
+    source: "xge"
+  },
+  {
+    id: "transmute-rock",
+    name: "转化岩石",
+    level: 5,
+    school: "变化",
+    castingTime: "1 动作",
+    range: "120 尺",
+    components: "V, S, M",
+    duration: "直到被解除",
+    description: "将一定范围的石头变为泥地，或泥地化为岩石圈禁其中的人过力量豁免等。",
     source: "xge"
   }
-  */
 ];

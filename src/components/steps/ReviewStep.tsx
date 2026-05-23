@@ -20,7 +20,7 @@ export function ReviewStep() {
   const race = races.find(r => r.id === character.raceId);
   const subrace = race?.subraces?.find(sr => sr.id === character.subraceId);
   const dndClass = classes.find(c => c.id === character.classId);
-  const subclass = dndClass?.subclasses.find(sc => sc.id === character.subclassId);
+  const subclass = dndClass?.subclasses?.find(sc => sc.id === character.subclassId);
   const bg = backgrounds.find(b => b.id === character.backgroundId);
 
   const { saves, skills, expertise } = getProficiencies(character, dndClass, race, subrace, bg);

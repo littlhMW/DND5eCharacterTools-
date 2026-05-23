@@ -4,7 +4,7 @@ export const races: Race[] = [
   {
     id: 'custom-lineage',
     name: '自定血统',
-    description: '使用以下特性定制角色的血统，让你可以完全自定角色的出身。',
+    description: '自定血统允许你摆脱传统种族的刻板桎梏。你可以完全依照个人奇思妙想，将奇异的外貌风情、与生俱来的独特专长与敏锐感官融汇一炉，定制出多元宇宙中绝无仅有的出身背景。',
     abilityBonuses: [{ ability: 'STR', bonus: 2 }], // In UI user could choose
     size: 'Medium', // Small or Medium
     speed: 30,

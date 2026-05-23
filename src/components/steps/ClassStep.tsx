@@ -8,6 +8,8 @@ import { FormattedDescription } from '../shared/FormattedDescription';
 import { spells as allSpells } from '../../data/spells';
 import { classSpellLists } from '../../data/spellLists';
 import { EquipmentText } from '../shared/EquipmentText';
+import { Dices } from 'lucide-react';
+import { CUSTOM_ROLL_TRAITS, splitDescription } from '../../utils/customRollTraits';
 
 const allAbilities = {
   STR: '力量', DEX: '敏捷', CON: '体质',
@@ -21,7 +23,7 @@ export function ClassStep() {
   const selectedClass = classes.find(c => c.id === state.character.classId);
   const selectedSubclass = selectedClass?.subclasses?.find(sc => sc.id === state.character.subclassId);
   
-  const availableClasses = classes.filter(c => isSourceEnabled(c.source || 'phb'));
+  const availableClasses = classes.filter(c => isSourceEnabled(c.source || 'phb', 'classes'));
   const getDynamicChooseNumber = (choice: any, level: number, cls: any, subclass: any) => {
     if (choice.dynamic !== 'spell') return choice.chooseNumber;
     
@@ -114,7 +116,7 @@ export function ClassStep() {
                 </div>
                 {cls.source && <DictyTwisterLink type="class" name={cls.name} source={cls.source} />}
               </div>
-              <FormattedDescription text={cls.description} className="text-stone-600 mt-2 text-xs leading-relaxed font-sans" />
+              <FormattedDescription text={cls.description} truncateFirstParagraph={true} className="text-stone-600 mt-2 text-xs leading-relaxed font-sans" />
             </div>
           ))}
         </div>
@@ -124,7 +126,7 @@ export function ClassStep() {
         <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <h2 className="text-2xl font-serif text-amber-600 border-b border-stone-200 pb-3 mb-6">3. 子职业</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {selectedClass.subclasses.filter(sc => isSourceEnabled(sc.source || selectedClass.source || 'phb')).map(subclass => (
+            {selectedClass.subclasses.filter(sc => isSourceEnabled(sc.source || selectedClass.source || 'phb', 'classes')).map(subclass => (
               <div 
                  key={subclass.id}
                  onClick={() => dispatch({ type: 'SET_SUBCLASS', payload: subclass.id })}
@@ -139,9 +141,9 @@ export function ClassStep() {
                      <h3 className="text-base font-serif text-stone-900">{subclass.name}</h3>
                      {subclass.source && <span className="text-[10px] bg-stone-100 text-stone-500 border border-stone-200 px-1.5 py-0.5 rounded uppercase tracking-wider">{subclass.source}</span>}
                    </div>
-                   {(subclass.source || selectedClass.source) && <DictyTwisterLink type="class" name={selectedClass.name} subId={subclass.id} source={subclass.source || selectedClass.source!} />}
+                   {(subclass.source || selectedClass.source) && <DictyTwisterLink type="class" name={selectedClass.name} subId={subclass.id} source={subclass.source || selectedClass.source!} baseSource={selectedClass.source} />}
                  </div>
-                 <FormattedDescription text={subclass.description} className="text-stone-600 mt-2 text-xs leading-relaxed font-sans" />
+                 <FormattedDescription text={subclass.description} truncateFirstParagraph={true} className="text-stone-600 mt-2 text-xs leading-relaxed font-sans" />
                </div>
             ))}
           </div>
@@ -160,7 +162,7 @@ export function ClassStep() {
             <div className="pl-2 border-l-2 border-stone-200"><span className="font-semibold text-stone-600">首级生命值：</span> {selectedClass.hitDie} + 你的体质调整值</div>
             <div className="pl-2 border-l-2 border-stone-200"><span className="font-semibold text-stone-600">其后生命值：</span> 1级之后每{selectedClass.name}等级 1d{selectedClass.hitDie} (或 {Math.ceil(selectedClass.hitDie / 2 + 0.5)}) + 你的体质调整值</div>
             
-            <div className="mt-4"><span className="font-semibold text-stone-700">熟练</span></div>
+            <div className="mt-4"><span className="font-semibold text-stone-700">熟练项</span></div>
             <div className="pl-2 border-l-2 border-stone-200"><span className="font-semibold text-stone-600">护甲：</span> <EquipmentText text={selectedClass.armorProficiencies.length ? selectedClass.armorProficiencies.join('、') : '无'} /></div>
             <div className="pl-2 border-l-2 border-stone-200"><span className="font-semibold text-stone-600">武器：</span> <EquipmentText text={selectedClass.weaponProficiencies.length ? selectedClass.weaponProficiencies.join('、') : '无'} /></div>
             <div className="pl-2 border-l-2 border-stone-200"><span className="font-semibold text-stone-600">工具：</span> {selectedClass.toolProficiencies.length ? selectedClass.toolProficiencies.join('、') : '无'}</div>
@@ -176,15 +178,93 @@ export function ClassStep() {
               ...(selectedSubclass && state.character.level >= selectedClass.subclassAvailableAtLevel 
                 ? selectedSubclass.traits.filter(t => t.level! <= state.character.level).map(t => ({ ...t, sourceName: `子职业: ${selectedSubclass.name}` })) 
                 : [])
-            ].sort((a, b) => (a.level || 0) - (b.level || 0)).map((t, index) => (
-              <div key={`${t.name}-${index}`} className="bg-stone-50 p-3 rounded-md border border-stone-100">
-                <div className="flex items-center gap-3 mb-2">
-                  <h5 className="font-semibold text-amber-600 text-base">{t.name}</h5>
-                  <span className="text-[10px] text-stone-500 bg-stone-200 px-2 py-0.5 rounded-full font-sans tracking-wide">Lv {t.level}</span>
-                  <span className="text-[10px] text-stone-400 font-sans uppercase tracking-widest ml-auto">{t.sourceName}</span>
-                </div>
-                <FormattedDescription text={t.description} className="text-stone-600 text-xs leading-relaxed font-sans" />
-                {t.choices && (() => {
+            ].sort((a, b) => (a.level || 0) - (b.level || 0)).map((t, index) => {
+              const customConfig = CUSTOM_ROLL_TRAITS[t.name];
+              if (customConfig) {
+                const { prefix, suffix } = splitDescription(t.description, customConfig.tableName);
+                const selectedVal = state.character.traitSelections[customConfig.id]?.[0] || '';
+                return (
+                  <div key={`${t.name}-${index}`} className="bg-stone-50 p-4 rounded-lg border border-amber-200/40">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h5 className="font-semibold text-amber-600 text-base">{t.name}</h5>
+                      <span className="text-[10px] text-stone-500 bg-stone-200 px-2 py-0.5 rounded-full font-sans tracking-wide font-medium">Lv {t.level}</span>
+                      <span className="text-[10px] text-stone-400 font-sans uppercase tracking-widest ml-auto">{t.sourceName}</span>
+                    </div>
+                    
+                    <FormattedDescription text={prefix} className="text-stone-600 text-xs leading-relaxed font-sans" />
+                    
+                    <div className="bg-white p-4 rounded-lg border border-stone-200 shadow-sm my-4 font-sans text-left">
+                      <div className="flex items-center justify-between mb-3 border-b border-stone-100 pb-2">
+                        <h6 className="font-semibold text-stone-800 text-sm flex items-center gap-2">
+                          {customConfig.label}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const randomIndex = Math.floor(Math.random() * customConfig.options.length);
+                              const opt = customConfig.options[randomIndex];
+                              dispatch({
+                                type: 'SET_TRAIT_SELECTION',
+                                payload: { choiceId: customConfig.id, selectedIds: [opt] }
+                              });
+                            }}
+                            className="p-1 px-2 text-stone-500 hover:text-amber-700 hover:bg-amber-50 rounded-md transition-all flex items-center text-xs font-sans gap-1 cursor-pointer border border-stone-200 bg-white"
+                            title="随机投掷确定"
+                          >
+                            <Dices className="w-3.5 h-3.5" />
+                            随机卷轴/掷骰
+                          </button>
+                        </h6>
+                        {selectedVal && (
+                          <span className="text-[11px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100 font-medium font-sans">已确认</span>
+                        )}
+                      </div>
+                      
+                      <input 
+                        type="text"
+                        readOnly
+                        value={selectedVal}
+                        placeholder={`请从下方列表中选择或点击"随机卷轴/掷骰"以确定你的${customConfig.label}...`}
+                        className="w-full bg-stone-50 border border-stone-200 rounded-lg p-3 text-stone-950 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors shadow-sm font-sans text-xs mb-4 h-[44px] cursor-not-allowed font-medium animate-in fade-in"
+                      />
+
+                      <ul className="space-y-1.5 max-h-[200px] overflow-y-auto pr-1">
+                        {customConfig.options.map((opt, i) => {
+                          const isSelected = selectedVal === opt;
+                          return (
+                            <li 
+                              key={i} 
+                              className={`text-stone-700 text-xs font-sans flex items-start gap-2.5 cursor-pointer hover:text-amber-700 transition-all p-2 rounded-lg border ${isSelected ? 'bg-amber-50/60 text-amber-900 border-amber-200 shadow-sm' : 'hover:bg-amber-50/20 border-transparent'}`}
+                              onClick={() => {
+                                dispatch({
+                                  type: 'SET_TRAIT_SELECTION',
+                                  payload: { choiceId: customConfig.id, selectedIds: [opt] }
+                                });
+                              }}
+                            >
+                              <span className={`font-mono text-xs ${isSelected ? 'text-amber-600 font-bold' : 'text-stone-400'}`}>d6-{i + 1}</span>
+                              <span className={isSelected ? "font-medium" : ""}>{opt}</span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+
+                    {suffix && (
+                      <FormattedDescription text={suffix} className="text-stone-600 text-xs leading-relaxed font-sans mt-2" />
+                    )}
+                  </div>
+                );
+              }
+
+              return (
+                <div key={`${t.name}-${index}`} className="bg-stone-50 p-3 rounded-md border border-stone-100">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h5 className="font-semibold text-amber-600 text-base">{t.name}</h5>
+                    <span className="text-[10px] text-stone-500 bg-stone-200 px-2 py-0.5 rounded-full font-sans tracking-wide">Lv {t.level}</span>
+                    <span className="text-[10px] text-stone-400 font-sans uppercase tracking-widest ml-auto">{t.sourceName}</span>
+                  </div>
+                  <FormattedDescription text={t.description} className="text-stone-600 text-xs leading-relaxed font-sans" />
+                  {t.choices && (() => {
                   let sortedChoices = [...t.choices];
                   // 找到起始装备选择组
                   const wealthMethodIdx = sortedChoices.findIndex(c => c.id.endsWith('-wealth-method'));
@@ -301,7 +381,8 @@ export function ClassStep() {
                   );
                 })()}
               </div>
-            ))}
+            );
+          })}
           </div>
         </section>
       )}

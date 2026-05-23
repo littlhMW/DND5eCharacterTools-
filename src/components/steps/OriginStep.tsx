@@ -8,10 +8,10 @@ import { TraitSelection } from '../shared/TraitSelection';
 export function OriginStep() {
   const { state, dispatch } = useCharacter();
   
-  const availableRaces = races.filter(r => isSourceEnabled(r.source || 'phb')).map(race => {
+  const availableRaces = races.filter(r => isSourceEnabled(r.source || 'phb', 'races')).map(race => {
     return {
       ...race,
-      subraces: race.subraces?.filter(sr => isSourceEnabled(sr.source || race.source || 'phb'))
+      subraces: race.subraces?.filter(sr => isSourceEnabled(sr.source || race.source || 'phb', 'races'))
     };
   });
 

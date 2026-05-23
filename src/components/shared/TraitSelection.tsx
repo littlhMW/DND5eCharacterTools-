@@ -530,7 +530,7 @@ export const TraitSelection: React.FC<TraitSelectionProps> = ({ choice }) => {
   // ========== 自定义法术输入 ==========
   if (choice.dynamic === 'custom-spells') {
     return (
-      <CustomSpellInput choiceId={choice.id} maxCount={choice.chooseNumber} title={choice.name} />
+      <CustomSpellInput choiceId={choice.id} maxCount={typeof choice.chooseNumber === 'number' ? choice.chooseNumber : parseInt(choice.chooseNumber as string, 10) || 2} title={choice.name} />
     );
   }
 

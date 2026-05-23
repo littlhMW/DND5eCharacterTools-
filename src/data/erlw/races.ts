@@ -17,7 +17,7 @@ export const races: Race[] = [
       {
         id: 'mark-of-warding',
         name: '警戒龙纹矮人',
-        description: '携带了防御和密封魔法力量的龙纹。',
+        description: '警戒龙纹矮人携带防御与封锁之龙纹。他们精于破解盗贼工具，能施展警报与神圣护甲等护卫秘术，是世间各大家族金库与圣所最值得信赖的终极铁卫。',
         abilityBonuses: [{ ability: 'INT', bonus: 1 }],
         traits: [
           { name: '守卫直觉', description: '进行调查或盗贼工具检定时可以加上1d4。' },
@@ -48,7 +48,7 @@ export const races: Race[] = [
       {
         id: 'mark-of-storm',
         name: '暴风龙纹半精灵',
-        description: '携带有控制风暴和天气魔法力量的龙纹。',
+        description: '暴风龙纹半精灵携带有控制气候与蔚蓝风暴力量的龙纹。他们抗性卓越，在波涛汹涌的海轮或空艇中能凭借超凡直觉驾驭风向，是用狂风神术御行万里的风雨之子。',
         abilityBonuses: [{ ability: 'DEX', bonus: 1 }],
         traits: [
           { name: '驭风者直觉', description: '当你进行体操检定或使用领航工具时附加 1d4。' },
@@ -64,7 +64,7 @@ export const races: Race[] = [
       {
         id: 'mark-of-detection',
         name: '侦测龙纹半精灵',
-        description: '携带有看破隐秘魔法力量的龙纹。',
+        description: '侦测龙纹半精灵携带有看破迷雾与勘破隐秘力量的龙纹。他们天生具有敏锐的推理直觉，能一眼识破藏匿于暗影中的魔能，是帝国中最杰出的密探与调查大师。',
         abilityBonuses: [{ ability: 'WIS', bonus: 2 }],
         traits: [
           { name: '推理直觉', description: '当你进行调查或洞悉检定可加 1d4。' },
@@ -95,7 +95,7 @@ export const races: Race[] = [
       {
         id: 'mark-of-healing',
         name: '医疗龙纹半身人',
-        description: '携带治愈和恢复魔法力量的龙纹。',
+        description: '医疗龙纹半身人携带治愈诸痛与抚平创伤之神秘龙纹。微小的身躯孕育着不凡的草药感知，他们能轻易引导神圣能量使骨肉重生，是苦难旅者心中最温暖的医疗之光。',
         abilityBonuses: [{ ability: 'WIS', bonus: 1 }],
         traits: [
           { name: '医疗直觉', description: '进行医疗技能或草药工具检定时加 1d4。' },
@@ -110,7 +110,7 @@ export const races: Race[] = [
       {
         id: 'mark-of-hospitality',
         name: '招待龙纹半身人',
-        description: '携带食物与居所魔法力量的龙纹。',
+        description: '招待龙纹半身人携带操控食物、引燃炉火与提供隐秘庇护所的招待龙纹。他们生性热诚、手艺卓越，能将简陋酒肆点缀得如家般温馨，是最伟大的酒家与团队润滑剂。',
         abilityBonuses: [{ ability: 'CHA', bonus: 1 }],
         traits: [
           { name: '永远热情好客', description: '进行说服、酿酒工具或厨师工具检定时加 1d4。' },
@@ -141,7 +141,7 @@ export const races: Race[] = [
       {
         id: 'mark-of-finding',
         name: '探索龙纹半兽人',
-        description: '追踪与搜寻。',
+        description: '探索龙纹半兽人携带能洞察猎物踪迹、辨明世间方位的追踪之龙纹。他们继承了荒野之子的直觉感知，擅使猎人印记追踪百里，是寻龙点穴、追索逃犯的最强猎犬。',
         abilityBonuses: [{ ability: 'WIS', bonus: 2 }, { ability: 'CON', bonus: 1 }],
         traits: [
           { name: '猎人直觉', description: '进行察觉或生存检定时加 1d4。' },
@@ -171,7 +171,7 @@ export const races: Race[] = [
       {
         id: 'mark-of-shadow',
         name: '阴影龙纹精灵',
-        description: '阴影和幻觉魔法。',
+        description: '阴影龙纹精灵携带编织幻象、隐匿在星月暗影中的古老龙纹。他们是精妙的幻术师与潜行者，擅长在众目睽睽下隐去身形，用完美的伪装在帷幕后操弄历史的车轮。',
         abilityBonuses: [{ ability: 'CHA', bonus: 1 }],
         traits: [
           { name: '狡诈直觉', description: '进行表演或隐匿检定时加 1d4。' },
@@ -201,7 +201,7 @@ export const races: Race[] = [
       {
         id: 'mark-of-handling',
         name: '畜牧龙纹人类',
-        description: '掌控动物与魔法生物。',
+        description: '畜牧龙纹人类拥有与野生野兽和巨型魔法生物进行心灵链接的特异龙纹。他们极易赢得生灵信任，可轻易驯化智力低下怪兽，是荒野畜牧和自然生态的坚固桥梁。',
         abilityBonuses: [{ ability: 'WIS', bonus: 2 }],
         traits: [
           { name: '野性直觉', description: '进行驯兽或自然检定时加 1d4。' },
@@ -217,7 +217,7 @@ export const races: Race[] = [
       {
         id: 'mark-of-making',
         name: '创造龙纹人类',
-        description: '制造与附魔。',
+        description: '创造龙纹人类携带有操控万物结构、点石成金的制造之龙纹。他们是天生的工匠大师与附魔学者，能单手附魔兵刃，用修复术维持精密机关，是工业帝国的魔能枢纽。',
         abilityBonuses: [{ ability: 'INT', bonus: 2 }],
         traits: [
           { name: '工匠直觉', description: '进行奥秘或工匠工具检定时加 1d4。' },
@@ -233,7 +233,7 @@ export const races: Race[] = [
       {
         id: 'mark-of-sentinel',
         name: '守护龙纹人类',
-        description: '守护与保护。',
+        description: '守护龙纹人类攜带着坚不可摧之叹息之墙的守卫龙纹。他们直觉感官极其锐利，关键时刻能挺身而出、替换替友承受重创，是用肉躯与护盾捍卫誓言的钢铁人墙。',
         abilityBonuses: [{ ability: 'CON', bonus: 2 }, { ability: 'WIS', bonus: 1 }],
         traits: [
           { name: '哨兵直觉', description: '进行洞悉或察觉检定时加 1d4。' },
@@ -246,7 +246,7 @@ export const races: Race[] = [
       {
         id: 'mark-of-passage',
         name: '通行龙纹人类',
-        description: '运动与传送。',
+        description: '通行龙纹人类携带着能操纵空间折叠、运动无阻的移动之龙纹。他们移速如飞，能于战场上踏碎虚空，自如施展迷踪步，是冲锋陷阵、纵横无阻的战地信使。',
         abilityBonuses: [{ ability: 'DEX', bonus: 2 }],
         traits: [
           { name: '邮差之速', description: '基础步行速度为35尺。' },
@@ -261,7 +261,7 @@ export const races: Race[] = [
   {
     id: 'bugbear',
     name: '熊地精',
-    description: '巨大的地精族类。',
+    description: '熊地精是地精类生物中体魄最为巨硕、性情极度贪婪的伏击猎手。他们长肢如猿，悄无声息行动如幽灵，能在首轮袭击中爆发出致命重创，是潜伏在荒林深处的恐怖突袭者。',
     abilityBonuses: [{ ability: 'STR', bonus: 2 }, { ability: 'DEX', bonus: 1 }],
     size: 'Medium',
     speed: 30,

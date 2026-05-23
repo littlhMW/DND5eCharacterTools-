@@ -15,11 +15,27 @@ export const SKILL_ABILITIES: Record<string, Ability> = {
 };
 
 export const SKILL_NAMES: Record<string, string> = {
-  athletics: '运动',
-  acrobatics: '特技', sleightOfHand: '巧手', stealth: '隐匿',
-  arcana: '奥秘', history: '历史', investigation: '调查', nature: '自然', religion: '宗教',
-  animalHandling: '驯兽', insight: '洞悉', medicine: '医药', perception: '察觉', survival: '生存',
-  deception: '欺瞒', intimidation: '威吓', performance: '表演', persuasion: '说服'
+  athletics: '运动', Athletics: '运动',
+  acrobatics: '特技', Acrobatics: '特技',
+  sleightOfHand: '巧手', sleightofhand: '巧手', SleightOfHand: '巧手', 'Sleight of Hand': '巧手',
+  stealth: '隐匿', Stealth: '隐匿',
+  arcana: '奥秘', Arcana: '奥秘',
+  history: '历史', History: '历史',
+  investigation: '调查', Investigation: '调查',
+  nature: '自然', Nature: '自然',
+  religion: '宗教', Religion: '宗教',
+  animalHandling: '驯兽', animalhandling: '驯兽', AnimalHandling: '驯兽', 'Animal Handling': '驯兽',
+  insight: '洞悉', Insight: '洞悉',
+  medicine: '医药', Medicine: '医药',
+  perception: '察觉', Perception: '察觉',
+  survival: '生存', Survival: '生存',
+  deception: '欺瞒', Deception: '欺瞒',
+  intimidation: '威吓', Intimidation: '威吓',
+  performance: '表演', Performance: '表演',
+  persuasion: '说服', Persuasion: '说服',
+  'Intelligence/Wisdom/Charisma Skill': '智力/感知/魅力技能',
+  'intelligence/wisdom/charisma skill': '智力/感知/魅力技能',
+  'any': '任意技能'
 };
 
 export function getAbilityTotal(c: Character, race?: Race, subrace?: Subrace, ab?: Ability) {
@@ -39,24 +55,32 @@ const ID_MAP: Record<string, string> = {
   '盗贼工具': 'thieves-tools',
 };
 
+const normalizeSkillId = (s: string): string => {
+  const mapped = ID_MAP[s] || s;
+  const lower = mapped.toLowerCase();
+  if (lower === 'sleightofhand' || lower === 'sleight of hand') return 'sleightOfHand';
+  if (lower === 'animalhandling' || lower === 'animal handling') return 'animalHandling';
+  return lower;
+};
+
 export function getProficiencies(c: Character, cls?: Class, race?: Race, subrace?: Subrace, bg?: Background) {
   const saves = cls ? [...cls.saves] : [];
   
   const skills = new Set<string>();
   const tools = new Set<string>();
 
-  if (race?.skillProficiencies) race.skillProficiencies.forEach(s => skills.add(ID_MAP[s] || s));
+  if (race?.skillProficiencies) race.skillProficiencies.forEach(s => skills.add(normalizeSkillId(s)));
   if (race?.toolProficiencies) race.toolProficiencies.forEach(t => tools.add(ID_MAP[t] || t));
 
-  if (subrace?.skillProficiencies) subrace.skillProficiencies.forEach(s => skills.add(ID_MAP[s] || s));
+  if (subrace?.skillProficiencies) subrace.skillProficiencies.forEach(s => skills.add(normalizeSkillId(s)));
   if (subrace?.toolProficiencies) subrace.toolProficiencies.forEach(t => tools.add(ID_MAP[t] || t));
 
-  if (bg?.skillProficiencies) bg.skillProficiencies.forEach(s => skills.add(ID_MAP[s] || s));
+  if (bg?.skillProficiencies) bg.skillProficiencies.forEach(s => skills.add(normalizeSkillId(s)));
   if (bg?.toolProficiencies) bg.toolProficiencies.forEach(t => tools.add(ID_MAP[t] || t));
 
   if (cls?.toolProficiencies) cls.toolProficiencies.forEach(t => tools.add(ID_MAP[t] || t));
   
-  if (c.skillSelections) c.skillSelections.forEach(s => skills.add(ID_MAP[s] || s));
+  if (c.skillSelections) c.skillSelections.forEach(s => skills.add(normalizeSkillId(s)));
 
   const expertise = new Set<string>();
 
@@ -64,7 +88,7 @@ export function getProficiencies(c: Character, cls?: Class, race?: Race, subrace
     if (!ids || !Array.isArray(ids)) return;
     const isExpertise = choiceId.toLowerCase().includes('expertise') || choiceId.includes('knowledge-domain-skills');
     (ids as string[]).forEach(id => {
-      const normalizedId = ID_MAP[id] || id;
+      const normalizedId = normalizeSkillId(id);
       if (ALL_SKILLS.includes(normalizedId)) {
         if (isExpertise) {
           expertise.add(normalizedId);

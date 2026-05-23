@@ -1,5 +1,13 @@
 // 各职业法术列表（法术ID）
 export const classSpellLists: Record<string, string[]> = {
+  artificer: [
+    'message', 'create-bonfire', 'green-flame-blade', 'shocking-grasp', 'poison-spray', 'mage-hand', 'light', 'booming-blade', 'fire-bolt', 'sword-burst', 'ray-of-frost', 'thunderclap', 'prestidigitation', 'magic-stone', 'lightning-lure', 'guidance', 'frostbite', 'acid-splash', 'resistance', 'dancing-lights', 'mending', 'spare-the-dying',
+    'longstrider', 'catapult', 'identify', 'expeditious-retreat', 'alarm', 'purify-food-and-drink', 'false-life', 'snare', 'sanctuary', 'tashas-caustic-brew', 'jump', 'absorb-elements', 'faerie-fire', 'disguise-self', 'grease', 'feather-fall', 'detect-magic', 'cure-wounds',
+    'enlarge-reduce', 'alter-self', 'continual-flame', 'lesser-restoration', 'protection-from-poison', 'levitate', 'darkvision', 'blur', 'arcane-lock', 'magic-weapon', 'magic-mouth', 'enhance-ability', 'see-invisibility', 'skywrite', 'rope-trick', 'pyrotechnics', 'invisibility', 'aid', 'web', 'spider-climb', 'heat-metal',
+    'create-food-and-water', 'protection-from-energy', 'fly', 'revivify', 'flame-arrows', 'haste', 'dispel-magic', 'blink', 'glyph-of-warding', 'water-walk', 'water-breathing', 'tiny-servant', 'catnap', 'elemental-weapon', 'intellect-fortress',
+    'summon-construct', 'fabricate', 'leomunds-secret-chest', 'arcane-eye', 'mordenkainens-private-sanctum', 'mordenkainens-faithful-hound', 'otilukes-resilient-sphere', 'stoneskin', 'stone-shape', 'freedom-of-movement', 'elemental-bane',
+    'bigbys-hand', 'greater-restoration', 'animate-objects', 'skill-empowerment', 'wall-of-stone', 'creation', 'transmute-rock'
+  ],
   bard: [
     'calm-emotions', 'suggestion', 'ottos-irresistible-dance', 'cloud-of-daggers',
     'enlarge-reduce', 'polymorph', 'silence', 'zone-of-truth', 'stinking-cloud',

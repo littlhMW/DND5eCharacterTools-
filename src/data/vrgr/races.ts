@@ -4,7 +4,7 @@ export const races: Race[] = [
   {
     id: 'dhampir',
     name: '半血裔',
-    description: '介于生者与亡者之间，渴求着生命。',
+    description: '半血裔游走于生者与死者的灰色边界。与死灵领域的脆弱纽带赋予了他们类似吸血鬼的无光伟力、绝尘的蛛行攀爬敏捷与渴求生命的噬咬，无时无刻不在经受着恶毒饥渴的试炼。',
     abilityBonuses: [{ ability: 'STR', bonus: 2 }, { ability: 'CON', bonus: 1 }],
     size: 'Medium',
     speed: 35,
@@ -48,7 +48,7 @@ export const races: Race[] = [
   {
     id: 'hexblood',
     name: '巫咒之子',
-    description: '受到鬼婆或精类魔法影响的血脉。',
+    description: '巫咒之子是体内充盈着精类或鬼婆巫术的超自然个体。由于源远流长的魔能契约，他们生长出怪异肤色与活体冠冕之印，熟稔干扰感官的奇诡法术，执着跨向揭开奥秘的道路。',
     abilityBonuses: [{ ability: 'CHA', bonus: 2 }, { ability: 'INT', bonus: 1 }],
     size: 'Medium',
     speed: 30,
@@ -95,7 +95,7 @@ export const races: Race[] = [
   {
     id: 'reborn',
     name: '重生者',
-    description: '死去又复活的人，记忆破碎，身体满是伤痕。',
+    description: '重生者是跨过死亡边界、带着未了宿命重回尘世的奇异奇迹。他们或许带着致命伤口、又或是拼凑而成的炼金之躯。破碎记忆促使他们再次上路，在不眠一生中寻觅终极答案。',
     abilityBonuses: [{ ability: 'CON', bonus: 2 }, { ability: 'WIS', bonus: 1 }],
     size: 'Medium',
     speed: 30,

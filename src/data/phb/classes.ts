@@ -4,7 +4,7 @@ export const classes: DndClass[] = [
   {
     "id": "barbarian",
     "name": "野蛮人",
-    "description": "一位充满原初狂怒的勇猛战士，与荒野之力紧密相连。",
+    "description": "一个能进入战斗狂怒的勇猛狂战士。他们拥有与自然和动物连系的图腾精魂，或仅仅凭借自身的无匹力量，挥舞巨大的武器在战场上粉碎敌人。在狂暴中，他们将感受到痛觉麻木，并爆发出惊人的力量。",
     "hitDie": 12,
     "primaryAbility": [
       "STR"
@@ -322,12 +322,36 @@ export const classes: DndClass[] = [
           {
             "name": "图腾精魂",
             "description": "当你选择此道途时，你选择一种图腾精魂并获得它的能力。你必须制造或获得一个象征图腾野兽的兽毛、翼羽、利爪、牙齿、或骨头的图腾物体—例如护身符或其他类似的饰品。熊：当狂暴时，你对除了心灵伤害以外的所有伤害具有抗性。鹰：当你狂暴且未穿着重甲时，其他生物对你所进行的借机攻击将具有劣势，且你可以在你的回合以一个附赠动作使用疾走动作。狼：当你狂暴时，你的盟友在对任何距离你5尺内且对你有敌意的生物所进行的近战攻击检定具有优势。",
-            "level": 3
+            "level": 3,
+        "choices": [
+          {
+            "id": "totem-spirit-3",
+            "name": "选择图腾精魂",
+            "chooseNumber": 1,
+            "options": [
+              { "id": "bear", "name": "熊", "description": "当狂暴时，你对除了心灵伤害以外的所有伤害具有抗性。" },
+              { "id": "eagle", "name": "鹰", "description": "当你狂暴且未穿着重甲时，其他生物对你所进行的借机攻击将具有劣势，且你可以在你的回合以一个附赠动作使用疾走动作。" },
+              { "id": "wolf", "name": "狼", "description": "当你狂暴时，你的盟友在对任何距离你5尺内且对你有敌意的生物所进行的近战攻击检定具有优势。" }
+            ]
+          }
+        ]
           },
           {
             "name": "兽之形",
             "description": "你获得一个基于你所选图腾动物的魔法益处。你可以选择一个与你在3级时所选相同或不同的动物。熊：你获得熊之力量。你的负载能力（包括最大负重和最大举重）变为两倍，且你在拖曳、推动、提举、或破坏物体时所进行的力量检定将具有优势。鹰：你获得鹰之锐目。你可以毫无困难地看见最远1里的距离，甚至能辨别出最细微的细节，就如同在查看距离你不超过100尺的事物一样。此外，微光光照并不会使你的感知（察觉）检定承受劣势。狼：你获得狼的狩猎敏锐。你能够以快速步速追踪其他生物，且你能够以正常步速隐匿移动。",
-            "level": 6
+            "level": 6,
+        "choices": [
+          {
+            "id": "totem-spirit-6",
+            "name": "选择兽之形图腾",
+            "chooseNumber": 1,
+            "options": [
+              { "id": "bear", "name": "熊", "description": "负载能力变为两倍，在拖曳、推动、提举力量检定中具有优势。" },
+              { "id": "eagle", "name": "鹰", "description": "能看见1里外事物如同100尺。微光光照不会使察觉检定劣势。" },
+              { "id": "wolf", "name": "狼", "description": "能以快速步速追踪其他生物且隐匿移动。" }
+            ]
+          }
+        ]
           },
           {
             "name": "精魂行者",
@@ -365,7 +389,7 @@ export const classes: DndClass[] = [
   {
     "id": "bard",
     "name": "吟游诗人",
-    "description": "一位用音乐与言辞编织魔力的表演者，在激励盟友的同时巧施法术。",
+    "description": "用音乐和演说编织出魔法的鼓舞人心之创作者。他们是极具魅力的吟游者或艺术家，漫游于世界收集各样的传说与知识。无论在战斗中的振奋激励还是施展控制思想与治疗创伤的法术，他们都是多才多艺的支援者。",
     "hitDie": 8,
     "primaryAbility": [
       "CHA"
@@ -1209,7 +1233,7 @@ export const classes: DndClass[] = [
   {
     "id": "cleric",
     "name": "牧师",
-    "description": "作为神性力量的通道，一位身披铠甲、为信仰而战的祭司。",
+    "description": "身兼信徒神力管道的祭司与施法者。他们使用神圣力量来治愈伤痛、鼓舞盟友，并唤起诸神之怒打击罪恶或不死生物。身披铠甲的他们同样也能是在前线捍卫信仰的战斗核心。",
     "hitDie": 8,
     "primaryAbility": [
       "WIS"
@@ -1747,9 +1771,9 @@ export const classes: DndClass[] = [
     "subclassAvailableAtLevel": 1,
     "subclasses": [
       {
-        "id": "life-domain",
+        "id": "life",
         "name": "生命领域",
-        "description": "生命领域专注于精力充沛的正能量—构成宇宙的其中一种基本力量—维持所有生命的延续。掌管生命领域的神祇传播活力与健康，借由医治疾病与创伤、照料需要的人们、并驱赶死亡和亡灵的势力。几乎所有非邪恶的神祇都可以宣称其在这个领域中具有影响力。",
+        "description": "生命领域专注于澎湃的正能量，旨在维持生命的延续与繁衍。该领域的神圣力量执掌医疗与康复，能驱散疫病、抚平创伤并净化亡灵。几乎所有非邪恶的神祇都拥有此领域。",
         "traits": [
           {
             "name": "额外熟练",
@@ -1837,9 +1861,9 @@ export const classes: DndClass[] = [
         "source": "phb"
       },
       {
-        "id": "tempest-domain",
+        "id": "tempest",
         "name": "暴风领域",
-        "description": "神职囊括了暴风领域的神祗掌管着风暴、海洋、和天空。祂们之中包括了闪电和雷霆之神、地震之神、一些火神、和某些暴力、身体力量、和勇气之神。在航海民族的神系中，这个领域的诸神则会是海洋神祇和水手们的庇护者。暴风之神往往差遣祂们的牧师在寻常民众中引发畏惧，从而确保这些人持守于正直的道路上。",
+        "description": "暴风领域神祇统御着狂风、骤雨与雷霆等自然伟力。牧师获得操控风暴、闪电的超凡能量，可在异教徒心中唤起对神明敬畏，或在尘世平息大自然的暴怒。",
         "traits": [
           {
             "name": "额外熟练",
@@ -1927,7 +1951,7 @@ export const classes: DndClass[] = [
         "source": "phb"
       },
       {
-        "id": "light-domain",
+        "id": "light",
         "name": "光明领域",
         "description": "光明之神提倡重生和更新、真实、警醒、和美的理想，且经常使用太阳作为徽记。光明之神的牧师有着被启蒙的灵魂，被他们神明的光辉和洞察力给充满，负责驱赶谎言并燃尽黑暗。",
         "traits": [
@@ -2030,7 +2054,7 @@ export const classes: DndClass[] = [
         "source": "phb"
       },
       {
-        "id": "trickery-domain",
+        "id": "trickery",
         "name": "诡术领域",
         "description": "诡术之神都是恶作剧高手，也是不断挑战凡人和神明共有秩序的煽动者。祂们是窃贼、恶棍、赌徒、叛乱者、和解放者的守护神。祂们的牧师是颠覆世界的力量，他们偏好花言巧语、恶作剧、欺瞒、和窃盗更胜于正面对抗。",
         "traits": [
@@ -2115,9 +2139,9 @@ export const classes: DndClass[] = [
         "source": "phb"
       },
       {
-        "id": "death-domain",
+        "id": "death",
         "name": "死亡领域",
-        "description": "死亡领域关注的是导致死亡的原力，以及唤起不死生物的负能量。死亡领域的神灵还具现为谋杀、痛苦、疾病或毒药、和冥界。",
+        "description": "死亡领域掌控使生灵陨落的原动力与死灵负能量。该领域神祇执掌着谋杀、痛苦、疫病及冥界之权，是死灵法师、巫妖和吸血鬼等不死存在的终极守护者。",
         "traits": [
           {
             "name": "额外熟练",
@@ -2214,7 +2238,7 @@ export const classes: DndClass[] = [
         "source": "dmg"
       },
       {
-        "id": "war-domain",
+        "id": "war",
         "name": "战争领域",
         "description": "战争有很多表现形式。不论如何，战争之神都守望着战士们，按他们的功绩行赏。这些神的牧师善于战斗、激励他人在战斗中打一场好仗、或献上暴力行为作为祈祷。",
         "traits": [
@@ -2304,7 +2328,7 @@ export const classes: DndClass[] = [
         "source": "phb"
       },
       {
-        "id": "knowledge-domain",
+        "id": "knowledge",
         "name": "知识领域",
         "description": "知识之神重视学习和理解胜过一切。有些神祇则将知识密藏起来，不让其他人所知。而有些则承诺祂们的追随者，若他们能解开多元宇宙中的秘密，就将获得无比的权力。",
         "traits": [
@@ -2419,7 +2443,7 @@ export const classes: DndClass[] = [
         "source": "phb"
       },
       {
-        "id": "nature-domain",
+        "id": "nature",
         "name": "自然领域",
         "description": "自然之神就如同自然界本身一样变化多端。这些勇士会在增进特定自然之神的利益上扮演更加积极的角色。这些牧师可能会前去狩猎破坏林地的邪恶怪物、祝福忠实信徒们的收获。",
         "traits": [
@@ -2561,7 +2585,7 @@ export const classes: DndClass[] = [
   {
     "id": "druid",
     "name": "德鲁伊",
-    "description": "一位信奉大自然的施法者，能够变形成野兽并驾驭自然之力。",
+    "description": "信奉远古宗教，依靠大自然、月光星辰或元素施法的自然祭司。他们能变化形态为各类野兽（如凶猛的狼、熊），将自然怒火化作元素法术打击敌人，或者利用自然之魔力治愈伤患。",
     "hitDie": 8,
     "primaryAbility": [
       "WIS"
@@ -3068,7 +3092,7 @@ export const classes: DndClass[] = [
     "subclassAvailableAtLevel": 2,
     "subclasses": [
       {
-        "id": "circle-land",
+        "id": "land",
         "name": "大地结社",
         "description": "大地结社是由神秘主义者和贤者所组成，通过广泛的口述传承来守护古老知识和仪式。作为结社中的一员，你的魔法将被你在入会时所施展神秘结社仪式的大地环境所影响。",
         "traits": [
@@ -3094,7 +3118,7 @@ export const classes: DndClass[] = [
           },
           {
             "name": "结社法术",
-            "description": "你与大地之间的神秘联系使你获得能施放特定法术的能力。在3级、5级、7级、和9级时，你将获得与你成为德鲁伊时所在大地相连的结社法术。一旦你获得结社法术，你将永远视作已经准备了它，且它不会计入你每日可准备的法术数量中。完整的环境法术列表请查阅 <a href=\"https://5e.dickytwister.org/classes.html#德鲁伊_phb,state:sub-land-phb=b1\" target=\"_blank\">大地结社法术</a>。",
+            "description": "你与大地之间的神秘联系使你获得能施放特定法术的能力。在3级、5级、7级、和9级时，你将获得与你成为德鲁伊时所在大地相连的结社法术。一旦你获得结社法术，你将永远视作已经准备了它，且它不会计入你每日可准备的法术数量中。完整的环境法术列表请查阅 [大地结社法术](https://5e.dickytwister.org/classes.html#德鲁伊_phb,state:sub-land-phb=b1)。",
             "level": 2
           },
           {
@@ -3116,7 +3140,7 @@ export const classes: DndClass[] = [
         "source": "phb"
       },
       {
-        "id": "circle-moon",
+        "id": "moon",
         "name": "月亮结社",
         "description": "月亮结社的德鲁伊都是凶猛的荒野卫士。如月亮一样善变，这个结社的德鲁伊可能会在夜晚如大猫徘徊，在隔日如鹰隼盘旋于树顶，并以熊型态横扫灌木。",
         "traits": [
@@ -3169,7 +3193,7 @@ export const classes: DndClass[] = [
   {
     "id": "fighter",
     "name": "战士",
-    "description": "一位拥有无与伦比武术造诣的战斗专家，精通所有护甲与武器。",
+    "description": "精通各种战斗技巧与武器防具的大师。无论选择重装阵线、快如闪电的双刀流还是百步穿杨的弓箭技巧，他们都能以无与伦比的身手一次又一次地发起攻击，运用卓越的战技主宰战场。",
     "hitDie": 10,
     "primaryAbility": [
       "STR",
@@ -3970,7 +3994,7 @@ export const classes: DndClass[] = [
   {
     "id": "monk",
     "name": "武僧",
-    "description": "一位掌控了气之能量的大师，以迅捷如风的徒手打击和武僧兵器粉碎敌人。",
+    "description": "追求肉身与精神完美结合的武术巨匠。凭藉流淌于体内的“气”，他们能摆脱盔甲与武器的束缚，施展狂风暴雨般的徒手连击，并在空中漫步甚至截住飞来的箭矢。",
     "hitDie": 8,
     "primaryAbility": [
       "DEX",
@@ -4299,7 +4323,7 @@ export const classes: DndClass[] = [
       {
         "id": "shadow",
         "name": "暗影宗",
-        "description": "暗影宗的武僧们遵循着崇尚隐匿和诡计的传统。这些武僧也可以被称作忍者或是影舞者，并担当间谍和刺客的工作。有时一个忍者宗派的成员彼此都是家族成员，他们形成一个氏族，誓言将他们技艺与任务隐藏于黑暗中。至于其他宗派则可能更像是盗贼公会，提供他们的服务给贵族、富商、或任何付得起价格的对象。无论他们方式如何，这些宗派的首领都要求下属无条件的服从他们。",
+        "description": "暗影宗武僧尊奉黑暗之美，擅长刺杀、潜行与间谍活动。他们视暗影为平等之地，化身来无影去无踪的忍者、密使或刺客，将自身完美融于无边阴影之中。",
         "traits": [
           {
             "name": "影之技艺",
@@ -4327,7 +4351,7 @@ export const classes: DndClass[] = [
       {
         "id": "four-elements",
         "name": "四象宗",
-        "description": "你遵循着一个教导你驾驭元素之力的宗派传统。当你凝神运气时，你可以使你自己调和于创造和操纵四元素之力，如臂使指般驱使它们。这个宗派的部分成员投身于单一元素，而其它人则将四元素织为一体。\n\n这个宗派的许多武僧会将他们气的象征纹在身上，常见的像是盘龙，或者诸如火凤、游鱼、古木、群山、奔浪等等。",
+        "description": "四象宗武僧能将体内的“气”转化为风、地、火、水四大要素的力量。他们直接沟通周遭自然，可释放毁灭性的元素攻击或塑形魔法，展现超凡的自然掌控力。",
         "traits": [
           {
             "name": "元素门徒",
@@ -4361,7 +4385,7 @@ export const classes: DndClass[] = [
   {
     "id": "paladin",
     "name": "圣武士",
-    "description": "一位身披闪耀重甲、立下不可违抗之誓言的圣洁骑士，结合了神术与剑术。",
+    "description": "宣发了神圣誓言，身披重甲的神圣斗士。他们不仅仅拥有足以劈开黑暗的近战武技，还能够引导神圣属性魔法为自己与盟友提供强有力的恢复与防护灵光，甚至用至圣斩重创强敌。",
     "hitDie": 10,
     "primaryAbility": [
       "STR",
@@ -5017,7 +5041,7 @@ export const classes: DndClass[] = [
       {
         "id": "oathbreaker",
         "name": "破誓者",
-        "description": "成为破誓者的圣武士打破了自己的神圣誓言，而去追求黑暗的野心或为邪恶力量服务。圣武士心中燃烧的光耀已经熄灭，只剩下一片黑暗。",
+        "description": "破誓者是那些主动背弃或违背神圣誓言，堕入黑暗的圣武士。追求正义的美德已荡然无存，他们为复仇与野心所吞噬，转化成受不可遏制的黑暗力量驱使的极恶邪物。",
         "traits": [
           {
             "name": "破誓者引导神力：控制亡灵",
@@ -5213,7 +5237,7 @@ export const classes: DndClass[] = [
   {
     "id": "ranger",
     "name": "游侠",
-    "description": "一位游走于荒野边疆的求生专家，对特定敌人展开毫不留情的追踪与猎杀。",
+    "description": "隐秘书林和荒野之中，追迹与斩杀边缘怪物的猎手。他们精通利用环境，甚至与各种野兽结为强大盟侣，同时也能引导荒野与自然的魔力进行攻击或为战斗提供战略辅助。",
     "hitDie": 10,
     "primaryAbility": [
       "DEX",
@@ -5799,22 +5823,69 @@ export const classes: DndClass[] = [
           {
             "name": "狩者猎物",
             "description": "你获得下列其中一个你所选择的能力：巨怪猎者（对生命值未满的生物攻击额外造成1d8伤害）、巨人杀手（当大型或更大生物攻击你后，可用反应对其进行一次攻击）或灭族者（每回合一次，攻击后可对临近另一目标再次攻击）。",
-            "level": 3
+            "level": 3,
+        "choices": [
+          {
+            "id": "hunter-prey",
+            "name": "选择狩者猎物",
+            "chooseNumber": 1,
+            "options": [
+              { "id": "colossus-slayer", "name": "巨怪猎者", "description": "每回合一次，当你以武器攻击命中一个生命值处于最大值以下的生物时，造成额外1d8伤害。" },
+              { "id": "giant-killer", "name": "巨人杀手", "description": "当一个大型或更大体型的生物在距离你5尺内以一次攻击命中或未命中你，你可以使用反应对该生物进行一次攻击。" },
+              { "id": "horde-breaker", "name": "灭族者", "description": "每回合一次，当你进行一次武器攻击，你可以使用相同武器对另一个与原目标距离5尺内且在武器射程内的生物进行一次额外攻击。" }
+            ]
+          }
+        ]
           },
           {
             "name": "防御性战术",
             "description": "你获得下列其中一个能力：逃离众敌（借机攻击劣势）、防御多重攻击（被命中后当回合AC+4）或钢铁意志（对抗恐惧豁免优势）。",
-            "level": 7
+            "level": 7,
+        "choices": [
+          {
+            "id": "defensive-tactics",
+            "name": "选择防御性战术",
+            "chooseNumber": 1,
+            "options": [
+              { "id": "escape-the-horde", "name": "逃离众敌", "description": "对你进行的借机攻击具有劣势。" },
+              { "id": "multiattack-defense", "name": "防御多重攻击", "description": "当一个生物以一次攻击命中你，此回合接下来该生物对你进行的所有攻击检定中，你的AC获得+4加值。" },
+              { "id": "steel-will", "name": "钢铁意志", "description": "对抗惊恐（恐惧）状态的豁免具有优势。" }
+            ]
+          }
+        ]
           },
           {
             "name": "多重攻击",
             "description": "你获得箭雨（对射程内一点周围10尺所有生物进行远程攻击）或剑刃风暴（对5尺内任意生物进行近战攻击）。",
-            "level": 11
+            "level": 11,
+        "choices": [
+          {
+            "id": "multiattack",
+            "name": "选择多重攻击",
+            "chooseNumber": 1,
+            "options": [
+              { "id": "volley", "name": "箭雨", "description": "使用一个动作，对你远程武器射程内的一个光秃点周围10尺内任何数量生物进行远程攻击。" },
+              { "id": "whirlwind", "name": "剑刃风暴", "description": "使用一个动作，对你触及范围5尺内的任何数量生物进行近战攻击。" }
+            ]
+          }
+        ]
           },
           {
             "name": "卓越猎人防御",
             "description": "你获得反射闪避（敏捷豁免成功不受伤害）、逆潮而立（近战攻击失手时强迫攻击者攻击另一生物）或直觉闪避（被命中时用反应减半伤害）。",
-            "level": 15
+            "level": 15,
+        "choices": [
+          {
+            "id": "superior-hunters-defense",
+            "name": "选择卓越猎人防御",
+            "chooseNumber": 1,
+            "options": [
+              { "id": "evasion", "name": "躲避", "description": "当你受到需要敏捷豁免只受到一半伤害的效果时，若成功则完全不受伤害，若失败则只受一半伤害。" },
+              { "id": "stand-against-the-tide", "name": "挺身抗潮", "description": "当一个对立生物在近战中未命中你，你可以使用反应使该攻击去命中另一个距离你5尺内且你所能看见的生物（除攻击者外）。" },
+              { "id": "uncanny-dodge", "name": "直觉闪避", "description": "当一个你所能看见的攻击者以攻击命中你，可以使用反应使该攻击伤害减半。" }
+            ]
+          }
+        ]
           }
         ],
         "source": "phb"
@@ -5889,7 +5960,7 @@ export const classes: DndClass[] = [
   {
     "id": "rogue",
     "name": "游荡者",
-    "description": "一位潜伏于阴影中的多面手，伺机对疏于防备的敌人发动致命的偷袭。",
+    "description": "以潜行、偷袭和技巧战胜对手的恶棍们。他们最擅长在阴影中行动，找到敌人的弱点刺出致命伤，此外也能在危机中轻松拆解陷阱，解开复杂的锁具，甚至言辞欺诈他人。",
     "hitDie": 8,
     "primaryAbility": [
       "DEX"
@@ -6491,7 +6562,7 @@ export const classes: DndClass[] = [
   {
     "id": "sorcerer",
     "name": "术士",
-    "description": "一位天生与魔法相伴的施法者，其魔力流淌于血脉之中，可通过术法点扭曲现实。",
+    "description": "因着古老血脉、神外之神赐福或其他意外事件而天生具备超自然魔力的施法者。他们不必像研读法术书那般施法，而是凭借自我意志与天生才华让法术扭曲、狂乱与多变。",
     "hitDie": 6,
     "primaryAbility": [
       "CHA"
@@ -6974,7 +7045,7 @@ export const classes: DndClass[] = [
     "subclassAvailableAtLevel": 1,
     "subclasses": [
       {
-        "id": "draconic-bloodline",
+        "id": "draconic",
         "name": "龙族血脉",
         "description": "你的天生魔法来自于与你或你祖先那与龙族魔法交缠的血脉。大多数情况下，这种起源的术士可以追溯其血统到久远以前与龙族交易、或有着龙族双亲的强大术士。",
         "traits": [
@@ -7056,13 +7127,13 @@ export const classes: DndClass[] = [
         "source": "phb"
       },
       {
-        "id": "wild-magic",
+        "id": "wild",
         "name": "狂野魔法",
-        "description": "你的天生魔法来自于潜伏于创造秩序之下的狂野混沌之力。无论其来源为何，这道混乱魔力在你体内翻涌着，等待着被以任何方式释放出来。",
+        "description": "狂野魔法道途将狂暴无边的怒火同妖精荒野或混沌物质界的混乱魔力激烈共鸣。每当进入狂暴，周遭气流将爆发光怪陆离的随机法术涟漪，提供变幻莫测的战斗加持。",
         "traits": [
           {
             "name": "狂野魔法浪涌",
-            "description": "你的施法可以释放出未经驯服的魔法浪涌。紧接在你施放一个1环或更高环的术士法术后，DM可以要求你骰一颗d20。若你骰出了1，则掷骰使用狂野魔法浪涌表以创造出一个随机的魔法效果。完整的浪涌效果表请查阅 <a target=\"_blank\" href=\"https://5e.dickytwister.org/classes.html#术士_phb,state:sub-wild-magic-phb=b1\">狂野魔法浪涌表</a>。",
+            "description": "你的施法可以释放出未经驯服的魔法浪涌。紧接在你施放一个1环或更高环的术士法术后，DM可以要求你骰一颗d20。若你骰出了1，则掷骰使用狂野魔法浪涌表以创造出一个随机的魔法效果。完整的浪涌效果表请查阅 [狂野魔法浪涌表](https://5e.dickytwister.org/classes.html#术士_phb,state:sub-wild-magic-phb=b1)。",
             "level": 1
           },
           {
@@ -7103,7 +7174,7 @@ export const classes: DndClass[] = [
   {
     "id": "warlock",
     "name": "契术师",
-    "description": "一位与超凡异界存在缔结契约的角色，以忠诚服务换取强大的秘法知识。",
+    "description": "借由与古老神秘的契约方（如恶魔、精类、旧日支配者）立下誓约而获得力量的施法者。他们拥有强大的魔能与诸多奇怪的祈唤能力，通常能在战斗中频密施展招牌戏法则来摧毁敌人。",
     "hitDie": 8,
     "primaryAbility": [
       "CHA"
@@ -7277,7 +7348,31 @@ export const classes: DndClass[] = [
       {
         "name": "契约恩赐",
         "description": "3级时，从锋刃魔契（召唤武器）、锁链魔契（强化魔宠）、书卷魔契（影之书）中选择一项。",
-        "level": 3
+        "level": 3,
+        "choices": [
+          {
+            "id": "pact-boon",
+            "name": "选择一项契约恩赐",
+            "chooseNumber": 1,
+            "options": [
+              {
+                "id": "pact-of-the-blade",
+                "name": "锋刃魔契",
+                "description": "召唤一把契约武器到你空着的手中。"
+              },
+              {
+                "id": "pact-of-the-chain",
+                "name": "锁链魔契",
+                "description": "学习寻获魔宠法术，且你可以选择伪龙、小魔鬼、夸塞魔、或小精灵作为你的魔宠。"
+              },
+              {
+                "id": "pact-of-the-tome",
+                "name": "书卷魔契",
+                "description": "获得一本暗影之书，选择任意职业的三个戏法，当此书在身时可以随意施展。"
+              }
+            ]
+          }
+        ]
       },
       {
         "name": "属性值提升",
@@ -7717,7 +7812,7 @@ export const classes: DndClass[] = [
   {
     "id": "wizard",
     "name": "法师",
-    "description": "一位通过长期研习法术书来掌控深奥奥术力量的学者。",
+    "description": "终生研读着浩瀚魔法学说，并通过书写下各色强力法术来掌控现实的学者专家。只需一本详实的法术书，他们即可操控元素、迷惑意识、开启异次元通道甚至复活死者。",
     "hitDie": 6,
     "primaryAbility": [
       "INT"

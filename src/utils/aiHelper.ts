@@ -29,7 +29,7 @@ export const PROVIDERS = [
     id: 'gemini',
     name: 'Google Gemini (OpenAI兼容接口)',
     defaultBaseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
-    defaultModel: 'gemini-2.5-flash',
+    defaultModel: 'gemini-1.5-flash',
   },
   {
     id: 'openai',
@@ -204,18 +204,10 @@ export async function generateBackstoryAndAppearance(
   };
 
   try {
-    const response = await fetch('/api/ai/proxy', {
+    const response = await fetch(requestUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        url: requestUrl,
-        headers: {
-          'Authorization': `Bearer ${config.apiKey.trim()}`,
-        },
-        body: bodyData,
-      }),
+      headers: headers,
+      body: JSON.stringify(bodyData),
     });
 
     if (!response.ok) {
