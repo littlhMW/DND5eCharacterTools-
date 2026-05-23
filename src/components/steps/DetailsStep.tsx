@@ -87,6 +87,8 @@ export function DetailsStep() {
         flaws: state.character.flaws || '',
         raceDescription: race?.description || '',
         subraceDescription: subrace?.description || '',
+        classDescription: cls?.description || '',
+        subclassDescription: subclass?.description || '',
       };
 
       const result = await generateBackstoryAndAppearance(params);

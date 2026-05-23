@@ -113,6 +113,8 @@ export async function generateBackstoryAndAppearance(
     flaws: string;
     raceDescription?: string;
     subraceDescription?: string;
+    classDescription?: string;
+    subclassDescription?: string;
   }
 ): Promise<AIResult> {
   const config = getAIConfig();
@@ -164,13 +166,15 @@ export async function generateBackstoryAndAppearance(
   const raceDescStr = characterContext.raceDescription ? `（种族描述：${characterContext.raceDescription}）` : '';
   const subraceDescStr = characterContext.subraceDescription ? `（亚种描述：${characterContext.subraceDescription}）` : '';
   const subraceStr = characterContext.subraceName ? `（亚种：${characterContext.subraceName}${subraceDescStr}）` : '';
-  const subclassStr = characterContext.subclassName ? `（子职业：${characterContext.subclassName}）` : '';
+  const classDescStr = characterContext.classDescription ? `（职业描述：${characterContext.classDescription}）` : '';
+  const subclassDescStr = characterContext.subclassDescription ? `（子职业描述：${characterContext.subclassDescription}）` : '';
+  const subclassStr = characterContext.subclassName ? `（子职业：${characterContext.subclassName}${subclassDescStr}）` : '';
 
   const userPrompt = `已经选择的角色基础信息如下：
 - 角色姓名：${characterContext.characterName || '未命名'}
 - 角色年龄：${characterContext.age || '未指定'}
 - 种族：${characterContext.raceName}${raceDescStr}${subraceStr}
-- 职业：${characterContext.className}${subclassStr}
+- 职业：${characterContext.className}${classDescStr}${subclassStr}
 - 角色背景：${characterContext.backgroundName || '未指定'}
 - 阵营信念：${characterContext.alignment || '偏向中立'}
 - 等级：${characterContext.level}级
