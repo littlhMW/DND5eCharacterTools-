@@ -1,6 +1,6 @@
 import React from 'react';
 import { useCharacter } from '../context/CharacterContext';
-import { races } from '../data/races';
+import { races, getRaceByIdAndSource } from '../data/races';
 import { classes } from '../data/classes';
 import { backgrounds } from '../data/backgrounds';
 import { spells as allSpells } from '../data/spells';
@@ -16,7 +16,7 @@ export function CharacterSummary() {
   const { state } = useCharacter();
   const c = state.character;
   
-  const race = races.find(r => r.id === c.raceId);
+  const race = getRaceByIdAndSource(c.raceId, c.raceSource);
   const subrace = race?.subraces?.find(sr => sr.id === c.subraceId);
   const cls = classes.find(cl => cl.id === c.classId);
   const subclass = cls?.subclasses?.find(sc => sc.id === c.subclassId);
@@ -309,6 +309,22 @@ function renderChoiceSelection(choice: any, traitSelections: Record<string, stri
       <div key={choice.id} className="mt-1 text-xs font-sans">
         <span className="font-semibold text-stone-700">{choice.name || '专长/属性提升'}: </span>
         <span className="text-amber-700">{displayNames.join(', ')}</span>
+      </div>
+    );
+  }
+
+  // 先祖遗赠处理
+  if (choice.dynamic === 'ancestral-legacy') {
+    const names = selectedIds.map(id => {
+      if (id.startsWith('inherit-')) {
+        return `继承自种族: ${id.replace('inherit-', '')}`;
+      }
+      return SKILL_NAMES[id as keyof typeof SKILL_NAMES] || id;
+    });
+    return (
+      <div key={choice.id} className="mt-1 text-xs font-sans">
+        <span className="font-semibold text-stone-700">{choice.name || '先祖遗赠选项'}: </span>
+        <span className="text-amber-700">{names.join(', ')}</span>
       </div>
     );
   }

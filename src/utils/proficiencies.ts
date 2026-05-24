@@ -88,6 +88,7 @@ export function getProficiencies(c: Character, cls?: Class, race?: Race, subrace
     if (!ids || !Array.isArray(ids)) return;
     const isExpertise = choiceId.toLowerCase().includes('expertise') || choiceId.includes('knowledge-domain-skills');
     (ids as string[]).forEach(id => {
+      if (id.startsWith('inherit-') || id.startsWith('asi-') || id.startsWith('feat-')) return;
       const normalizedId = normalizeSkillId(id);
       if (ALL_SKILLS.includes(normalizedId)) {
         if (isExpertise) {

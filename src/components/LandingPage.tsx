@@ -3,7 +3,7 @@ import { useCharacter } from '../context/CharacterContext';
 import { Book, Shield, Scroll, Swords, Github, ExternalLink, Info, Wand2, User, Settings } from 'lucide-react';
 import { motion } from 'motion/react';
 import { classes } from '../data/classes';
-import { races } from '../data/races';
+import { races, getRaceByIdAndSource } from '../data/races';
 import { backgrounds } from '../data/backgrounds';
 import { getAIConfig, saveAIConfig, PROVIDERS } from '../utils/aiHelper';
 import { EXPANSIONS, getActiveExpansions, saveActiveExpansions, ExpansionBook, getExpansionSettings, saveExpansionSettings, BookSettings, isSourceEnabled } from '../utils/expansionHelper';
@@ -184,7 +184,15 @@ export function LandingPage() {
   const generateRandomCharacter = () => {
     if (races.length === 0 || classes.length === 0) return;
 
-    const validRaces = races.filter(r => isSourceEnabled(r.source || 'phb', 'races'));
+    const validRaces = races.map(r => {
+      const validAlts = r.alternatives?.filter(alt => isSourceEnabled(alt.source || 'phb', 'races'));
+      if (validAlts && validAlts.length > 0) {
+        const alt = validAlts[Math.floor(Math.random() * validAlts.length)];
+        return { ...alt, subraces: r.subraces };
+      }
+      if (isSourceEnabled(r.source || 'phb', 'races')) return r;
+      return null;
+    }).filter(Boolean);
     const validClasses = classes.filter(c => isSourceEnabled(c.source || 'phb', 'classes'));
     const validBackgrounds = backgrounds.filter(b => isSourceEnabled(b.source || 'phb', 'backgrounds'));
 
@@ -260,6 +268,7 @@ export function LandingPage() {
       backstory: '',
       level: 3,
       raceId: randomRace.id,
+      raceSource: randomRace.source,
       subraceId: randomSubraceId || undefined,
       classId: randomClass.id,
       subclassId: randomSubclassId || undefined,
@@ -287,7 +296,7 @@ export function LandingPage() {
       const subNameStr = randomSubraceId ? ` (${randomRace.subraces?.find(s => s.id === randomSubraceId)?.name})` : '';
       const subclassStr = randomSubclassId ? ` (${randomClass.subclasses.find(s => s.id === randomSubclassId)?.name})` : '';
       
-      setToastText(`🎲 招募成功！全新的 3级冒险家（${randomRace.name}${subNameStr} / ${randomClass.name}${subclassStr}）已加入您的角色档案库，滚动至下方加载即可自定义编辑！`);
+      setToastText(`🎲 招募成功！全新的 3级（${randomRace.name}${subNameStr} / ${randomClass.name}${subclassStr}）已加入您的角色档案库，滚动至下方加载即可自定义编辑！`);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 5500);
     } catch (e) {
@@ -443,7 +452,7 @@ export function LandingPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
               {savedChars.map((char: any) => {
                 const cls = classes.find(c => c.id === char.classId);
-                const race = races.find(r => r.id === char.raceId);
+                const race = getRaceByIdAndSource(char.raceId, char.raceSource);
                 const currentCharId = char.id;
                 return (
                   <div key={char.id} className="bg-white p-5 rounded-md border border-stone-200 shadow-sm hover:border-amber-300 transition-colors group cursor-pointer relative" onClick={() => dispatch({ type: 'LOAD_CHARACTER', payload: char })}>
@@ -511,10 +520,10 @@ export function LandingPage() {
           <div className="bg-stone-50 border border-stone-200 rounded-lg p-5 flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
             <div className="space-y-1 text-left">
               <h3 className="text-base font-bold text-stone-900 flex items-center gap-1.5 font-serif">
-                🎲 快速随机成卡 (Lv. 3)
+                🎲 快速随机生成 (Lv. 3)
               </h3>
               <p className="text-xs text-stone-505 leading-relaxed">
-                遵循标准属性购点与规则库，随机拼装包含种族、子种族、核心职业、学派子职业、背景在内的 3 级高级角色并加入上方，方便直接二次修饰。
+                遵循标准属性购点与规则库，随机生成包含种族、子种族、职业、子职、背景在内的 3 级角色并加入。
               </p>
             </div>
             <button
@@ -523,79 +532,8 @@ export function LandingPage() {
               className="bg-stone-900 text-white hover:bg-stone-800 text-xs font-semibold px-4.5 py-2.5 rounded transition-colors shrink-0 flex items-center gap-2 cursor-pointer shadow-sm border-none"
             >
               <Swords size={14} />
-              随机成卡
+              随机生成
             </button>
-          </div>
-
-          {/* D&D 5e 冒险家工具箱 (首页快捷入口) */}
-          <div id="landing-toolbox-bento" className="bg-stone-50/50 border border-stone-200 rounded-xl p-6 shadow-xs mt-8">
-            <h3 className="text-base font-bold text-stone-900 mb-2 flex items-center gap-2 font-serif">
-              🛠️ 冒险家工具小站
-            </h3>
-            <p className="text-xs text-stone-505 mb-6 max-w-2xl leading-relaxed">
-              独立交互式模块。可以为您快速模拟离线购点、概率投骰测试，或精细调整大模型接口方案及扩展规则开关。
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              <div 
-                id="bento-dice"
-                onClick={() => setOpenDiceModal(true)}
-                className="bg-white p-4 rounded-lg border border-stone-200 hover:border-amber-400/85 hover:shadow-md transition-all cursor-pointer flex flex-col items-center text-center gap-2 group"
-              >
-                <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-lg group-hover:scale-110 transition-transform">
-                  🎲
-                </div>
-                <h4 className="text-xs font-bold text-stone-900">快速骰子掷器</h4>
-                <p className="text-[10px] text-stone-500 leading-relaxed font-sans">提供 d4 到 d100 各种常用多面骰子</p>
-              </div>
-
-              <div 
-                id="bento-pointbuy"
-                onClick={() => setOpenPointBuyModal(true)}
-                className="bg-white p-4 rounded-lg border border-stone-200 hover:border-amber-400/85 hover:shadow-md transition-all cursor-pointer flex flex-col items-center text-center gap-2 group"
-              >
-                <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg group-hover:scale-110 transition-transform">
-                  📊
-                </div>
-                <h4 className="text-xs font-bold text-stone-900">属性购点速查</h4>
-                <p className="text-[10px] text-stone-500 leading-relaxed font-sans">标准27点预算，分配与修正常数表</p>
-              </div>
-
-              <div 
-                id="bento-ai"
-                onClick={() => setOpenAiModal(true)}
-                className="bg-white p-4 rounded-lg border border-stone-200 hover:border-amber-400/85 hover:shadow-md transition-all cursor-pointer flex flex-col items-center text-center gap-2 group"
-              >
-                <div className="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-lg group-hover:scale-110 transition-transform">
-                  🤖
-                </div>
-                <h4 className="text-xs font-bold text-stone-900">AI 辅助设置</h4>
-                <p className="text-[10px] text-stone-500 leading-relaxed font-sans">配置第三方大模型提供文本一键扩润功能</p>
-              </div>
-
-              <div 
-                id="bento-xge"
-                onClick={() => setOpenXgeModal(true)}
-                className="bg-white p-4 rounded-lg border border-stone-200 hover:border-amber-400/85 hover:shadow-md transition-all cursor-pointer flex flex-col items-center text-center gap-2 group"
-              >
-                <div className="w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-lg group-hover:scale-110 transition-transform">
-                  📜
-                </div>
-                <h4 className="text-xs font-bold text-stone-900">XGE 经历测试</h4>
-                <p className="text-[10px] text-stone-500 leading-relaxed font-sans">模拟 Xanathar 骰表级联生成随机生平</p>
-              </div>
-
-              <div 
-                id="bento-exp"
-                onClick={() => setOpenExpModal(true)}
-                className="col-span-2 sm:col-span-1 bg-white p-4 rounded-lg border border-stone-200 hover:border-amber-400/85 hover:shadow-md transition-all cursor-pointer flex flex-col items-center text-center gap-2 group"
-              >
-                <div className="w-10 h-10 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center font-bold text-lg group-hover:scale-110 transition-transform">
-                  📚
-                </div>
-                <h4 className="text-xs font-bold text-stone-900">规则集细分开关</h4>
-                <p className="text-[10px] text-stone-500 leading-relaxed font-sans">可以分种族职业背景类细分控制书集开关</p>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -650,7 +588,7 @@ export function LandingPage() {
 
             <div className="border-b border-stone-200 pb-3">
               <h2 className="text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
-                🎲 快速骰子掷器
+                🎲 快速骰点
               </h2>
               <p className="text-xs text-stone-500 mt-1">
                 点击下方按钮可投掷符合核心跑团规则的多面骰，掷骰结果将实时在此显示，不改变您的角色档案卡。
@@ -888,14 +826,14 @@ export function LandingPage() {
                 📜 XGE "这是你的人生" 掷骰面板
               </h2>
               <p className="text-xs text-stone-500 mt-1 leading-relaxed font-sans">
-                根据《万事指南》（Xanathar's Guide to Everything）核心级联表离线运行。您可以选取特定背景并执行一次级联掷骰试验，预览系统运算产出的纯中文化史诗轨迹。
+                根基于《万事指南》（Xanathar's Guide to Everything）核心表随机拼合生成生动的人生经历。
               </p>
             </div>
 
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-stone-700 mb-1.5">
-                  选择测试背景：
+                  选择背景：
                 </label>
                 <select
                   value={xgePreviewBg}
@@ -919,7 +857,7 @@ export function LandingPage() {
 
               <div className="flex justify-between items-center bg-stone-50 border border-stone-200 rounded p-3">
                 <span className="text-[11px] text-stone-600">
-                  一键执行全表级联生平轨迹模拟：
+                  生成人生经历：
                 </span>
                 <button
                   onClick={() => {
@@ -928,7 +866,7 @@ export function LandingPage() {
                   }}
                   className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-medium text-xs rounded transition-colors shadow-xs cursor-pointer border-none flex items-center gap-1 font-sans"
                 >
-                  🎲 立即掷骰
+                  🎲 掷骰
                 </button>
               </div>
 
@@ -943,7 +881,7 @@ export function LandingPage() {
                 </div>
               ) : (
                 <div className="border border-dashed border-stone-200 rounded-lg p-5 bg-stone-50/50 text-stone-405 text-xs text-center leading-relaxed">
-                  暂无掷骰。选择上述背景并点击右边“立即掷骰”即可一触即发。在正式角色创造流程的第5步中本功能可直接触发，并将结果直接合并到角色的背景故事。
+                  暂无掷骰。
                 </div>
               )}
             </div>
@@ -979,6 +917,7 @@ export function LandingPage() {
                 </h2>
                 <p className="text-xs text-stone-500 mt-1 max-w-xl pr-2 leading-relaxed">
                   启用或禁用特定的官方扩展书。启用后，您可以进一步勾选是否开启该扩展内的 <strong>种族</strong>、<strong>职业</strong> 或 <strong>背景</strong> 功能。
+                  <span className="block mt-1">⭐️ <strong>存在同一种族的不同扩展时，在创建角色时点击扩展缩写切换扩展。</strong></span>
                   <span className="block mt-1 font-medium text-amber-600">⚠️ 提示：扩展包目前为 Beta 测试版本，内容可能存在翻译或机制错漏，请谨慎参考。</span>
                 </p>
               </div>
@@ -1038,7 +977,15 @@ export function LandingPage() {
                     <div className="flex items-start justify-between gap-2 mb-1.5 border-b border-stone-100 pb-1.5">
                       <div className="flex items-center flex-wrap gap-1.5">
                         <span className="font-bold text-sm text-stone-900">{exp.name}</span>
-                        <span className="text-[9px] bg-stone-200 text-stone-505 px-1 py-0.5 rounded font-mono uppercase leading-none">{exp.shortName}</span>
+                        <span 
+                          onClick={() => {
+                            if (!exp.isCore) handleBookMasterToggle(exp.id, !bookSet.enabled);
+                          }}
+                          className={`text-[9px] ${!exp.isCore ? 'cursor-pointer hover:bg-stone-300' : ''} bg-stone-200 text-stone-505 px-1 py-0.5 rounded font-mono uppercase leading-none transition-colors`}
+                          title={!exp.isCore ? "点击切换整个规则书状态" : ""}
+                        >
+                          {exp.shortName}
+                        </span>
                         {exp.isCore ? (
                           <span className="text-[9px] bg-amber-500 text-white px-1 py-0.5 rounded leading-none">核心</span>
                         ) : (

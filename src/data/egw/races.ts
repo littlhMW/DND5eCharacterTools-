@@ -20,7 +20,9 @@ export const races: Race[] = [
         description: '莲源半身人是深谙荒野法则的神秘隐士。他们扎根于古老森林深处，与植物和自然界奥术低语共鸣，能够自如施展自然魔法，用繁茂草木和棘刺默默守卫林地圣所。',
         abilityBonuses: [{ ability: 'WIS', bonus: 1 }],
         traits: [
-          { name: '树林之子', description: '你知晓德鲁伊伎俩戏法。3级能释放一次纠缠术。5级能释放一次荆棘丛生。' },
+          { name: '树林之子：德鲁伊伎俩', description: '你知晓德鲁伊伎俩戏法。', level: 0 },
+          { name: '树林之子：纠缠术', description: '当你升至3级，你能释放一次纠缠术，在完成一次长休前不能再次施展。', level: 3 },
+          { name: '树林之子：荆棘丛生', description: '当你升至5级，你能释放一次荆棘丛生，在完成一次长休前不能再次施展。', level: 5 },
           { name: '木行', description: '通过由非魔法植物形成的困难地形不需要花费额外移动力，别人追踪你具有劣势。' }
         ],
         spells: [
@@ -52,7 +54,9 @@ export const races: Race[] = [
         abilityBonuses: [{ ability: 'WIS', bonus: 1 }],
         traits: [
           { name: '锐利感知', description: '你在调查和洞悉检定上具有优势。' },
-          { name: '月织者之福', description: '你知晓光亮术。3级可施展睡眠术。5级可对自己施展隐形术（限自身）。' }
+          { name: '月织者之福：光亮术', description: '你知晓光亮术。', level: 0 },
+          { name: '月织者之福：睡眠术', description: '当你升至3级，可施展睡眠术，且在完成长休后才能再次施放。', level: 3 },
+          { name: '月织者之福：隐形术', description: '当你升至5级，可对自己施展隐形术（限自身），且在完成长休后才能再次施放。', level: 5 }
         ],
         spells: [
           { level: 0, spellId: 'light' },

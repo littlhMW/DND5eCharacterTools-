@@ -289,7 +289,16 @@ export const races: Race[] = [
         name: '半精灵 (本相)',
         description: '标准半精灵，保留了其多才多艺与精妙的精类血统传承。',
         abilityBonuses: [],
-        traits: [],
+        traits: [
+          { name: '多才多艺', description: '你熟练于二个你所选择的技能。', choices: [
+            {
+              id: 'half-elf-skills',
+              name: '选择两个技能',
+              chooseNumber: 2,
+              dynamic: 'skill'
+            }
+          ] }
+        ],
         spells: []
       }
     ]
@@ -320,8 +329,14 @@ export const races: Race[] = [
         name: '提夫林 (本相)',
         description: '标准提夫林，传承了古老契约带来的炼狱抗性与天生魔法。',
         abilityBonuses: [],
-        traits: [],
-        spells: []
+        traits: [
+          { name: '炼狱传承', description: '你知晓奇术戏法。当你升至3级，你能够以2环法术施放一次炼狱叱喝。当你升至5级，你可以施放一次黑暗术。法术的施法关键属性为魅力。' }
+        ],
+        spells: [
+          { level: 0, spellId: 'thaumaturgy' },
+          { level: 3, spellId: 'hellish-rebuke' },
+          { level: 5, spellId: 'darkness' }
+        ]
       }
     ]
   },

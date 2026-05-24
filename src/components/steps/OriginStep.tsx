@@ -8,15 +8,51 @@ import { TraitSelection } from '../shared/TraitSelection';
 export function OriginStep() {
   const { state, dispatch } = useCharacter();
   
-  const availableRaces = races.filter(r => isSourceEnabled(r.source || 'phb', 'races')).map(race => {
+  const [viewedSources, setViewedSources] = React.useState<Record<string, string>>({});
+
+  const availableRaces = races.map(r => {
+    const validAlts = r.alternatives?.filter(alt => isSourceEnabled(alt.source || 'phb', 'races'));
+    if (!validAlts || validAlts.length === 0) {
+      if (!isSourceEnabled(r.source || 'phb', 'races')) return null;
+      return { ...r, subraces: r.subraces?.filter(sr => isSourceEnabled(sr.source || r.source || 'phb', 'races')) };
+    }
+    
+    let activeSource = viewedSources[r.id];
+    if (!activeSource) {
+      activeSource = state.character.raceId === r.id && state.character.raceSource ? state.character.raceSource : validAlts[validAlts.length - 1].source;
+    }
+    
+    const matched = validAlts.find(a => a.source === activeSource) || validAlts[validAlts.length - 1];
     return {
-      ...race,
-      subraces: race.subraces?.filter(sr => isSourceEnabled(sr.source || race.source || 'phb', 'races'))
+      ...matched,
+      subraces: r.subraces?.filter(sr => isSourceEnabled(sr.source || matched.source || 'phb', 'races')),
+      alternatives: validAlts
     };
-  });
+  }).filter(Boolean);
 
   const selectedRace = availableRaces.find(r => r.id === state.character.raceId);
   const selectedSubrace = selectedRace?.subraces?.find(sr => sr.id === state.character.subraceId);
+
+  const cycleSource = (e: React.MouseEvent, race: any) => {
+    e.stopPropagation();
+    if (!race.alternatives || race.alternatives.length <= 1) return;
+    const currentIdx = race.alternatives.findIndex((a: any) => a.source === race.source);
+    const nextIdx = (currentIdx + 1) % race.alternatives.length;
+    const nextSource = race.alternatives[nextIdx].source;
+    
+    setViewedSources(prev => ({ ...prev, [race.id]: nextSource }));
+    
+    if (state.character.raceId === race.id) {
+      dispatch({ 
+         type: 'SET_RACE', 
+         payload: { 
+           raceId: race.id, 
+           raceSource: nextSource, 
+           subraceId: state.character.subraceId 
+         } 
+      });
+    }
+  };
 
   // 生成属性加值文本
   const getAbilityBonusText = (race: any) => {
@@ -37,12 +73,15 @@ export function OriginStep() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <section>
-        <h2 className="text-2xl font-serif text-amber-600 border-b border-stone-200 pb-3 mb-6">1. 种族</h2>
+        <div className="flex flex-col sm:flex-row sm:items-baseline justify-between border-b border-stone-200 pb-3 mb-6 gap-2">
+          <h2 className="text-2xl font-serif text-amber-600 mb-0">1. 种族</h2>
+          <span className="text-xs text-stone-500 font-sans">💡 提示：若种族含有多个版本，点击其右上角的扩展缩写（如 PHB / VGM / EE）可随时切换规则版本</span>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {availableRaces.map(race => (
             <div 
               key={race.id}
-              onClick={() => dispatch({ type: 'SET_RACE', payload: { raceId: race.id, subraceId: race.subraces?.[0]?.id } })}
+              onClick={() => dispatch({ type: 'SET_RACE', payload: { raceId: race.id, raceSource: race.source, subraceId: race.subraces?.[0]?.id } })}
               className={`cursor-pointer p-5 rounded-lg border transition-all duration-300 ${
                 state.character.raceId === race.id 
                   ? 'border-amber-500 bg-stone-50 shadow-[0_4px_20px_rgba(90,90,64,0.08)] transform -translate-y-1' 
@@ -52,7 +91,15 @@ export function OriginStep() {
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <h3 className="text-xl font-serif text-stone-900">{race.name}</h3>
-                  {race.source && <span className="text-[10px] bg-stone-100 text-stone-500 border border-stone-200 px-1.5 py-0.5 rounded uppercase tracking-wider">{race.source}</span>}
+                  {race.source && (
+                    <span 
+                      onClick={race.alternatives && race.alternatives.length > 1 ? (e) => cycleSource(e, race) : undefined}
+                      className={`text-[10px] bg-stone-100 text-stone-500 border border-stone-200 px-1.5 py-0.5 rounded uppercase tracking-wider ${race.alternatives && race.alternatives.length > 1 ? 'cursor-pointer hover:bg-stone-200 hover:text-stone-700 transition-colors' : ''}`}
+                      title={race.alternatives && race.alternatives.length > 1 ? "点击切换该种族的其他扩展版本" : ""}
+                    >
+                      {race.source}
+                    </span>
+                  )}
                 </div>
                 {race.source && <DictyTwisterLink type="race" name={race.name} source={race.source} />}
               </div>
@@ -128,6 +175,8 @@ export function OriginStep() {
               <div className="grid gap-4">
                 {selectedRace.traits
                   .filter(t => {
+                    // 只有未配置level，或者level <= 当前等级时才显示
+                    if (t.level !== undefined && t.level > state.character.level) return false;
                     if (selectedSubrace) {
                       if (selectedRace.id === 'half-elf' && t.name === '多才多艺') return false;
                       if (selectedRace.id === 'tiefling' && t.name === '炼狱传承') return false;
@@ -136,7 +185,10 @@ export function OriginStep() {
                   })
                   .map((t, index) => (
                     <div key={`race-trait-${index}`} className="bg-stone-50 p-3 rounded-md border border-stone-100">
-                      <h5 className="font-semibold text-stone-800 text-base">{t.name}</h5>
+                      <h5 className="font-semibold text-stone-800 text-base">
+                        {t.name}
+                        {t.level !== undefined && t.level > 0 && <span className="text-[10px] text-stone-500 bg-stone-200 px-2 py-0.5 rounded-full ml-2 uppercase tracking-widest font-bold">LV {t.level}</span>}
+                      </h5>
                       <p className="text-stone-600 text-xs mt-1.5 leading-relaxed font-sans">{t.description}</p>
                       {t.choices && t.choices.map(choice => (
                         <TraitSelection key={choice.id} choice={choice} />
@@ -150,9 +202,14 @@ export function OriginStep() {
               <div className="pt-6 border-t border-stone-200">
                 <h4 className="text-sm font-sans uppercase tracking-[0.15em] text-stone-400 mb-4">附加子种族特性: {selectedSubrace.name}</h4>
                 <div className="grid gap-4">
-                  {selectedSubrace.traits.map((t, index) => (
+                  {selectedSubrace.traits
+                    .filter(t => t.level === undefined || t.level <= state.character.level)
+                    .map((t, index) => (
                     <div key={`subrace-trait-${index}`} className="bg-stone-50 p-3 rounded-md border border-stone-100">
-                      <h5 className="font-semibold text-stone-800 text-base">{t.name}</h5>
+                      <h5 className="font-semibold text-stone-800 text-base">
+                        {t.name}
+                        {t.level !== undefined && t.level > 0 && <span className="text-[10px] text-stone-500 bg-stone-200 px-2 py-0.5 rounded-full ml-2 uppercase tracking-widest font-bold">LV {t.level}</span>}
+                      </h5>
                       <p className="text-stone-600 text-xs mt-1.5 leading-relaxed font-sans">{t.description}</p>
                       {t.choices && t.choices.map(choice => (
                         <TraitSelection key={choice.id} choice={choice} />

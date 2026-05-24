@@ -53,7 +53,18 @@ export const classes = [
         {
           "name": "奥法学徒",
           "description": "你获得奥秘技能的熟练，且你获得二个从法师法术列表中自选的戏法。对你而言，这些戏法被视作牧师戏法。",
-          "level": 1
+          "level": 1,
+          "skillProficiencies": ["arcana"],
+          "choices": [
+            {
+              "id": "cleric-arcana-cantrips",
+              "name": "选择两个法师戏法",
+              "chooseNumber": 2,
+              "dynamic": "spell",
+              "spellType": "cantrip",
+              "spellList": "wizard"
+            }
+          ]
         },
         {
           "name": "引导神力：奥秘阻绝",

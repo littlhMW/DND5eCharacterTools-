@@ -179,9 +179,9 @@ export async function generateBackstoryAndAppearance(
 - 阵营信念：${characterContext.alignment || '偏向中立'}
 - 等级：${characterContext.level}级
 
-玩家已经填写的零散细节与随机生平人生经历（请在此基础和框架内进行扩充润色、合理融入，不要删去玩家原有的关键事实与任何 XGE 的家庭/悲剧/神迹等人生事件描述）：
+玩家已经填写的零散细节与随机生平人生经历（请在此基础和框架内进行扩充润色、合理融入，不要删去玩家原有的关键事实）：
 - 已有的粗略外貌：${characterContext.appearance || '无'}
-- 已有的粗略背景故事 / XGE人生经历：${characterContext.backstory || '无'}
+- 已有的粗略背景故事：${characterContext.backstory || '无'}
 - 性格特质：${characterContext.personality || '无'}
 - 理想：${characterContext.ideals || '无'}
 - 牵绊：${characterContext.bonds || '无'}

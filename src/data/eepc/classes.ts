@@ -3,7 +3,7 @@ import { DndClass } from '../../types/dnd';
 /**
  * 模板说明:
  * 在此添加扩展职业或通过组合方式扩展已有职业的子职业。
- * 请确保 `source` 字段为小写的扩展名 (例如 'mtof')，以便正确呈现 Wiki 链接标记。
+ * 请确保 `source` 字段为小写的扩展名 (例如 'eepc')，以便正确呈现 Wiki 链接标记。
  */
 export const classes: DndClass[] = [
   /*
@@ -27,10 +27,10 @@ export const classes: DndClass[] = [
          name: "示例扩展子职业",
          description: "简介...",
          traits: [],
-         source: "mtof" // 非常重要，确保能正确链接至 5etools
+         source: "eepc" // 非常重要，确保能正确链接至 5etools
        }
     ],
-    source: "mtof"
+    source: "eepc"
   }
   */
 ];

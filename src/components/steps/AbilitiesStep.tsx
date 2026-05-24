@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCharacter } from '../../context/CharacterContext';
 import { Ability } from '../../types/dnd';
-import { races } from '../../data/races';
+import { races, getRaceByIdAndSource } from '../../data/races';
 import { Dices, ListChecks, Coins, PenTool } from 'lucide-react';
 
 const ABILITIES: { id: Ability, name: string }[] = [
@@ -25,7 +25,7 @@ export function AbilitiesStep() {
   const { state, dispatch } = useCharacter();
   const [mode, setMode] = useState<Mode>('manual');
 
-  const selectedRace = races.find(r => r.id === state.character.raceId);
+  const selectedRace = getRaceByIdAndSource(state.character.raceId, state.character.raceSource);
   const selectedSubrace = selectedRace?.subraces?.find(sr => sr.id === state.character.subraceId);
 
   // States for different modes

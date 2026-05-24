@@ -13,7 +13,7 @@ import { backgrounds as motBackgrounds } from './mot/backgrounds';
 import { backgrounds as vrgrBackgrounds } from './vrgr/backgrounds';
 import { backgrounds as rotBackgrounds } from './rot/backgrounds';
 import { backgrounds as aiBackgrounds } from './ai/backgrounds';
-import { backgrounds as eeBackgrounds } from './ee/backgrounds';
+import { backgrounds as eepcBackgrounds } from './eepc/backgrounds';
 import { backgrounds as fodBackgrounds } from './fod/backgrounds';
 import { backgrounds as gosBackgrounds } from './gos/backgrounds';
 import { backgrounds as bgdiaBackgrounds } from './bgdia/backgrounds';
@@ -35,7 +35,7 @@ export const backgrounds: Background[] = [
   ...vrgrBackgrounds,
   ...rotBackgrounds,
   ...aiBackgrounds,
-  ...eeBackgrounds,
+  ...eepcBackgrounds,
   ...fodBackgrounds,
   ...gosBackgrounds,
   ...bgdiaBackgrounds,

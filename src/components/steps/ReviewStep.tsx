@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useCharacter } from '../../context/CharacterContext';
-import { races } from '../../data/races';
+import { races, getRaceByIdAndSource } from '../../data/races';
 import { classes } from '../../data/classes';
 import { backgrounds } from '../../data/backgrounds';
 import { spells } from '../../data/spells';
@@ -17,7 +17,7 @@ export function ReviewStep() {
   const [fullBodyUrl, setFullBodyUrl] = useState<string | null>(null);
 
   const character = state.character;
-  const race = races.find(r => r.id === character.raceId);
+  const race = getRaceByIdAndSource(character.raceId, character.raceSource);
   const subrace = race?.subraces?.find(sr => sr.id === character.subraceId);
   const dndClass = classes.find(c => c.id === character.classId);
   const subclass = dndClass?.subclasses?.find(sc => sc.id === character.subclassId);

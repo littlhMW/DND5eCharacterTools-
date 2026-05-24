@@ -13,7 +13,7 @@ import { spells as motSpells } from './mot/spells';
 import { spells as vrgrSpells } from './vrgr/spells';
 import { spells as rotSpells } from './rot/spells';
 import { spells as aiSpells } from './ai/spells';
-import { spells as eeSpells } from './ee/spells';
+import { spells as eepcSpells } from './eepc/spells';
 import { spells as fodSpells } from './fod/spells';
 import { spells as gosSpells } from './gos/spells';
 import { spells as bgdiaSpells } from './bgdia/spells';
@@ -35,7 +35,7 @@ export const spells: Spell[] = [
   ...vrgrSpells,
   ...rotSpells,
   ...aiSpells,
-  ...eeSpells,
+  ...eepcSpells,
   ...fodSpells,
   ...gosSpells,
   ...bgdiaSpells,

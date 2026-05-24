@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useCharacter } from '../context/CharacterContext';
-import { races } from '../data/races';
+import { races, getRaceByIdAndSource } from '../data/races';
 import { classes } from '../data/classes';
 import { backgrounds } from '../data/backgrounds';
 import { spells as spellData } from '../data/spells';
@@ -21,7 +21,7 @@ export function CharacterSheet() {
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   const c = state.character;
-  const race = races.find(r => r.id === c.raceId);
+  const race = getRaceByIdAndSource(c.raceId, c.raceSource);
   const subrace = race?.subraces?.find(sr => sr.id === c.subraceId);
   const cls = classes.find(cl => cl.id === c.classId);
   const subclass = cls?.subclasses?.find(sc => sc.id === c.subclassId);
@@ -481,6 +481,8 @@ if (cls.id === 'wizard') {
                 <ul className="space-y-6">
                   {race?.traits
                     .filter(t => {
+                      // 只有未配置level，或者level <= 当前等级时才显示
+                      if (t.level !== undefined && t.level > c.level) return false;
                       if (subrace) {
                         if (race.id === 'half-elf' && t.name === '多才多艺') return false;
                         if (race.id === 'tiefling' && t.name === '炼狱传承') return false;
@@ -489,13 +491,21 @@ if (cls.id === 'wizard') {
                     })
                     .map((t, i) => (
                       <li key={`race-${t.name}-${i}`} className="relative pl-4 before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-stone-300">
-                        <strong className="text-stone-900 block mb-1 font-serif text-lg">{t.name}</strong>
+                        <strong className="text-stone-900 block mb-1 font-serif text-lg">
+                          {t.name}
+                          {t.level !== undefined && t.level > 0 && <span className="text-[10px] text-stone-500 bg-stone-200 px-2 py-0.5 rounded-full ml-2 uppercase tracking-widest font-bold">LV {t.level}</span>}
+                        </strong>
                         <FormattedDescription text={t.description} className="text-sm font-sans text-stone-700 leading-relaxed block" />
                       </li>
                     ))}
-                  {subrace?.traits.map((t, i) => (
+                  {subrace?.traits
+                    .filter(t => t.level === undefined || t.level <= c.level)
+                    .map((t, i) => (
                     <li key={`subrace-${t.name}-${i}`} className="relative pl-4 before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-stone-300">
-                      <strong className="text-stone-900 block mb-1 font-serif text-lg">{t.name}</strong>
+                      <strong className="text-stone-900 block mb-1 font-serif text-lg">
+                        {t.name}
+                        {t.level !== undefined && t.level > 0 && <span className="text-[10px] text-stone-500 bg-stone-200 px-2 py-0.5 rounded-full ml-2 uppercase tracking-widest font-bold">LV {t.level}</span>}
+                      </strong>
                       <FormattedDescription text={t.description} className="text-sm font-sans text-stone-700 leading-relaxed block" />
                     </li>
                   ))}

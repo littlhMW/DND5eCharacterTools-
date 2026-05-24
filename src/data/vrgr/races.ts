@@ -11,36 +11,18 @@ export const races: Race[] = [
     vision: '黑暗视觉 60 尺',
     languages: ['通用语', '自选一门语言'],
     traits: [
-      { name: '先祖遗赠', description: '能保留原本种族的攀爬、飞行或游泳熟练（若替换）。', choices: [
+      { name: '先祖遗赠', description: '如果你用该族系替换了一个种族，你能保留该种族的以下元素：任何从中获得的技能熟练，攀爬，飞行或是游泳速度。创建角色时，如果你不继承任意一项这些元素的话，你获得两项你所选的技能熟练。', choices: [
         {
-          id: 'dhampir-skills',
-          name: '选择两项技能 (若不继承)',
-          chooseNumber: 2,
-          options: [
-            { id: 'acrobatics', name: '特技' },
-            { id: 'animalHandling', name: '驯兽' },
-            { id: 'arcana', name: '奥秘' },
-            { id: 'athletics', name: '运动' },
-            { id: 'deception', name: '欺瞒' },
-            { id: 'history', name: '历史' },
-            { id: 'insight', name: '洞悉' },
-            { id: 'intimidation', name: '威吓' },
-            { id: 'investigation', name: '调查' },
-            { id: 'medicine', name: '医药' },
-            { id: 'nature', name: '自然' },
-            { id: 'perception', name: '察觉' },
-            { id: 'performance', name: '表演' },
-            { id: 'persuasion', name: '说服' },
-            { id: 'religion', name: '宗教' },
-            { id: 'sleightOfHand', name: '巧手' },
-            { id: 'stealth', name: '隐匿' },
-            { id: 'survival', name: '生存' }
-          ]
+          id: 'dhampir-ancestral-legacy',
+          name: '先祖遗赠选项',
+          chooseNumber: 1,
+          dynamic: 'ancestral-legacy'
         }
       ] },
-      { name: '不死本质', description: '你不需要呼吸。' },
-      { name: '蛛行', description: '等于速度的攀爬速度，3级可倒挂天花板。' },
-      { name: '吸血啃咬', description: '獠牙攻击（1d4），附加回血或在下次检定里取得加值。' }
+      { name: '黑暗视觉', description: '多亏于你的不死眷顾，你在看距离你60尺范围内的事物时，微光的照明程度对你而言视作明亮，黑暗则视作微光。你无法辨别黑暗中的颜色，而只能看到灰黑的轮廓。' },
+      { name: '不死本质', description: '你脱离了生死的绝对界限，因此你不需要呼吸。' },
+      { name: '蛛行', description: '你获得等同于自身行走速度的攀爬速度。此外，从3级起，你能够在垂直表面任意行走，甚至倒挂在天花板上，在此期间你完全不需要依靠双手来进行攀爬。' },
+      { name: '吸血啃咬', description: '你的獠牙撕咬是天生武器，能够视为你熟练的简易武器使用。你将你的体质调整值加到啃咬进行的攻击和伤害检定中，而不是力量调整值。你的啃咬命中时造成1d4穿刺伤害。当你失去一半或一半以上生命值时，该攻击在攻击检定中获得优势。当你使用此啃咬命中一个并非构装生物和不死生物的生物时，你可以通过以下选择方式增强自身：恢复相当于该次穿刺伤害的生命值；或是在下一次你所进行的属性检定或攻击检定中获得等同于该次穿刺伤害的加值。你能以此法增强自身的次数等同于你的熟练加值，并在完成长休后重新获得所有消耗的次数。' }
     ],
     spells: [],
     source: 'vrgr'
@@ -55,36 +37,18 @@ export const races: Race[] = [
     vision: '黑暗视觉 60 尺',
     languages: ['通用语', '自选一门语言'],
     traits: [
-      { name: '生物类型', description: '你是精类。' },
-      { name: '先祖遗赠', description: '如果继承替换则保留原种族特殊移动力。', choices: [
+      { name: '生物类型', description: '由于你体内寄宿着精类或鬼婆的强烈超自然力量，你在生物类型上被视作精类，而非类人生物。' },
+      { name: '先祖遗赠', description: '如果你用该族系替换了一个种族，你能保留该种族的以下元素：任何从中获得的技能熟练，攀爬，飞行或是游泳速度。创建角色时，如果你不继承任意一项这些元素的话，你获得两项你所选的技能熟练。', choices: [
         {
-          id: 'hexblood-skills',
-          name: '选择两项技能 (若不继承)',
-          chooseNumber: 2,
-          options: [
-            { id: 'acrobatics', name: '特技' },
-            { id: 'animalHandling', name: '驯兽' },
-            { id: 'arcana', name: '奥秘' },
-            { id: 'athletics', name: '运动' },
-            { id: 'deception', name: '欺瞒' },
-            { id: 'history', name: '历史' },
-            { id: 'insight', name: '洞悉' },
-            { id: 'intimidation', name: '威吓' },
-            { id: 'investigation', name: '调查' },
-            { id: 'medicine', name: '医药' },
-            { id: 'nature', name: '自然' },
-            { id: 'perception', name: '察觉' },
-            { id: 'performance', name: '表演' },
-            { id: 'persuasion', name: '说服' },
-            { id: 'religion', name: '宗教' },
-            { id: 'sleightOfHand', name: '巧手' },
-            { id: 'stealth', name: '隐匿' },
-            { id: 'survival', name: '生存' }
-          ]
+          id: 'hexblood-ancestral-legacy',
+          name: '先祖遗赠选项',
+          chooseNumber: 1,
+          dynamic: 'ancestral-legacy'
         }
       ] },
-      { name: '怪诞徽记', description: '扯下指甲或头发做成魔法徽记，用于心灵传讯和远端观察。' },
-      { name: '巫咒魔法', description: '可施展易容术和脆弱诅咒。' }
+      { name: '黑暗视觉', description: '习惯了微光妖野与黑夜，你在看距离你60尺范围内的事物时，微光的照明程度对你而言视作明亮，黑暗则视作微光。你无法辨别黑暗中的颜色，而只能看到灰黑的轮廓。' },
+      { name: '怪诞徽记', description: '使用一个附赠动作，你能无害地拔下自己的一片指甲、一颗牙齿或者一缕长发。该徽记充满魔力，直到你完成一次长休。当徽记存在时，你能凭借该注魔徽记执行以下动作：心灵传讯（以动作向一个持握或携带该徽记且跟你在10里之内的生物传讯，信息至多包含25个字）；远端访问（在徽记10里内以动作进入一分钟的出神状态，你能看见和听见徽记所处地点事物，此时你对自身周围处于目盲和耳聋状态。出神结束或在此期间徽记消散时，徽记被无害地摧毁）。一旦创造了徽记，你在长休前不能再次这样做，长休结束后，你失去的身体部分会重新长出。' },
+      { name: '巫咒魔法', description: '你能够以此特性使用易容术和脆弱诅咒。一旦你使用了两者中任何一个，直到长休前你不能再通过特质免费释放它，但你仍能使用自身所拥有的任何法术位来施展它们。你施展该法术的施法属性可以在选择该种族时决定为智力、感知或魅力中的一种。' }
     ],
     spells: [
       { level: 1, spellId: 'disguise-self' },
@@ -102,37 +66,19 @@ export const races: Race[] = [
     vision: '黑暗视觉 60 尺',
     languages: ['通用语', '自选一门语言'],
     traits: [
-      { name: '先祖遗赠', description: '如果你用该族系替换了一个种族，你能保留该种族的任何技能熟练，以及任何攀爬、飞行或是游泳速度。如果你不保留这些元素或这属于直接创建的角色，你获得两项自选技能的熟练。', choices: [
+      { name: '先祖遗赠', description: '如果你用该族系替换了一个种族，你能保留该种族的以下元素：任何从中获得的技能熟练，攀爬，飞行或是游泳速度。创建角色时，如果你不继承任意一项这些元素的话，你获得两项你所选的技能熟练。', choices: [
         {
-          id: 'reborn-skills',
-          name: '选择两项技能 (如果不继承原种族熟练)',
-          chooseNumber: 2,
-          options: [
-            { id: 'acrobatics', name: '特技' },
-            { id: 'animalHandling', name: '驯兽' },
-            { id: 'arcana', name: '奥秘' },
-            { id: 'athletics', name: '运动' },
-            { id: 'deception', name: '欺瞒' },
-            { id: 'history', name: '历史' },
-            { id: 'insight', name: '洞悉' },
-            { id: 'intimidation', name: '威吓' },
-            { id: 'investigation', name: '调查' },
-            { id: 'medicine', name: '医药' },
-            { id: 'nature', name: '自然' },
-            { id: 'perception', name: '察觉' },
-            { id: 'performance', name: '表演' },
-            { id: 'persuasion', name: '说服' },
-            { id: 'religion', name: '宗教' },
-            { id: 'sleightOfHand', name: '巧手' },
-            { id: 'stealth', name: '隐匿' },
-            { id: 'survival', name: '生存' }
-          ]
+          id: 'reborn-ancestral-legacy',
+          name: '先祖遗赠选项',
+          chooseNumber: 1,
+          dynamic: 'ancestral-legacy'
         }
       ] },
-      { name: '不死本质', description: '你脱离了死亡的魔掌。你对抗疾病或中毒的救砖检定具有优势，且你具有毒素伤害抗性；你的死亡救砖检定也同样具备优势；你不需要饮食或呼吸；你不需要睡眠，且魔法不能使你入睡。你只需在保持睁眼且无活动的状态下度过4小时，便可以获得长休的所有效果。' },
-      { name: '往昔学识', description: '你偶尔能勾起过去的些微破碎记忆。当你进行一次使用了技能的属性检定，且在看到d20投骰结果之后，你可以立即投掷一个d6骰子并将其结果加入该次属性检定。此特性的可用次数等同于你的熟练加值（PB），并在长休后重置。' }
+      { name: '黑暗视觉', description: '自死而生的无光双眼能穿透寂静黑夜。你在看距离你60尺范围内的事物时，微光的照明程度对你而言视作明亮，黑暗则视作微光。你无法辨别黑暗中的颜色，而只能看到灰黑的轮廓。' },
+      { name: '不死本质', description: '你逃脱了死亡的命运，这为你提供了如下增益：你在对抗疾病和中毒的豁免检定中具有优势，且你具有毒素伤害抗性；你的死亡豁免检定同样具有优势；你不需要饮食、饮水或呼吸；你不需要睡眠，且魔法不能使你入睡。极佳长休：你只需在保持睁眼且无任何动作的冥想状态下度过4小时，便可以获得长休的所有效果。' },
+      { name: '往昔学识', description: '你偶尔能勾起过去的零星破碎记忆。当你进行一次使用了技能的属性检定时，在你在看到d20投骰结果之后，你可以立即投掷一个d6骰子并将其结果加入该次属性检定中。你能够使用此特性的次数等同于你的熟练加值，且在完成长休后重置次数。' }
     ],
     spells: [],
-    source: 'vrgr'
+    source: 'vrgr',
   }
 ];

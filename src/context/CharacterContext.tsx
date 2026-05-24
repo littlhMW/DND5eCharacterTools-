@@ -6,7 +6,7 @@ type Action =
   | { type: 'SET_VIEW'; payload: 'landing' | 'wizard' | 'sheet' }
   | { type: 'SET_CURRENT_STEP'; payload: number }
   | { type: 'UPDATE_BASIC_INFO'; payload: Partial<CharacterData> }
-  | { type: 'SET_RACE'; payload: { raceId: string; subraceId?: string } }
+  | { type: 'SET_RACE'; payload: { raceId: string; subraceId?: string; raceSource?: string } }
   | { type: 'SET_CLASS'; payload: { classId: string; subclassId?: string } }
   | { type: 'SET_SUBCLASS'; payload: string }
   | { type: 'SET_BACKGROUND'; payload: string }
@@ -67,16 +67,16 @@ function reducer(state: State, action: Action): State {
     case 'UPDATE_BASIC_INFO':
       return { ...state, character: { ...state.character, ...action.payload } };
     case 'SET_RACE': {
-      if (state.character.raceId !== action.payload.raceId) {
+      if (state.character.raceId !== action.payload.raceId || state.character.raceSource !== action.payload.raceSource) {
         const newTraits = { ...state.character.traitSelections };
         if (state.character.raceId) {
           Object.keys(newTraits).forEach(k => {
             if (k.startsWith(state.character.raceId + '-')) delete newTraits[k];
           });
         }
-        return { ...state, character: { ...state.character, raceId: action.payload.raceId, subraceId: action.payload.subraceId, traitSelections: newTraits } };
+        return { ...state, character: { ...state.character, raceId: action.payload.raceId, raceSource: action.payload.raceSource, subraceId: action.payload.subraceId, traitSelections: newTraits } };
       }
-      return { ...state, character: { ...state.character, raceId: action.payload.raceId, subraceId: action.payload.subraceId } };
+      return { ...state, character: { ...state.character, raceId: action.payload.raceId, raceSource: action.payload.raceSource, subraceId: action.payload.subraceId } };
     }
     case 'SET_CLASS': {
       if (state.character.classId !== action.payload.classId) {

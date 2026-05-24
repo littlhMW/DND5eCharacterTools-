@@ -13,7 +13,7 @@ import { classes as motClasses } from './mot/classes';
 import { classes as vrgrClasses } from './vrgr/classes';
 import { classes as rotClasses } from './rot/classes';
 import { classes as aiClasses } from './ai/classes';
-import { classes as eeClasses } from './ee/classes';
+import { classes as eepcClasses } from './eepc/classes';
 import { classes as fodClasses } from './fod/classes';
 import { classes as gosClasses } from './gos/classes';
 import { classes as bgdiaClasses } from './bgdia/classes';
@@ -35,7 +35,7 @@ const rawClasses: DndClass[] = [
   ...vrgrClasses,
   ...rotClasses,
   ...aiClasses,
-  ...eeClasses,
+  ...eepcClasses,
   ...fodClasses,
   ...gosClasses,
   ...bgdiaClasses,

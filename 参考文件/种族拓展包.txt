@@ -1148,6 +1148,51 @@ p26
 基础身高	基础体重	身高调整值	体重调整值	
 4'6"	90 lb.	+2d10	× (2d4) lb.	
 资源： MOT，第26页
+
+Satyr
+MOT
+p24
+属性值： 魅力 +2; 敏捷 +1
+体型： 中型
+速度： 35 尺
+年龄. Age Satyrs mature and age at about the same rate as humans.
+阵营. Alignment Satyrs delight in living a life free of the mantle of law. They gravitate toward being good, but some have devious streaks and enjoy causing dismay.
+体型. Size Satyrs range from just under 5 feet to about 6 feet in height, with generally slender builds. Your size is Medium.
+Fey. Your creature type is fey, rather than humanoid.
+Ram. You can use your head and horns to make unarmed strikes. If you hit with them, you deal bludgeoning damage equal to 1d4 + your Strength modifier.
+Magic Resistance. You have advantage on saving throws against spells and other magical effects.
+Mirthful Leaps. Whenever you make a long or high jump, you can roll a d8 and add the number rolled to the number of feet you cover, even when making a standing jump. This extra distance costs movement as normal.
+Reveler. You have proficiency in the 表演 and 说服 skills, and you have proficiency with one musical instrument of your choice.
+语言. Languages You can speak, read, and write Common and Sylvan.
+你可以在“随机身高与体重表”上掷骰来决定你的角色的身高与体重。“身高调整值列”的掷骰结果（寸）将会加在角色基础身高上。随机体重则是用在“体重调整值列”的掷骰结果乘上掷骰得到的身高值，并将结果（磅）加在基础体重上。
+
+随机身高与体重
+基础身高	基础体重	身高调整值	体重调整值	
+4'8"	100 lb.	+2d8	× (2d4) lb.	
+资源： MOT，第24页
+
+
+Leonin
+MOT
+p20
+属性值： 体质 +2; 力量 +1
+体型： 中型
+速度： 35 尺
+年龄. Age Leonin mature and age at about the same rate as humans.
+阵营. Alignment Leonin tend toward good alignments. Leonin who are focused on the pride lean toward lawful good.
+体型. Size Leonin are typically over 6 feet tall, with some standing over 7 feet. Your size is Medium.
+Darkvision. You can see in dim light within 60 feet of you as if it were bright light and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray.
+Claws. Your claws are natural weapons, which you can use to make unarmed strikes. If you hit with them, you can deal slashing damage equal to 1d4 + your Strength modifier, instead of the bludgeoning damage normal for an unarmed strike.
+Hunter's Instincts. You have proficiency in one of the following skills of your choice: 运动, 威吓, 察觉, or 生存.
+Daunting Roar. As a bonus action, you can let out an especially menacing roar. Creatures of your choice within 10 feet of you that can hear you must succeed on a Wisdom saving throw or become 恐惧 of you until the end of your next turn. The DC of the save equals 8 + your proficiency bonus + your Constitution modifier. Once you use this trait, you can't use it again until you finish a short or long rest.
+语言. Languages You can speak, read, and write Common and Leonin.
+你可以在“随机身高与体重表”上掷骰来决定你的角色的身高与体重。“身高调整值列”的掷骰结果（寸）将会加在角色基础身高上。随机体重则是用在“体重调整值列”的掷骰结果乘上掷骰得到的身高值，并将结果（磅）加在基础体重上。
+
+随机身高与体重
+基础身高	基础体重	身高调整值	体重调整值	
+5'6"	180 lb.	+2d10	× (2d6) lb.	
+资源： MOT，第20页
+
 矮人 (灰) Dwarf(Duergar)
 MTF
 p81
@@ -2155,3 +2200,420 @@ p20
 往昔学识. Knowledge from a Past Life 你短暂地回忆起过去的零星碎片，也许是来自许多年前或重生之前的失落记忆。当你进行一次使用技能的属性检定时，在你看到d20结果后，你能立即投掷一个d6并将d6结果加到检定中。你能使用该特性的次数等于你的熟练次数，而你在完成一次长休后获得所有消耗的使用次数。
 语言. Languages 你可以说、读、写通用语，以及你和你的 DM 同意的一门其他的适合你角色的语言。
 资源： VRGR，第20页
+
+
+
+**未翻译资源**
+Satyr
+MOT
+p24
+属性值： 魅力 +2; 敏捷 +1
+体型： 中型
+速度： 35 尺
+年龄. Age Satyrs mature and age at about the same rate as humans.
+阵营. Alignment Satyrs delight in living a life free of the mantle of law. They gravitate toward being good, but some have devious streaks and enjoy causing dismay.
+体型. Size Satyrs range from just under 5 feet to about 6 feet in height, with generally slender builds. Your size is Medium.
+Fey. Your creature type is fey, rather than humanoid.
+Ram. You can use your head and horns to make unarmed strikes. If you hit with them, you deal bludgeoning damage equal to 1d4 + your Strength modifier.
+Magic Resistance. You have advantage on saving throws against spells and other magical effects.
+Mirthful Leaps. Whenever you make a long or high jump, you can roll a d8 and add the number rolled to the number of feet you cover, even when making a standing jump. This extra distance costs movement as normal.
+Reveler. You have proficiency in the 表演 and 说服 skills, and you have proficiency with one musical instrument of your choice.
+语言. Languages You can speak, read, and write Common and Sylvan.
+你可以在“随机身高与体重表”上掷骰来决定你的角色的身高与体重。“身高调整值列”的掷骰结果（寸）将会加在角色基础身高上。随机体重则是用在“体重调整值列”的掷骰结果乘上掷骰得到的身高值，并将结果（磅）加在基础体重上。
+
+随机身高与体重
+基础身高	基础体重	身高调整值	体重调整值	
+4'8"	100 lb.	+2d8	× (2d4) lb.	
+资源： MOT，第24页
+
+
+Leonin
+MOT
+p20
+属性值： 体质 +2; 力量 +1
+体型： 中型
+速度： 35 尺
+年龄. Age Leonin mature and age at about the same rate as humans.
+阵营. Alignment Leonin tend toward good alignments. Leonin who are focused on the pride lean toward lawful good.
+体型. Size Leonin are typically over 6 feet tall, with some standing over 7 feet. Your size is Medium.
+Darkvision. You can see in dim light within 60 feet of you as if it were bright light and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray.
+Claws. Your claws are natural weapons, which you can use to make unarmed strikes. If you hit with them, you can deal slashing damage equal to 1d4 + your Strength modifier, instead of the bludgeoning damage normal for an unarmed strike.
+Hunter's Instincts. You have proficiency in one of the following skills of your choice: 运动, 威吓, 察觉, or 生存.
+Daunting Roar. As a bonus action, you can let out an especially menacing roar. Creatures of your choice within 10 feet of you that can hear you must succeed on a Wisdom saving throw or become 恐惧 of you until the end of your next turn. The DC of the save equals 8 + your proficiency bonus + your Constitution modifier. Once you use this trait, you can't use it again until you finish a short or long rest.
+语言. Languages You can speak, read, and write Common and Leonin.
+你可以在“随机身高与体重表”上掷骰来决定你的角色的身高与体重。“身高调整值列”的掷骰结果（寸）将会加在角色基础身高上。随机体重则是用在“体重调整值列”的掷骰结果乘上掷骰得到的身高值，并将结果（磅）加在基础体重上。
+
+随机身高与体重
+基础身高	基础体重	身高调整值	体重调整值	
+5'6"	180 lb.	+2d10	× (2d6) lb.	
+资源： MOT，第20页
+幻身灵Changeling
+幻身灵 Changeling
+AgelBot 于1年前修改了此页面。
+
+幻身灵们通过不断变换的样貌，得以在各个社会中居住而不被察觉。每个幻身灵都可以超自然地变为他们想要的任意样貌。对于一些幻身灵来说，一个新的样貌只是一种伪装。对其他幻身灵来说，一种新的样貌或许能揭示他们灵魂的另一个方面。
+多元宇宙中的第一个幻身灵出现于妖精荒野，那个位面奇妙，多变的本质现在依然萦绕在幻身灵之中即便是那些从未踏足过精类国度的幻身灵。每个幻身灵都要决定如何使用自己的变形能力，引导妖精荒野的危险，或是快乐。有时他们会为了恶作剧或是恶意采用新的形态，并在其他时候用新的身份来拨乱反正，或是帮助被压迫者们。
+在真实形态时，幻身灵看上去若隐若现，外貌几乎没有细节。这种形态的幻身灵很难见到，因为一个典型的幻身灵转换形态就如同其他人换衣服。一个随意产生的形态在一时的刺激下创造的，没有深度和历史的形态被称作面具mask。一个面具可能会用来表达一种情绪，或是用于特定的目标，之后可能再也不会被使用。但是，许多幻身灵成长出了更具深度的身份，用历史和信仰组合出了完整的人格面具 personas。一个幻身灵冒险者或许会拥有用于不同情况下的角色，包括协商、调查和战斗。
+角色可以在多个幻身灵之间分享；一个社群中或许有三个幻身灵治疗者，三人在岗时都使用友好医生安德烈Andrea的角色。角色甚至可以通过家庭传递，这使得年轻幻身灵在对于角色前任使用者建立的关系中能够得到益处。
+
+来源: 《魔邓肯巨献：多元宇宙的怪物》
+
+幻身灵特质  Changeling Traits
+作为一位幻身灵，你拥有以下角色特质：
+生物种类Creature Type。你是精类生物。
+体型Size。你的体型为中型或小型。当你选择该种族的时候进行决定。
+速度Speed。你的步行速度为30尺。
+幻身灵本能Changeling Instincts。多亏了你与妖精国度的联系，你可以获得以下两项自选技能的熟练：欺瞒，洞悉，威吓，表演，或游说。
+变形生物Shapechanger。使用一个动作，你可以改变你的外表和声音。你决定这些变化的特征，包括你的肤色，头发长度和性别。你也可以调整你的身高和体重，并可以在中型和小型之中改变你的体型。你能够让自己看上去像是其他种族的一员，但这并不会改变你的游戏数据。你不能复制一个你从没见过的个体的外表，而你也必须选择一个和你基本肢体相同的生物。你的衣服和装备不能被该特质改变。
+你将一直保持这个新的形态，直到你用一个动作变回你的真实形态，或者死亡。
+ERLW
+p17
+属性值： 魅力 +2; 选择 任意其他+1
+体型： 中型
+速度： 30 尺
+年龄. Age Changelings mature slightly faster than humans but share a similar lifespan—typically a century or less. While a changeling can transform to conceal their age, the effects of aging affect them similarly to humans.
+阵营. Alignment Changelings tend toward pragmatic neutrality, and few changelings embrace evil.
+体型. Size Your size is Medium.
+Shapechanger. As an action, you can change your appearance and your voice. You determine the specifics of the changes, including your coloration, hair length, and sex. You can also adjust your height and weight, but not so much that your size changes. You can make yourself appear as a member of another race, though none of your game statistics change. You can't duplicate the appearance of a creature you've never seen, and you must adopt a form that has the same basic arrangement of limbs that you have. Your clothing and equipment aren't changed by this trait.
+You stay in the new form until you use an action to revert to your true form or until you die.
+
+Changeling Instincts. You gain proficiency with two of the following skills of your choice: 欺瞒, 洞悉, 威吓, and 说服.
+语言. Languages You can speak, read, and write Common and two other languages of your choice.
+你可以在“随机身高与体重表”上掷骰来决定你的角色的身高与体重。“身高调整值列”的掷骰结果（寸）将会加在角色基础身高上。随机体重则是用在“体重调整值列”的掷骰结果乘上掷骰得到的身高值，并将结果（磅）加在基础体重上。
+
+随机身高与体重
+基础身高	基础体重	身高调整值	体重调整值	
+5'1"	115 lb.	+2d4	× (2d4) lb.	
+资源： ERLW，第17页。同时记载于 WGE，第60页。
+——————
+
+Kalashtar
+ERLW
+p29
+属性值： 感知 +2; 魅力 +1
+体型： 中型
+速度： 30 尺
+年龄. Age Kalashtar mature and age at the same rate as humans.
+阵营. Alignment The noble spirit tied to a kalashtar drives it toward lawful and good behavior. Most kalashtar combine strong self-discipline with compassion for all beings, but some kalashtar resist the virtuous influence of their spirit.
+体型. Size Your size is Medium.
+Dual Mind. You have advantage on all Wisdom saving throws.
+Mental Discipline. You have resistance to psychic damage.
+Mind Link. You can speak telepathically to any creature you can see, provided the creature is within a number of feet of you equal to 10 times your level. You don't need to share a language with the creature for it to understand your telepathic utterances, but the creature must be able to understand at least one language.
+When you're using this trait to speak telepathically to a creature, you can use your action to give that creature the ability to speak telepathically with you for 1 hour or until you end this effect as an action. To use this ability, the creature must be able to see you and must be within this trait's range. You can give this ability to only one creature at a time; giving it to a creature takes it away from another creature who has it.
+
+Severed from Dreams. Kalashtar sleep, but they don't connect to the plane of dreams as other creatures do. Instead, their minds draw from the memories of their otherworldly spirit while they sleep. As such, you are immune to spells and other magical effects that require you to dream, like 托梦术, but not to spells and other magical effects that put you to sleep, like 睡眠术.
+语言. Languages You can speak, read, and write Common, Quori, and one other language of your choice.
+你可以在“随机身高与体重表”上掷骰来决定你的角色的身高与体重。“身高调整值列”的掷骰结果（寸）将会加在角色基础身高上。随机体重则是用在“体重调整值列”的掷骰结果乘上掷骰得到的身高值，并将结果（磅）加在基础体重上。
+
+随机身高与体重
+基础身高	基础体重	身高调整值	体重调整值	
+5'4"	110 lb.	+2d6	× (1d6) lb.	
+资源： ERLW，第29页。同时记载于 WGE，第62页。
+
+
+Leonin
+MOT
+p20
+属性值： 体质 +2; 力量 +1
+体型： 中型
+速度： 35 尺
+年龄. Age Leonin mature and age at about the same rate as humans.
+阵营. Alignment Leonin tend toward good alignments. Leonin who are focused on the pride lean toward lawful good.
+体型. Size Leonin are typically over 6 feet tall, with some standing over 7 feet. Your size is Medium.
+Darkvision. You can see in dim light within 60 feet of you as if it were bright light and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray.
+Claws. Your claws are natural weapons, which you can use to make unarmed strikes. If you hit with them, you can deal slashing damage equal to 1d4 + your Strength modifier, instead of the bludgeoning damage normal for an unarmed strike.
+Hunter's Instincts. You have proficiency in one of the following skills of your choice: 运动, 威吓, 察觉, or 生存.
+Daunting Roar. As a bonus action, you can let out an especially menacing roar. Creatures of your choice within 10 feet of you that can hear you must succeed on a Wisdom saving throw or become 恐惧 of you until the end of your next turn. The DC of the save equals 8 + your proficiency bonus + your Constitution modifier. Once you use this trait, you can't use it again until you finish a short or long rest.
+语言. Languages You can speak, read, and write Common and Leonin.
+你可以在“随机身高与体重表”上掷骰来决定你的角色的身高与体重。“身高调整值列”的掷骰结果（寸）将会加在角色基础身高上。随机体重则是用在“体重调整值列”的掷骰结果乘上掷骰得到的身高值，并将结果（磅）加在基础体重上。
+
+随机身高与体重
+基础身高	基础体重	身高调整值	体重调整值	
+5'6"	180 lb.	+2d10	× (2d6) lb.	
+资源： MOT，第20页
+
+Satyr
+MOT
+p24
+属性值： 魅力 +2; 敏捷 +1
+体型： 中型
+速度： 35 尺
+年龄. Age Satyrs mature and age at about the same rate as humans.
+阵营. Alignment Satyrs delight in living a life free of the mantle of law. They gravitate toward being good, but some have devious streaks and enjoy causing dismay.
+体型. Size Satyrs range from just under 5 feet to about 6 feet in height, with generally slender builds. Your size is Medium.
+Fey. Your creature type is fey, rather than humanoid.
+Ram. You can use your head and horns to make unarmed strikes. If you hit with them, you deal bludgeoning damage equal to 1d4 + your Strength modifier.
+Magic Resistance. You have advantage on saving throws against spells and other magical effects.
+Mirthful Leaps. Whenever you make a long or high jump, you can roll a d8 and add the number rolled to the number of feet you cover, even when making a standing jump. This extra distance costs movement as normal.
+Reveler. You have proficiency in the 表演 and 说服 skills, and you have proficiency with one musical instrument of your choice.
+语言. Languages You can speak, read, and write Common and Sylvan.
+你可以在“随机身高与体重表”上掷骰来决定你的角色的身高与体重。“身高调整值列”的掷骰结果（寸）将会加在角色基础身高上。随机体重则是用在“体重调整值列”的掷骰结果乘上掷骰得到的身高值，并将结果（磅）加在基础体重上。
+
+随机身高与体重
+基础身高	基础体重	身高调整值	体重调整值	
+4'8"	100 lb.	+2d8	× (2d4) lb.	
+资源： MOT，第24页
+
+
+变形者Shifter
+ERLW
+
+Shifter
+ERLW
+p33
+“Geth's ancient heritage rose up from deep within him, spreading out from the core of his being. Some shifters manifested terrible claws, others massive fangs, still others astounding speed or heightened senses. Geth's gift from his lycanthrope ancestors was sheer toughness. Strength seeped into his bones and flooded his flesh. His skin hardened, and his hair became coarse like an animal's tough hide. A sense of invincibility spread through him. For the moment at least, he felt unstoppable!”
+
+— Don Bassingthwaite, The Binding Stone
+
+Shifters are sometimes called the weretouched, as many believe they are the descendants of humans and lycanthropes. Whatever their origins, shifters have evolved into a unique race. They are humanoids with a bestial aspect; while they can't fully change shape, they can temporarily enhance their animalistic features—a state they call shifting. Each shifter walks on the knife's edge between the wilds and the world around them. Do they embrace their primal instincts or the path of civilization?
+
+The Beast Within. Early in childhood, a shifter forms a bond with a beast within, a totemic force that shapes their body and mind. Some shifters believe that these spirits are independent entities, and they may speak of Bear or Wolf as ancestors or guides. Most just see the beast within as a formidable expression of their inner nature, something that emerges as the shifter's personality takes shape. The beast within is a pool of powerful instincts, and its influence is revealed by a shifter's personality: a feline shifter may be cool and distant, driven by predatory instincts, while a shifter with a lupine spirit might be drawn to find and protect a pack. When a shifter fully embraces this beast within they physically transform for a short time.
+A shifter's beast within is reflected by the shifter's subrace. Four subraces are especially common:
+
+Beasthide often signifies the bear or boar: stoic, stubborn, and thick-skinned.
+
+Longtooth shifters typically have lupine traits and prefer to run with a pack.
+
+Swiftstride are often predatory and feline, but a swiftstride could also be a cunning rat who darts through the shadows.
+
+Wildhunt shifters are born from any creature that tracks its prey.
+
+While the beast within certainly has a physical impact on a shifter, it has a spiritual and psychological effect, as well. Two beasthide shifters share the same special ability, but if one has the aspect of the boar and the other is more like a bear, they'll be quite different in personality. With any shifter, identifying the beast within is a crucial part of understanding the character.
+
+Similar and Diverse. Shifters are similar to humans in height and build but are typically more lithe and flexible. Their facial features have a bestial cast, often with large eyes, flat noses, and pointed ears; most shifters also have prominent canine teeth. They grow fur-like hair on nearly every part of their bodies.
+The traits of the beast within affect a shifter's appearance as well. A swiftstride shifter may have catlike eyes and delicate build, while a beasthide shifter might be a massive brute built like a bear. While a shifter's appearance might remind an onlooker of an animal, they remain clearly identifiable as shifters even when at their most feral.
+
+The Journey Yet to Come. Shifters have a strong presence in the Eldeen Reaches but can be found in rural areas across Khorvaire, where they often live among humans. While they form powerful bonds to friends and kin, shifters place great value on self-reliance and freedom. It's a shifter proverb to "always be prepared for the journey yet to come," and most shifters strive to be ready for change or opportunity.
+Shifters have a natural inclination toward classes with a primal connection. A shifter barbarian draws their rage from the beast within. A shifter ranger indulges their urge to wander and hunt. A shifter rogue harnesses their own predatory instincts. But shifters can pursue any path or faith.
+
+Shifter Names. Shifters have no language of their own and often live in blended communities. Their names typically overlap with the names of other cultures in their region. Many shifters prefer to keep their personal names for their friends and use "wandering names" with strangers. These are usually tied to a physical or personality trait.
+Shifter Names: Badger, Bear, Cat, Fang, Grace, Grim, Moon, Rain, Red, Scar, Stripe, Swift, Talon, Wolf
+p33
+属性值： 无
+体型： 中型
+速度： 30 尺
+该种族有多个亚种，如下所示：
+
+Shifter (Beasthide)
+Shifter (Longtooth)
+Shifter (Swiftstride)
+Shifter (Wildhunt)
+特征 Traits
+年龄. Age Shifters are quick to mature both physically and emotionally, reaching young adulthood at age 10. They rarely live to be more than 70 years old.
+阵营. Alignment Shifters tend toward neutrality, being more focused on survival than concepts of good and evil. A love of personal freedom can drive shifters toward chaotic alignments.
+体型. Size Your size is Medium.
+Speed. Your base walking speed is 30 feet.
+Darkvision. You have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray.
+Shifting. As a bonus action, you can assume a more bestial appearance. This transformation lasts for 1 minute, until you die, or until you revert to your normal appearance as a bonus action. When you shift, you gain temporary hit points equal to your level + your Constitution modifier (minimum of 1 temporary hit point). You also gain additional benefits that depend on your shifter subrace, described below.
+Once you shift, you can't do so again until you finish a short or long rest.
+
+语言. Languages You can speak, read, and write Common.
+资源： ERLW，第33页。同时记载于 WGE，第64页。
+Shifter (Beasthide)
+ERLW
+p34
+属性值： 体质 +2; 力量 +1
+体型： 中型
+速度： 30 尺
+年龄. Age Shifters are quick to mature both physically and emotionally, reaching young adulthood at age 10. They rarely live to be more than 70 years old.
+阵营. Alignment Shifters tend toward neutrality, being more focused on survival than concepts of good and evil. A love of personal freedom can drive shifters toward chaotic alignments.
+体型. Size Your size is Medium.
+Speed. Your base walking speed is 30 feet.
+Darkvision. You have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray.
+Shifting. As a bonus action, you can assume a more bestial appearance. This transformation lasts for 1 minute, until you die, or until you revert to your normal appearance as a bonus action. When you shift, you gain temporary hit points equal to your level + your Constitution modifier (minimum of 1 temporary hit point). You also gain additional benefits that depend on your shifter subrace, described below.
+Once you shift, you can't do so again until you finish a short or long rest.
+
+语言. Languages You can speak, read, and write Common.
+Natural Athlete. You have proficiency in the 运动 skill.
+Shifting Feature. Whenever you shift, you gain 1d6 additional temporary hit points. While shifted, you have a +1 bonus to your Armor Class.
+你可以在“随机身高与体重表”上掷骰来决定你的角色的身高与体重。“身高调整值列”的掷骰结果（寸）将会加在角色基础身高上。随机体重则是用在“体重调整值列”的掷骰结果乘上掷骰得到的身高值，并将结果（磅）加在基础体重上。
+
+随机身高与体重
+基础身高	基础体重	身高调整值	体重调整值	
+4'6"	90 lb.	+2d8	× (2d4) lb.	
+资源： ERLW，第34页。同时记载于 WGE，第64页。
+
+Shifter (Longtooth)
+ERLW
+p34
+属性值： 力量 +2; 敏捷 +1
+体型： 中型
+速度： 30 尺
+年龄. Age Shifters are quick to mature both physically and emotionally, reaching young adulthood at age 10. They rarely live to be more than 70 years old.
+阵营. Alignment Shifters tend toward neutrality, being more focused on survival than concepts of good and evil. A love of personal freedom can drive shifters toward chaotic alignments.
+体型. Size Your size is Medium.
+Speed. Your base walking speed is 30 feet.
+Darkvision. You have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray.
+Shifting. As a bonus action, you can assume a more bestial appearance. This transformation lasts for 1 minute, until you die, or until you revert to your normal appearance as a bonus action. When you shift, you gain temporary hit points equal to your level + your Constitution modifier (minimum of 1 temporary hit point). You also gain additional benefits that depend on your shifter subrace, described below.
+Once you shift, you can't do so again until you finish a short or long rest.
+
+语言. Languages You can speak, read, and write Common.
+Fierce. You have proficiency in the 威吓 skill.
+Shifting Feature. While shifted, you can use your elongated fangs to make an unarmed strike as a bonus action. If you hit with your fangs, you can deal piercing damage equal to 1d6 + your Strength modifier, instead of the bludgeoning damage normal for an unarmed strike.
+你可以在“随机身高与体重表”上掷骰来决定你的角色的身高与体重。“身高调整值列”的掷骰结果（寸）将会加在角色基础身高上。随机体重则是用在“体重调整值列”的掷骰结果乘上掷骰得到的身高值，并将结果（磅）加在基础体重上。
+
+随机身高与体重
+基础身高	基础体重	身高调整值	体重调整值	
+4'6"	90 lb.	+2d8	× (2d4) lb.	
+资源： ERLW，第34页。同时记载于 WGE，第64页。
+Shifter (Swiftstride)
+ERLW
+p34
+属性值： 敏捷 +2; 魅力 +1
+体型： 中型
+速度： 30 尺
+年龄. Age Shifters are quick to mature both physically and emotionally, reaching young adulthood at age 10. They rarely live to be more than 70 years old.
+阵营. Alignment Shifters tend toward neutrality, being more focused on survival than concepts of good and evil. A love of personal freedom can drive shifters toward chaotic alignments.
+体型. Size Your size is Medium.
+Speed. Your base walking speed is 30 feet.
+Darkvision. You have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray.
+Shifting. As a bonus action, you can assume a more bestial appearance. This transformation lasts for 1 minute, until you die, or until you revert to your normal appearance as a bonus action. When you shift, you gain temporary hit points equal to your level + your Constitution modifier (minimum of 1 temporary hit point). You also gain additional benefits that depend on your shifter subrace, described below.
+Once you shift, you can't do so again until you finish a short or long rest.
+
+语言. Languages You can speak, read, and write Common.
+Graceful. You have proficiency in the 体操 skill.
+Shifting Feature. While shifted, your walking speed increases by 10 feet. Additionally, you can move up to 10 feet as a reaction when a creature ends its turn within 5 feet of you. This reactive movement doesn't provoke opportunity attacks.
+你可以在“随机身高与体重表”上掷骰来决定你的角色的身高与体重。“身高调整值列”的掷骰结果（寸）将会加在角色基础身高上。随机体重则是用在“体重调整值列”的掷骰结果乘上掷骰得到的身高值，并将结果（磅）加在基础体重上。
+
+随机身高与体重
+基础身高	基础体重	身高调整值	体重调整值	
+4'6"	90 lb.	+2d8	× (2d4) lb.	
+资源： ERLW，第34页。同时记载于 WGE，第64页。
+Shifter (Wildhunt)
+ERLW
+p34
+属性值： 感知 +2; 敏捷 +1
+体型： 中型
+速度： 30 尺
+年龄. Age Shifters are quick to mature both physically and emotionally, reaching young adulthood at age 10. They rarely live to be more than 70 years old.
+阵营. Alignment Shifters tend toward neutrality, being more focused on survival than concepts of good and evil. A love of personal freedom can drive shifters toward chaotic alignments.
+体型. Size Your size is Medium.
+Speed. Your base walking speed is 30 feet.
+Darkvision. You have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray.
+Shifting. As a bonus action, you can assume a more bestial appearance. This transformation lasts for 1 minute, until you die, or until you revert to your normal appearance as a bonus action. When you shift, you gain temporary hit points equal to your level + your Constitution modifier (minimum of 1 temporary hit point). You also gain additional benefits that depend on your shifter subrace, described below.
+Once you shift, you can't do so again until you finish a short or long rest.
+
+语言. Languages You can speak, read, and write Common.
+Natural Tracker. You have proficiency in the 生存 skill.
+Shifting Feature. While shifted, you have advantage on Wisdom checks, and no creature within 30 feet of you can make an attack roll with advantage against you, unless you're 无力.
+你可以在“随机身高与体重表”上掷骰来决定你的角色的身高与体重。“身高调整值列”的掷骰结果（寸）将会加在角色基础身高上。随机体重则是用在“体重调整值列”的掷骰结果乘上掷骰得到的身高值，并将结果（磅）加在基础体重上。
+
+随机身高与体重
+基础身高	基础体重	身高调整值	体重调整值	
+4'6"	90 lb.	+2d8	× (2d4) lb.	
+资源： ERLW，第34页。同时记载于 WGE，第64页。
+
+Verdan
+
+AI
+p72
+Verdan
+AI
+p72
+The verdan owe their existence to chaos. Descended and transformed from a large clan of goblins and hobgoblins, those who became the verdan were simply living their lives, doing goblinoid things. But then passing through the shadow of That-Which-Endures changed them forever. Now the newest race to call Faerûn home, the verdan do their best to find their way in an unfamiliar world.
+
+“Reality is a descent into chaos punctuated by brief flashes of order, whence we arose and so imagine it to be the norm rather than a distant outlier. That-Which-Endures held entropy back for a mere instant, and the Verdan emerged. I'm sorry, was that the question?”
+
+— K'thriss Drow'b
+
+Created by Chaos. When the power of That-Which-Endures mutated the verdan, their skin was turned the color of jade and their blood began to flow black. Their ears grew pointed, and they gained a limited form of telepathy—but at the cost of forgetting their history. The underground homes of the goblins were places of terror to the new creatures those goblins became, and the verdan quickly fled to the surface and into the sunlight.
+When they arrived in the new lands of the surface, the verdan found that they were often mistaken for smaller, green-skinned half-elves. Attracting curiosity but no real questions, they have thus been able to make their way reasonably freely in the world.
+
+That-Which-Endures
+That-Which-Endures is a nameless, faceless, mysterious entity, something between a multiverse-spanning primordial spirit and an over-god. It represents the amoral and all-encompassing power of entropy—the force that unknowingly and uncaringly changes order into chaos, and that breaks matter and time down into its component parts so that all can be rebuilt. Some who study this entity claim that it is clearly evil and destructive. Others call it simply a necessary part of the cycle of death and rebirth. In the end, though, That-Which-Endures shows precious little interest in what people say about it.
+
+Ongoing Mutations. Because the verdan have not dwelled long in the world, they are still discovering new things about themselves. Chief among these discoveries is that their physical forms change as they age, signifying that the mutative power of That-Which-Endures is not done with them. The first verdan emerged from the Underdark as creatures of goblin stature. But they soon learned that their kind were fated to eventually undergo a dramatic, painful, and random growth spurt that sees them transformed to hobgoblin size over a period of days.
+At the same time, many verdan undergo changes in coloring as they age. Male verdan typically have little to no hair, while females sport shocks of wiry hair that they try to tame in a variety of styles. But the color of any verdan's hair, skin, and eyes can transform from their original jade tones to pale white, deep ebon, or any other shade in between. A verdan's ears also undergo numerous spontaneous alterations over their lifetime, from the typical range of point and peak seen among the elves, to huge ears that sweep back from the head like wings, and which are often pierced behind the head with a single ring to keep them from flapping about.
+
+Changes in gender are also a known and accepted part of verdan life. These fluid aspects of form and identity are seen as blessings, allowing an individual to experience more of the world and grow in empathy and understanding. There is no pattern to any verdan's mutations, as verdan from the same family can shift in drastically different ways. The verdan assign no cultural or biological relevance to any particular coloration, physical features, or gender.
+
+Cultural Chameleons. The clan homes of the Underdark goblinoids who became the verdan covered an enormous area. As the verdan fled to the surface world, they emerged in culturally diverse locations. Some found themselves near dwarven strongholds, others near elven enclaves, and others near the widespread human settlements of Faerûn.
+Without a cultural identity or memory of their own, the verdan quickly adopted the cultural practices of the areas into which they migrated. Still, a sense of not truly belonging is felt even by verdan who have been welcomed into other cultures. They are often stricken with wanderlust, keeping their possessions limited and easily portable. It is not unusual to see individual verdan or whole families trooping along the roads of the world with their tents and belongings strapped to their backs.
+
+Even when they are happily steeped in a culture, the verdan remain on the lookout for oppression and curtailment of freedoms. They understand the need for laws that protect, but they rail against laws that restrict and oppress—especially those designed to protect the power and wealth of the elite. When living among enlightened folk, verdan are still the first to speak out against cultural restraints on individuals, particularly those based on physical characteristics such as gender, race, or appearance.
+
+Wide-Eyed and Curious. Verdan are hungry to undertake new challenges and absorb new experiences. When they meet other verdan who have traveled to different parts of the world, they drop everything to spend as long as possible sharing stories and observations from their respective travels. However, their inexperience in the world and their racial amnesia sometimes lends the verdan a kind of innocence that works against them. Some are credulous and easily fooled by hucksters, but most verdan have an intuition bred by empathy that helps them eventually sort out those who are sincere from those who are not.
+Verdan Names. The oldest verdan names spring from goblinoid traditions, but more recent names reflect the character of the different cultures these folk have encountered since coming out into the sunlight. When a group of verdan live near dwarves, they might take on more dwarven-sounding names, only to change those names when they wander into a human area. A verdan is also not hesitant to change their name as their physical appearance changes—or, indeed, whenever the mood strikes them.
+Verdan make no differentiation between male, female, and family names, and often eschew family names altogether.
+
+Verdan Names: Bronn, Crahma, Dolar, Dreeda, Duglee, Gruvald, Hulm, Jeal, Kalo, Klesh, Korm, Lathi, Ovlig, Paracii, Pils, Praet, Promul, Reezni, Rin, Shylk, Slyra, Sollo, Stalsii, Stromvo, Stussa, Syrkart, Takat, Toit, Tubyna, Varr, Veriga, Wraq, Wural, Wurxee
+
+Underlying Improvements
+When a verdan character gains an ability score improvement at certain levels, that increase can be tied to a physical mutation at the player's determination. A boost to Strength might be accompanied by a growth spurt and the development of rippling muscle, while an increase in Intelligence might produce a stylishly large forehead.
+属性值： 魅力 +2; 体质 +1
+体型： 不定
+速度： 30 尺
+年龄. Age Verdan reach adulthood at around the age of 24, and it is thought that they might live to nearly 200 years old. However, because no verdan has died of old age since the race's initial creation, their upper age limits remain subject to speculation.
+阵营. Alignment Verdan are generally good, although their absence of racial identity and shared history can sometimes see individual verdan become untethered from any moral or ethical framework.
+体型. Size Verdan start out similar in size to the goblins they were created from, ranging from 3 to 4 feet in height. But at some point after reaching maturity, each verdan undergoes a sudden growth spurt of 2 feet or more. At 1st level, you are a Small creature. When you reach 5th level, you become a Medium creature.
+Black Blood Healing. The black blood that is a sign of your people's connection to That-Which-Endures boosts your natural healing. When you roll a 1 or 2 on any Hit Die you spend at the end of a short rest, you can reroll the die and must use the new roll.
+Limited Telepathy. You can telepathically speak to any creature you can see within 30 feet of you. You don't need to share a language with the creature for it to understand your telepathy, but it must be able to understand at least one language. This process of communication is slow and limited, allowing you to transmit and receive only simple ideas and straightforward concepts.
+Persuasive. Your people's lack of history makes you trustworthy and humble. You have proficiency in the 说服 skill.
+Telepathic Insight. Your mind's connection to the world around you strengthens your will. You have advantage on all Wisdom and Charisma saving throws.
+Language. You speak, read, and write Common, Goblin, and one additional language of your choice. This language typically has some connection to one of the areas or cultures that has been part of your life.
+资源： AI，第72页
+
+Warforged
+ERLW
+p35
+
+Warforged
+ERLW
+p35
+"Pierce was built by design, while you were built by accident," Lakashtai said. "The soul is what matters, not the shape of the vessel."
+
+"What makes you think he has a soul?" Gerrion said
+
+"What makes you think you do?"
+
+— Keith Baker, The Shattered Land
+
+The warforged were built to fight in the Last War. While the first warforged were mindless automatons, House Cannith devoted vast resources to improving these steel soldiers. An unexpected breakthrough produced sapient soldiers, giving rise to what some have only grudgingly accepted as a new species. Warforged are made from wood and metal, but they can feel pain and emotion. Built as weapons, they must now find a purpose beyond war. A warforged can be a steadfast ally, a cold-hearted killer, or a visionary in search of meaning.
+
+Living Steel and Stone. Warforged are formed from a blend of organic and inorganic materials. Root-like cords infused with alchemical fluids serve as their muscles, wrapped around a framework of steel, darkwood, or stone. Armored plates form a protective outer shell and reinforce joints. Warforged share a common facial design, with a hinged jaw and crystal eyes embedded beneath a reinforced brow ridge. Beyond these common elements of warforged design, the precise materials and build of a warforged vary based on the purpose for which it was designed.
+Although they were manufactured, warforged are living humanoids. Resting, healing magic, and the 医疗 skill all provide the same benefits to warforged that they do to other humanoids.
+
+Warforged Personality. The warforged were built to serve and to fight. For most of their existence, warforged had a clearly defined function and were encouraged to focus purely on that role. The Treaty of Thronehold gave them freedom, but many still struggle both to find a place in the post-war world and to relate to the creatures who created them.
+The typical warforged shows little emotion. Many warforged embrace a concrete purpose—such as protecting allies, completing a contract, or exploring a land—and embrace this task as they once did war. However, there are warforged who delight in exploring their feelings, their freedom, and their relationships with others. Most warforged have no interest in religion, but some embrace faith and mysticism, seeking higher purpose and deeper meaning.
+
+The typical warforged has a sexless body shape. Some warforged ignore the concept of gender entirely, while others adopt a gender identity.
+
+The more a warforged develops its individuality, the more likely it is to modify its body, seeking out an artificer to customize the look of its face, limbs, and plating.
+
+Quirks. Warforged often display an odd personality trait or two, given how new they are to the world. The Warforged Quirks table contains example quirks.
+Warforged Quirks
+d8	Quirk
+1	You analyze—out loud—the potential threat posed by every creature you meet.
+2	You often misread emotional cues.
+3	You are fiercely protective of your friends.
+4	You try to apply wartime discipline to every situation.
+5	You don't know how to filter your feelings and are prone to dramatic emotional outbursts.
+6	You don't understand clothing beyond its utility and assume it denotes a person's function.
+7	You are obsessed with your appearance and constantly polish and buff yourself.
+8	War is the only thing that makes sense to you, and you're always looking for a fight.
+Warforged Names. Most warforged were assigned numerical designations for use in military service. Many of them adopted nicknames, often given to them by their comrades. As independent individuals, some have chosen new names as a way to express their path in life. A few take on human names, often the name of a fallen friend or mentor.
+Warforged Names: Anchor, Banner, Bastion, Blade, Blue, Bow, Cart, Church, Crunch, Crystal, Dagger, Dent, Five, Glaive, Hammer, Iron, Lucky, Mace, Oak, Onyx, Pants, Pierce, Red, Rod, Rusty, Scout, Seven, Shield, Slash, Smith, Spike, Temple, Vault, Wall
+属性值： 体质 +2; 选择 任意其他+1
+体型： 中型
+速度： 30 尺
+年龄. Age A typical warforged is between two and thirty years old. The maximum warforged lifespan remains a mystery; so far, warforged have shown no signs of deterioration due to age. You are immune to magical aging effects.
+阵营. Alignment Most warforged take comfort in order and discipline, tending toward law and neutrality. But some have absorbed the morality, or lack thereof, of the beings with which they served.
+体型. Size Your size is Medium.
+Constructed Resilience. You were created to have remarkable fortitude, represented by the following benefits:
+You have advantage on saving throws against being 中毒, and you have resistance to poison damage.
+You don't need to eat, drink, or breathe.
+You are immune to disease.
+You don't need to sleep, and magic can't put you to sleep.
+Sentry's Rest. When you take a long rest, you must spend at least six hours in an inactive, motionless state, rather than sleeping. In this state, you appear inert, but it doesn't render you 昏迷, and you can see and hear as normal.
+Integrated Protection. Your body has built-in defensive layers, which can be enhanced with armor:
+You gain a +1 bonus to Armor Class.
+You can don only armor with which you have proficiency. To don armor other than a shield, you must incorporate it into your body over the course of 1 hour, during which you remain in contact with the armor. To doff armor, you must spend 1 hour removing it. You can rest while donning or doffing armor in this way.
+While you live, the armor incorporated into your body can't be removed against your will.
+Specialized Design. You gain one skill proficiency and one tool proficiency of your choice.
+语言. Languages You can speak, read, and write Common and one other language of your choice.
+你可以在“随机身高与体重表”上掷骰来决定你的角色的身高与体重。“身高调整值列”的掷骰结果（寸）将会加在角色基础身高上。随机体重则是用在“体重调整值列”的掷骰结果乘上掷骰得到的身高值，并将结果（磅）加在基础体重上。
+
+随机身高与体重
+基础身高	基础体重	身高调整值	体重调整值	
+5'10"	270 lb.	+2d6	× 4 lb.	
+资源： ERLW，第35页。同时记载于 WGE，第67页。

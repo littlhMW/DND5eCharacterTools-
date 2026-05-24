@@ -5,7 +5,7 @@ import { spells as allSpells } from '../../data/spells';
 import { classSpellLists } from '../../data/spellLists';
 import { isSourceEnabled } from '../../utils/expansionHelper';
 import { DictyTwisterLink } from '../DictyTwisterLink';
-import { races } from '../../data/races';
+import { races, getRaceByIdAndSource } from '../../data/races';
 
 export function getMaxSpellLevel(spellSlots: number[][], level: number) {
   const idx = Math.min(level - 1, spellSlots.length - 1);
@@ -53,7 +53,7 @@ export function SpellsStep() {
   const { state, dispatch } = useCharacter();
   const c = state.character;
 
-  const race = races.find(r => r.id === c.raceId);
+  const race = getRaceByIdAndSource(c.raceId, c.raceSource);
   const subrace = race?.subraces?.find(sr => sr.id === c.subraceId);
 
   const cls = classes.find(cl => cl.id === c.classId);
@@ -69,17 +69,26 @@ const autoSpells = useMemo(() => {
       .forEach(s => spells.push({ id: s.spellId, level: s.level }));
   }
   // 种族和子种族的法术
-  const charRace = races.find(r => r.id === c.raceId);
+  const charRace = getRaceByIdAndSource(c.raceId, c.raceSource);
   const charSubrace = charRace?.subraces?.find(sr => sr.id === c.subraceId);
   if (charRace?.spells) {
-    charRace.spells
+    const finalRaceSpells = (charRace.id === 'tiefling' && charSubrace) ? [] : charRace.spells;
+    finalRaceSpells
       .filter(s => (s.level || 0) <= c.level && s.spellId && allSpells.some(sp => sp.id === s.spellId))
-      .forEach(s => spells.push({ id: s.spellId, level: s.level || 0 }));
+      .forEach(s => {
+        if (!spells.some(existing => existing.id === s.spellId)) {
+          spells.push({ id: s.spellId, level: s.level || 0 });
+        }
+      });
   }
   if (charSubrace?.spells) {
     charSubrace.spells
       .filter(s => (s.level || 0) <= c.level && s.spellId && allSpells.some(sp => sp.id === s.spellId))
-      .forEach(s => spells.push({ id: s.spellId, level: s.level || 0 }));
+      .forEach(s => {
+        if (!spells.some(existing => existing.id === s.spellId)) {
+          spells.push({ id: s.spellId, level: s.level || 0 });
+        }
+      });
   }
   
   // 从其他特性（非当前职业和自身拼写步数）来的法术

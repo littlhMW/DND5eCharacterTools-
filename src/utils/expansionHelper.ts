@@ -92,7 +92,10 @@ export function isSourceEnabled(
   category?: 'races' | 'classes' | 'backgrounds' | 'other'
 ): boolean {
   if (!sourceId) return true;
-  const normSource = sourceId.toLowerCase();
+  let normSource = sourceId.toLowerCase();
+  if (normSource === 'ee') {
+    normSource = 'eepc';
+  }
   if (normSource === 'phb') return true;
 
   const settings = getExpansionSettings();

@@ -13,7 +13,7 @@ import { feats as motFeats } from './mot/feats';
 import { feats as vrgrFeats } from './vrgr/feats';
 import { feats as rotFeats } from './rot/feats';
 import { feats as aiFeats } from './ai/feats';
-import { feats as eeFeats } from './ee/feats';
+import { feats as eepcFeats } from './eepc/feats';
 import { feats as fodFeats } from './fod/feats';
 import { feats as gosFeats } from './gos/feats';
 import { feats as bgdiaFeats } from './bgdia/feats';
@@ -35,7 +35,7 @@ export const feats: Feat[] = [
   ...vrgrFeats,
   ...rotFeats,
   ...aiFeats,
-  ...eeFeats,
+  ...eepcFeats,
   ...fodFeats,
   ...gosFeats,
   ...bgdiaFeats,

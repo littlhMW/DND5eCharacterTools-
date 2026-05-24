@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCharacter } from '../../context/CharacterContext';
-import { races } from '../../data/races';
+import { races, getRaceByIdAndSource } from '../../data/races';
 import { classes } from '../../data/classes';
 import { backgrounds } from '../../data/backgrounds';
 import { getAIConfig, generateBackstoryAndAppearance } from '../../utils/aiHelper';
@@ -63,7 +63,7 @@ export function DetailsStep() {
 
     try {
       // Find race details
-      const race = races.find(r => r.id === state.character.raceId);
+      const race = getRaceByIdAndSource(state.character.raceId, state.character.raceSource);
       const subrace = race?.subraces?.find(s => s.id === state.character.subraceId);
       const cls = classes.find(c => c.id === state.character.classId);
       const subclass = cls?.subclasses?.find(s => s.id === state.character.subclassId);

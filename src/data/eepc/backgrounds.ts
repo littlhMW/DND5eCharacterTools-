@@ -3,7 +3,7 @@ import { Background } from '../../types/dnd';
 /**
  * 模板说明:
  * 在此添加扩展背景。
- * 请确保 `source` 字段为小写的扩展名 (例如 'vgtm')。
+ * 请确保 `source` 字段为小写的扩展名 (例如 'eepc')。
  */
 export const backgrounds: Background[] = [
   /*
@@ -25,7 +25,7 @@ export const backgrounds: Background[] = [
       bonds: ["我要复仇。"],
       flaws: ["我贪婪。"]
     },
-    source: "vgtm"
+    source: "eepc"
   }
   */
 ];

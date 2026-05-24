@@ -14,7 +14,7 @@ export interface TraitChoice {
   options?: TraitOption[]; // 静态选项列表（选战斗风格、选战技等）
   
   // 动态选择相关字段
-  dynamic?: 'spell' | 'expertise' | 'asi' | 'feat' | 'skill' | 'tool' | 'language' | 'custom-spells';
+  dynamic?: 'spell' | 'expertise' | 'asi' | 'feat' | 'skill' | 'tool' | 'language' | 'custom-spells' | 'ancestral-legacy';
   spellType?: 'cantrip' | 'known' | 'prepared' | 'spellbook';
   spellList?: string;
   maxLevel?: number;
@@ -70,6 +70,7 @@ export interface Race {
   spells: { level: number; spellId: string }[]; // innate spells
   subraces?: Subrace[];
   source: string;
+  alternatives?: Omit<Race, 'subraces' | 'alternatives'>[];
   weaponProficiencies?: string[];
   armorProficiencies?: string[];
   toolProficiencies?: string[];
@@ -178,6 +179,7 @@ export interface CharacterData {
   
   level: number;
   raceId: string;
+  raceSource?: string;
   subraceId?: string;
   classId: string;
   subclassId?: string;

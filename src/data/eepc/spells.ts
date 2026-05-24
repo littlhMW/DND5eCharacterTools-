@@ -3,7 +3,7 @@ import { Spell } from '../../types/dnd';
 /**
  * 模板说明:
  * 在此添加扩展法术。
- * 请确保 `source` 字段为小写的扩展名 (例如 'ee')。
+ * 请确保 `source` 字段为小写的扩展名 (例如 'eepc')。
  */
 export const spells: Spell[] = [
   /*
@@ -17,7 +17,7 @@ export const spells: Spell[] = [
     components: "V, S",
     duration: "瞬间",
     description: "你发射一道耀眼的光束...",
-    source: "ee"
+    source: "eepc"
   }
   */
 ];
