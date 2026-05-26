@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCharacter } from '../context/CharacterContext';
-import { Book, Shield, Scroll, Swords, Github, ExternalLink, Info, Wand2, User, Settings } from 'lucide-react';
+import { Book, Shield, Scroll, Swords, Github, ExternalLink, Info, Wand2, User, Settings, Menu, X } from 'lucide-react';
 import { motion } from 'motion/react';
 import { classes } from '../data/classes';
 import { races, getRaceByIdAndSource } from '../data/races';
@@ -8,11 +8,23 @@ import { backgrounds } from '../data/backgrounds';
 import { getAIConfig, saveAIConfig, PROVIDERS } from '../utils/aiHelper';
 import { EXPANSIONS, getActiveExpansions, saveActiveExpansions, ExpansionBook, getExpansionSettings, saveExpansionSettings, BookSettings, isSourceEnabled } from '../utils/expansionHelper';
 import { generateXgeBackstory } from '../utils/xgeLifeGenerator';
+import { EncounterCalculator } from './tools/EncounterCalculator';
+import { PartyGenerator } from './tools/PartyGenerator';
+import { AppearancePersonalityGenerator } from './tools/AppearancePersonalityGenerator';
+import { NameGeneratorModal } from './tools/NameGeneratorModal';
+import { generateRandomName } from '../utils/nameGenerator';
+import { PartyNameGeneratorModal } from './tools/PartyNameGeneratorModal';
+import { AbilityGeneratorTool } from './tools/AbilityGeneratorTool';
 
 export function LandingPage() {
   const { dispatch } = useCharacter();
   const [savedChars, setSavedChars] = useState<any[]>([]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // States for mobile menu
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
+  const [mobileSettingsOpen, setMobileSettingsOpen] = useState(false);
 
   // States for fast generation & AI Oracle
   const [showToast, setShowToast] = useState(false);
@@ -26,12 +38,86 @@ export function LandingPage() {
   const [openAiModal, setOpenAiModal] = useState(false);
   const [openXgeModal, setOpenXgeModal] = useState(false);
   const [openExpModal, setOpenExpModal] = useState(false);
+  const [openEncounterModal, setOpenEncounterModal] = useState(false);
+  const [openPartyModal, setOpenPartyModal] = useState(false);
+  const [openNameModal, setOpenNameModal] = useState(false);
+  const [openDetailGenModal, setOpenDetailGenModal] = useState(false);
+  const [openPartyNameModal, setOpenPartyNameModal] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [openThemeModal, setOpenThemeModal] = useState(false);
+  const [openXgeStepSettingsModal, setOpenXgeStepSettingsModal] = useState(false);
+  const [xgeEnabledInDetails, setXgeEnabledInDetails] = useState(() => localStorage.getItem('xgeEnabledInDetails') === 'true');
+  const [xgeUseExpandedInDetails, setXgeUseExpandedInDetails] = useState(() => localStorage.getItem('xgeUseExpandedInDetails') === 'true');
+  const [xgeUseNonPhbInDetails, setXgeUseNonPhbInDetails] = useState(() => localStorage.getItem('xgeUseNonPhbInDetails') !== 'false');
+  const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem('dndTheme') || 'dndmanual');
   const [activeExpansions, setActiveExpansions] = useState<string[]>(() => getActiveExpansions());
   const [expansionSettings, setExpansionSettings] = useState<Record<string, BookSettings>>(() => getExpansionSettings());
-  const [xgePreviewBg, setXgePreviewBg] = useState('acolyte');
+  const [xgePreviewBg, setXgePreviewBg] = useState('');
+  const [xgePreviewClass, setXgePreviewClass] = useState('');
+  const [xgePreviewAge, setXgePreviewAge] = useState<number | ''>('');
+  const [xgePreviewChaMod, setXgePreviewChaMod] = useState<number | ''>('');
   const [xgePreviewText, setXgePreviewText] = useState('');
 
   const [diceLog, setDiceLog] = useState<{ time: string, result: string }[]>([]);
+
+  const TOOLBOX_ITEMS = [
+    {
+      id: 'dice',
+      icon: '🎲',
+      title: '快速骰子掷器',
+      desc: '模拟 D20, D8 等各种骰子掷点',
+      onClick: () => setOpenDiceModal(true)
+    },
+    {
+      id: 'pointbuy',
+      icon: '📊',
+      title: '属性数值生成器',
+      desc: '标准阵列、属性购点、骰决数值与手动设定',
+      onClick: () => setOpenPointBuyModal(true)
+    },
+    {
+      id: 'xge',
+      icon: '📜',
+      title: 'XGE 经历生成',
+      desc: 'Xanathar 的随机身世表格',
+      onClick: () => setOpenXgeModal(true)
+    },
+    {
+      id: 'encounter',
+      icon: '🧮',
+      title: '5e 遭遇规模',
+      desc: '基于队伍计算推荐怪物难度',
+      onClick: () => setOpenEncounterModal(true)
+    },
+    {
+      id: 'party',
+      icon: '👥',
+      title: '随机小队生成器',
+      desc: '生成经典搭配的冒险队伍',
+      onClick: () => setOpenPartyModal(true)
+    },
+    {
+      id: 'detail-gen',
+      icon: '🎭',
+      title: '外貌与性格生成',
+      desc: '随机外貌与性格特征',
+      onClick: () => setOpenDetailGenModal(true)
+    },
+    {
+      id: 'name',
+      icon: '🔤',
+      title: '名字生成器',
+      desc: '按文化和种族智能生成名字',
+      onClick: () => setOpenNameModal(true)
+    },
+    {
+      id: 'party-name',
+      icon: '🛡️',
+      title: '小队名字生成',
+      desc: '根据词库生成冒险队伍名字',
+      onClick: () => setOpenPartyNameModal(true)
+    }
+  ];
 
   const [importString, setImportString] = useState('');
   const [showImportInput, setShowImportInput] = useState(false);
@@ -253,9 +339,12 @@ export function LandingPage() {
       randomBackgroundId = randomBg.id;
     }
     
+    // 6. Generate Name
+    const generatedName = generateRandomName(randomRace.name);
+
     const newChar = {
       id: crypto.randomUUID ? crypto.randomUUID() : `id-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
-      name: '',
+      name: generatedName,
       alignment: randomAlignment,
       deity: '',
       age: '',
@@ -305,14 +394,19 @@ export function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#fffdfc] text-stone-900 font-sans selection:bg-amber-200">
+    <div className="min-h-screen flex flex-col bg-stone-100 text-stone-900 font-sans selection:bg-amber-200">
       {/* Decorative Navbar */}
-      <nav id="landing-navbar" className="w-full px-6 py-4 flex justify-between items-center border-b border-stone-200 bg-white/50 backdrop-blur-md sticky top-0 z-50">
-        <div className="flex items-center gap-2 text-stone-800">
-          <Book className="w-6 h-6 text-amber-600" />
-          <span className="font-serif font-bold text-xl tracking-tight">D&D 5e Wiki 角色创建</span>
+      <nav id="landing-navbar" className="w-full px-4 sm:px-6 py-3.5 sm:py-4 flex justify-between items-center border-b border-stone-200 bg-white shadow-sm sticky top-0 z-50">
+        <div className="flex items-center gap-1.5 sm:gap-2 text-amber-800">
+          <Book className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" />
+          <span className="font-serif font-bold text-base sm:text-lg md:text-xl tracking-tight text-amber-805">
+            <span className="hidden sm:inline">Littlh的DND5E角色创建工具</span>
+            <span className="sm:hidden">DND5E角色创建</span>
+          </span>
         </div>
-        <div className="hidden md:flex gap-6 text-sm font-medium text-stone-605 items-center">
+        
+        {/* Desktop menu */}
+        <div className="hidden md:flex gap-6 text-sm font-medium text-stone-600 items-center">
           <div className="relative">
             <button
               id="btn-toolbox-toggle"
@@ -322,6 +416,7 @@ export function LandingPage() {
               }}
               className="hover:text-amber-600 transition-colors bg-transparent border-none cursor-pointer flex items-center gap-1 font-medium text-sm text-stone-600 outline-none"
             >
+              <Wand2 size={16} />
               工具箱
               <span className="text-[10px] opacity-60">▼</span>
             </button>
@@ -329,103 +424,204 @@ export function LandingPage() {
               <>
                 <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setToolboxOpen(false)} />
                 <div className="absolute right-0 mt-2 w-48 bg-white border border-stone-200 rounded shadow-lg py-1 z-50 animate-in fade-in slide-in-from-top-1 duration-100 text-left font-sans">
+                  {TOOLBOX_ITEMS.map((item) => (
+                    <button
+                      key={item.id}
+                      id={`lnk-toolbox-${item.id}`}
+                      onClick={() => {
+                        setToolboxOpen(false);
+                        item.onClick();
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-xs text-stone-700 hover:bg-stone-50 hover:text-stone-900 transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent"
+                    >
+                      {item.icon} {item.title}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+          
+          <span className="text-stone-300">|</span>
+          <div className="relative">
+            <button
+              id="btn-settings-toggle"
+              onClick={(e) => {
+                e.preventDefault();
+                setSettingsOpen(!settingsOpen);
+              }}
+              className="hover:text-amber-600 transition-colors bg-transparent border-none cursor-pointer flex items-center gap-1 font-medium text-sm text-stone-600 outline-none"
+            >
+              <Settings size={16} /> 设置
+              <span className="text-[10px] opacity-60">▼</span>
+            </button>
+            {settingsOpen && (
+              <>
+                <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setSettingsOpen(false)} />
+                <div className="absolute right-0 mt-2 w-48 bg-white border border-stone-200 rounded shadow-lg py-1 z-50 animate-in fade-in slide-in-from-top-1 duration-100 text-left font-sans">
                   <button
-                    id="lnk-toolbox-dice"
                     onClick={() => {
-                      setToolboxOpen(false);
-                      setOpenDiceModal(true);
-                    }}
-                    className="w-full text-left px-4 py-2.5 text-xs text-stone-700 hover:bg-stone-50 hover:text-stone-900 transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent"
-                  >
-                    🎲 快速骰子掷器
-                  </button>
-                  <button
-                    id="lnk-toolbox-pointbuy"
-                    onClick={() => {
-                      setToolboxOpen(false);
-                      setOpenPointBuyModal(true);
-                    }}
-                    className="w-full text-left px-4 py-2.5 text-xs text-stone-700 hover:bg-stone-50 hover:text-stone-900 transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent"
-                  >
-                    📊 属性购点速查
-                  </button>
-                  <button
-                    id="lnk-toolbox-ai"
-                    onClick={() => {
-                      setToolboxOpen(false);
+                      setSettingsOpen(false);
                       setOpenAiModal(true);
                     }}
                     className="w-full text-left px-4 py-2.5 text-xs text-stone-700 hover:bg-stone-50 hover:text-stone-900 transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent"
                   >
-                    🤖 AI 辅助设置
+                    🤖 AI 辅助书写配置
                   </button>
                   <button
-                    id="lnk-toolbox-xge"
                     onClick={() => {
-                      setToolboxOpen(false);
-                      setOpenXgeModal(true);
+                      setSettingsOpen(false);
+                      setOpenThemeModal(true);
+                    }}
+                    className="w-full text-left px-4 py-2.5 text-xs text-stone-700 hover:bg-stone-50 hover:text-stone-900 transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent"
+                  >
+                    🎨 网页配色方案
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSettingsOpen(false);
+                      setOpenXgeStepSettingsModal(true);
                     }}
                     className="w-full text-left px-4 py-2.5 text-xs text-stone-700 hover:bg-stone-50 hover:text-stone-900 transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent"
                   >
                     📜 XGE 经历生成设置
                   </button>
-                  <button
-                    id="lnk-toolbox-exp"
-                    onClick={() => {
-                      setToolboxOpen(false);
-                      setOpenExpModal(true);
-                    }}
-                    className="w-full text-left px-4 py-2.5 text-xs text-stone-700 hover:bg-stone-50 hover:text-stone-900 transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent"
-                  >
-                    📚 扩展书与规则集管理
-                  </button>
                 </div>
               </>
             )}
           </div>
-          <span className="text-stone-400">|</span>
+          
+          <button
+              onClick={() => {
+                  setOpenExpModal(true);
+              }}
+              className="hover:text-amber-600 transition-colors bg-transparent border-none cursor-pointer flex items-center gap-1 font-medium text-sm text-stone-600 outline-none"
+          >
+              <Book size={16} /> 扩展管理
+          </button>
+
+          <span className="text-stone-300">|</span>
           <a href="https://github.com/littlhMW/DND5eCharacterTools-" target="_blank" rel="noreferrer" className="flex items-center gap-1 hover:text-stone-900 text-stone-600 transition-colors font-sans leading-none no-underline">
             <Github size={16} /> GitHub 开源
           </a>
         </div>
+
+        {/* Mobile menu toggle */}
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="md:hidden flex items-center justify-center p-2 text-stone-600 hover:text-amber-800 focus:outline-none bg-transparent border-none cursor-pointer"
+        >
+          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
+
+        {/* Mobile Dropdown Panel */}
+        {mobileMenuOpen && (
+          <div className="md:hidden w-full bg-white border-b border-stone-200 py-3 pb-4 px-4 shadow-lg absolute top-[100%] left-0 z-50 flex flex-col gap-2 font-sans animate-in slide-in-from-top-1 duration-150">
+            {/* Toolbox accordion */}
+            <div className="border-b border-stone-100 pb-2 pt-1">
+              <button
+                onClick={() => setMobileToolsOpen(!mobileToolsOpen)}
+                className="w-full text-left py-1 text-sm font-semibold text-stone-700 hover:text-amber-600 flex justify-between items-center border-none bg-transparent cursor-pointer"
+              >
+                <span className="flex items-center gap-1.5">
+                  <Wand2 size={16} className="text-amber-600" /> 快速工具箱
+                </span>
+                <span className="text-[10px] text-stone-400">{mobileToolsOpen ? '▲' : '▼'}</span>
+              </button>
+              {mobileToolsOpen && (
+                <div className="pl-4 mt-2 border-l-2 border-amber-200/60 flex flex-col gap-1 bg-stone-50/50 py-1.5 rounded-r">
+                  {TOOLBOX_ITEMS.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        item.onClick();
+                      }}
+                      className="w-full text-left py-2 px-1 text-xs text-stone-600 hover:text-amber-800 transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer"
+                    >
+                      <span className="text-sm">{item.icon}</span>
+                      <span>{item.title}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Settings accordion */}
+            <div className="border-b border-stone-100 pb-2 pt-1">
+              <button
+                onClick={() => setMobileSettingsOpen(!mobileSettingsOpen)}
+                className="w-full text-left py-1 text-sm font-semibold text-stone-700 hover:text-amber-600 flex justify-between items-center border-none bg-transparent cursor-pointer"
+              >
+                <span className="flex items-center gap-1.5">
+                  <Settings size={16} className="text-amber-600" /> 系统设置
+                </span>
+                <span className="text-[10px] text-stone-400">{mobileSettingsOpen ? '▲' : '▼'}</span>
+              </button>
+              {mobileSettingsOpen && (
+                <div className="pl-4 mt-2 border-l-2 border-amber-200/60 flex flex-col gap-1 bg-stone-50/50 py-1.5 rounded-r">
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setOpenAiModal(true);
+                    }}
+                    className="w-full text-left py-2 px-1 text-xs text-stone-600 hover:text-amber-800 transition-colors flex items-center gap-1.5 border-none bg-transparent cursor-pointer"
+                  >
+                    🤖 AI 辅助书写配置
+                  </button>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setOpenThemeModal(true);
+                    }}
+                    className="w-full text-left py-2 px-1 text-xs text-stone-600 hover:text-amber-800 transition-colors flex items-center gap-1.5 border-none bg-transparent cursor-pointer"
+                  >
+                    🎨 网页配色方案
+                  </button>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setOpenXgeStepSettingsModal(true);
+                    }}
+                    className="w-full text-left py-2 px-1 text-xs text-stone-600 hover:text-amber-800 transition-colors flex items-center gap-1.5 border-none bg-transparent cursor-pointer"
+                  >
+                    📜 XGE 经历生成设置
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Expansion manager */}
+            <div className="border-b border-stone-100 pb-2 pt-1">
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setOpenExpModal(true);
+                }}
+                className="w-full text-left py-1 text-sm font-semibold text-stone-700 hover:text-amber-600 flex items-center gap-1.5 border-none bg-transparent cursor-pointer"
+              >
+                <Book size={16} className="text-amber-600" /> 扩展管理
+              </button>
+            </div>
+
+            {/* GitHub */}
+            <div className="pb-1 pt-1">
+              <a
+                href="https://github.com/littlhMW/DND5eCharacterTools-"
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1.5 text-sm font-semibold text-stone-600 hover:text-stone-900 no-underline py-1"
+              >
+                <Github size={16} className="text-amber-600" /> GitHub 开源
+              </a>
+            </div>
+          </div>
+        )}
       </nav>
 
-      {/* Hero Section */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-20 md:py-32 relative overflow-hidden">
+      <main className="flex-1 flex flex-col items-center px-4 py-12 relative overflow-hidden">
         {/* Background Decorative Pattern */}
         <div className="absolute inset-0 pointer-events-none opacity-[0.03] flex items-center justify-center -z-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #000 1px, transparent 0)', backgroundSize: '40px 40px' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-amber-100 rounded-full blur-[120px] opacity-30 -z-10" />
-
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="max-w-4xl w-full text-center space-y-8"
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-stone-100 border border-stone-200 rounded-full text-stone-600 font-medium text-sm mb-4">
-            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-            基于 5etools 规则集与中文本地化翻译
-          </div>
-          <h1 className="text-5xl md:text-7xl font-bold text-stone-900 tracking-tight font-serif leading-[1.1]">
-            铸就属于你的<br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-700 to-amber-500">传奇史诗</span>
-          </h1>
-          <p className="text-lg md:text-xl text-stone-605 max-w-2xl mx-auto leading-relaxed">
-            D&D 5e 中文设定集与向导式角色卡生成系统。包含种族、职业、法术与属性分配的一站式体验，整合大语言模型智能书写。
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
-            <motion.button
-              id="btn-hero-start"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleStartCreation}
-              className="flex items-center gap-2 px-8 py-4 bg-stone-900 text-white rounded-md font-medium text-lg hover:bg-stone-800 transition-colors shadow-xl shadow-stone-900/10 w-full sm:w-auto justify-center group border-none cursor-pointer"
-            >
-              <Swords className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-              立刻创建角色
-            </motion.button>
-          </div>
-        </motion.div>
 
         {/* Floating Toast Alert */}
         {showToast && (
@@ -440,16 +636,25 @@ export function LandingPage() {
           </div>
         )}
 
-        {/* 本地角色档案库 & 随机快速招募 */}
-        <div className="w-full max-w-5xl mt-16 text-left">
-          <h2 className="text-2xl font-serif font-bold text-stone-900 mb-6 flex items-center gap-3 border-b border-stone-200 pb-4">
-            <User size={24} className="text-amber-600" />
-            已保存的角色卡
-          </h2>
+        <div className="w-full max-w-7xl relative text-left">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 border-b border-amber-600/30 pb-4">
+            <h2 className="text-2xl font-serif font-bold text-amber-600 flex items-center gap-3 m-0">
+              <User size={24} className="text-amber-600" />
+              已保存的角色卡
+            </h2>
+            <button
+              id="btn-hero-start"
+              onClick={handleStartCreation}
+              className="flex items-center gap-2 px-6 py-2.5 bg-amber-600 text-white rounded-md font-medium text-sm hover:bg-amber-700 transition-colors shadow-md w-full sm:w-auto justify-center group border-none cursor-pointer"
+            >
+              <Swords className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+              创建新角色
+            </button>
+          </div>
 
           {/* Stored Character Cards */}
           {savedChars.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-12">
               {savedChars.map((char: any) => {
                 const cls = classes.find(c => c.id === char.classId);
                 const race = getRaceByIdAndSource(char.raceId, char.raceSource);
@@ -517,19 +722,37 @@ export function LandingPage() {
           )}
 
           {/* Random Character Generation Helper */}
-          <div className="bg-stone-50 border border-stone-200 rounded-lg p-5 flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+          <div className={`rounded-lg p-5 flex flex-col md:flex-row items-center justify-between gap-4 mb-8 transition-colors ${
+            currentTheme === 'fiveetools'
+              ? 'bg-[#f0f7fe] border border-blue-200'
+              : currentTheme === 'dndmanual'
+              ? 'bg-[#fdf3f3] border border-red-200'
+              : 'bg-amber-50/40 border border-amber-200/50'
+          }`}>
             <div className="space-y-1 text-left">
-              <h3 className="text-base font-bold text-stone-900 flex items-center gap-1.5 font-serif">
+              <h3 className={`text-base font-bold flex items-center gap-1.5 font-serif ${
+                currentTheme === 'fiveetools'
+                  ? 'text-blue-900'
+                  : currentTheme === 'dndmanual'
+                  ? 'text-red-900'
+                  : 'text-stone-900'
+              }`}>
                 🎲 快速随机生成 (Lv. 3)
               </h3>
-              <p className="text-xs text-stone-505 leading-relaxed">
+              <p className="text-xs text-stone-500 leading-relaxed">
                 遵循标准属性购点与规则库，随机生成包含种族、子种族、职业、子职、背景在内的 3 级角色并加入。
               </p>
             </div>
             <button
               id="btn-fast-random"
               onClick={generateRandomCharacter}
-              className="bg-stone-900 text-white hover:bg-stone-800 text-xs font-semibold px-4.5 py-2.5 rounded transition-colors shrink-0 flex items-center gap-2 cursor-pointer shadow-sm border-none"
+              className={`text-xs font-semibold px-4.5 py-2.5 rounded transition-all shrink-0 flex items-center gap-2 cursor-pointer shadow-sm border-none active:scale-95 ${
+                currentTheme === 'fiveetools'
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : currentTheme === 'dndmanual'
+                  ? 'bg-red-700 hover:bg-red-800 text-white'
+                  : 'bg-amber-600 hover:bg-amber-700 text-white'
+              }`}
             >
               <Swords size={14} />
               随机生成
@@ -537,41 +760,22 @@ export function LandingPage() {
           </div>
         </div>
 
-        {/* Feature Cards */}
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl mt-32"
-        >
-          <div className="bg-white p-8 rounded-lg border border-stone-200 shadow-sm flex flex-col gap-4">
-            <div className="w-12 h-12 bg-amber-50 rounded-md flex items-center justify-center text-amber-600 border border-amber-100">
-              <Scroll size={24} />
-            </div>
-            <h3 className="font-serif font-bold text-xl text-stone-900">核心设定全包含</h3>
-            <p className="text-stone-605 leading-relaxed text-sm">
-              内建 5e 玩家手册的核心种族、职业与背景支持。清晰直观的法术筛选及豁免计算。
-            </p>
+        {/* 工具箱组块 */}
+        <div className="w-full max-w-7xl relative text-left mt-12 mb-8">
+          <h2 className="text-2xl font-serif font-bold text-amber-600 mb-6 flex items-center gap-3 border-b border-amber-600/30 pb-4">
+            <Wand2 size={24} className="text-amber-600" />
+            快速工具箱
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {TOOLBOX_ITEMS.map((item) => (
+              <button key={item.id} onClick={item.onClick} className="flex flex-col items-start text-left gap-2 p-4 bg-white border border-stone-200 rounded-xl shadow-sm hover:border-amber-400 hover:shadow-md transition-all cursor-pointer border-solid">
+                <span className="text-3xl mb-1">{item.icon}</span>
+                <span className="font-bold text-stone-900 text-sm">{item.title}</span>
+                <span className="text-[10px] text-stone-500 leading-tight">{item.desc}</span>
+              </button>
+            ))}
           </div>
-          <div className="bg-white p-8 rounded-lg border border-stone-200 shadow-sm flex flex-col gap-4">
-            <div className="w-12 h-12 bg-blue-50 rounded-md flex items-center justify-center text-blue-600 border border-blue-100">
-              <Wand2 size={24} />
-            </div>
-            <h3 className="font-serif font-bold text-xl text-stone-900">自动属性换算</h3>
-            <p className="text-stone-605 leading-relaxed text-sm">
-              属性更改自动引发调整值变化。技能、熟练、豁免、先攻及被动察觉、特殊感官自动合并计算。
-            </p>
-          </div>
-          <div className="bg-stone-50 p-8 rounded-lg border border-dashed border-stone-300 flex flex-col gap-4 opacity-70">
-            <div className="w-12 h-12 bg-stone-200 rounded-md flex items-center justify-center text-stone-600 border border-stone-300">
-              <Shield size={24} />
-            </div>
-            <h3 className="font-serif font-bold text-xl text-stone-500">即将推出: PDF导出</h3>
-            <p className="text-stone-500 leading-relaxed text-sm">
-              本地离线导出标准的空白或已填色DND 5e经典三页A4 PDF角色卡，后续持续进行功能迭新。
-            </p>
-          </div>
-        </motion.div>
+        </div>
       </main>
 
       {/* Dice Roller Modal */}
@@ -635,7 +839,7 @@ export function LandingPage() {
             <div className="border-t border-stone-200 pt-4 flex justify-end">
               <button
                 onClick={() => setOpenDiceModal(false)}
-                className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white font-medium text-xs rounded transition-colors shadow-sm cursor-pointer border-none"
+                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs rounded transition-colors shadow-sm cursor-pointer border-none"
               >
                 关闭
               </button>
@@ -646,8 +850,8 @@ export function LandingPage() {
 
       {/* Point Buy Modal */}
       {openPointBuyModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-950/45 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white border border-stone-200 rounded-lg max-w-sm w-full shadow-xl p-6 relative flex flex-col gap-4 animate-in zoom-in-95 duration-200 text-left">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-stone-950/45 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white border border-stone-200 rounded-lg max-w-4xl w-full shadow-xl p-3 sm:p-6 relative flex flex-col gap-4 animate-in zoom-in-95 duration-200 text-left max-h-[95vh] overflow-y-auto">
             <button 
               onClick={() => setOpenPointBuyModal(false)}
               className="absolute top-4 right-4 text-stone-400 hover:text-stone-600 text-sm p-1 cursor-pointer font-sans bg-transparent border-none"
@@ -657,52 +861,15 @@ export function LandingPage() {
             </button>
 
             <div className="border-b border-stone-200 pb-3">
-              <h2 className="text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
-                📊 属性购点速查
+              <h2 className="text-xl font-serif font-bold text-stone-900 flex items-center gap-2">
+                📊 属性数值生成器
               </h2>
               <p className="text-xs text-stone-500 mt-1">
-                所有基础属性默认自 8 起步，最高可购买到 15。总可用预留预算点数为 27 点。
+                选择你的属性生成方案，并在需要时预览种族与职业属性加成和定位评估。
               </p>
             </div>
 
-            <div className="space-y-3 text-sm">
-              <table className="w-full text-[11px] text-stone-700 border-collapse border border-stone-200 rounded overflow-hidden">
-                <thead>
-                  <tr className="bg-stone-100 text-stone-800 border-b border-stone-200">
-                     <th className="py-2 px-2.5 text-left font-serif">属性数值</th>
-                     <th className="py-2 px-2.5 text-left">消耗点数 (Cost)</th>
-                     <th className="py-2 px-2.5 text-left">修正加值 (Mod)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    { score: 8, cost: 0, mod: '-1' },
-                    { score: 9, cost: 1, mod: '-1' },
-                    { score: 10, cost: 2, mod: '±0' },
-                    { score: 11, cost: 3, mod: '±0' },
-                    { score: 12, cost: 4, mod: '+1' },
-                    { score: 13, cost: 5, mod: '+1' },
-                    { score: 14, cost: 7, mod: '+2' },
-                    { score: 15, cost: 9, mod: '+2' }
-                  ].map((row) => (
-                    <tr key={row.score} className="border-b border-stone-150 hover:bg-stone-50/50">
-                      <td className="py-1 px-2.5 font-mono font-bold text-stone-900">{row.score}</td>
-                      <td className="py-1 px-2.5 font-mono text-amber-800 font-bold">{row.cost} 点</td>
-                      <td className="py-1 px-2.5 font-mono text-stone-550">{row.mod}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="border-t border-stone-200 pt-4 flex justify-end">
-              <button
-                onClick={() => setOpenPointBuyModal(false)}
-                className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white font-medium text-xs rounded transition-colors shadow-sm cursor-pointer border-none"
-              >
-                关闭
-              </button>
-            </div>
+            <AbilityGeneratorTool onClose={() => setOpenPointBuyModal(false)} />
           </div>
         </div>
       )}
@@ -733,19 +900,41 @@ export function LandingPage() {
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={aiConfig.enabled}
-                    onChange={(e) => handleAiConfigChange('enabled', e.target.checked)}
+                    checked={!!aiConfig.detailsEnabled}
+                    onChange={(e) => {
+                      const val = e.target.checked;
+                      const updated = saveAIConfig({ detailsEnabled: val, enabled: val || !!aiConfig.partyBioEnabled });
+                      setAiConfig(updated);
+                    }}
                     className="w-4 h-4 text-amber-600 border-stone-300 rounded focus:ring-amber-500 cursor-pointer"
                   />
-                  <span className="text-xs font-semibold text-stone-700">启用 AI 细节书写与润色物语</span>
+                  <span className="text-xs font-semibold text-stone-700">启用 AI 角色细节书写与生平润色 （角色栏位）</span>
+                </label>
+
+                <label className="flex items-center gap-1.5 cursor-pointer border-t border-stone-150 pt-2.5 mt-1">
+                  <input
+                    type="checkbox"
+                    checked={!!aiConfig.partyBioEnabled}
+                    onChange={(e) => {
+                      const val = e.target.checked;
+                      const updated = saveAIConfig({ partyBioEnabled: val, enabled: val || !!aiConfig.detailsEnabled });
+                      setAiConfig(updated);
+                    }}
+                    className="w-4 h-4 text-amber-600 border-stone-300 rounded focus:ring-amber-500 cursor-pointer"
+                  />
+                  <span className="text-xs font-semibold text-stone-700">启用 AI 冒险队小队故事撰写 （小队生成器）</span>
                 </label>
               </div>
 
               <p className="text-xs text-stone-500 leading-relaxed font-sans">
-                细节书写默认关闭。启用后，允许您在自定义角色的「外观」及「背景故事」等栏位中，点击闪光灯按钮，自动调用配置的模型为您润色并分段梳理文字细节。
+                细节书写与小队故事撰写现已完全**独立隔离**运作。系统允许您根据需要，单独开启/关闭其中任意一项。
+                <br />
+                - 开启「细节书写」后，自定义单个角色的「外观」与「背景故事」中会出现闪光专属润色按钮。
+                <br />
+                - 开启「小队故事撰写」后，联袂 4 人小队生成器中会展现专属小队故事选项卡，为您编撰富有宿命羁绊的关系故事。
               </p>
 
-              {aiConfig.enabled ? (
+              {(aiConfig.detailsEnabled || aiConfig.partyBioEnabled) ? (
                 <div className="space-y-2 border-t border-stone-150 pt-2 animate-in slide-in-from-top-1 duration-150">
                   <div className="grid grid-cols-2 gap-2">
                     <div>
@@ -756,14 +945,14 @@ export function LandingPage() {
                         className="w-full text-xs bg-white border border-stone-200 rounded px-2.5 py-1.5 focus:border-amber-500 focus:outline-none cursor-pointer h-[34px]"
                       >
                         {PROVIDERS.map((p) => (
-                          <option key={p.id} value={p.id}>
+                           <option key={p.id} value={p.id}>
                             {p.name}
                           </option>
                         ))}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[10px] font-semibold text-stone-500 mb-0.5">模型名 (Model)</label>
+                      <label className="block text-[10px] font-semibold text-stone-500 mb-0.5">模型名</label>
                       <input
                         type="text"
                         value={aiConfig.model}
@@ -776,7 +965,7 @@ export function LandingPage() {
 
                   <div>
                     <label className="block text-[10px] font-semibold text-stone-500 mb-0.5">
-                      API 密钥 (API Key)
+                      API 密钥
                     </label>
                     <input
                       type="password"
@@ -792,7 +981,7 @@ export function LandingPage() {
                 </div>
               ) : (
                 <div className="border border-dashed border-stone-200 rounded-lg p-5 bg-stone-50/50 text-stone-400 text-xs text-center flex flex-col justify-center items-center py-7 font-sans">
-                  已默认处于关闭状态。若需在角色卡中展开大模型书写功能，请在上方勾选。
+                  AI 功能已全部关闭。若需启用角色卡或小队的 AI 撰稿能力，请勾选上方开关并配置 API。
                 </div>
               )}
             </div>
@@ -800,9 +989,206 @@ export function LandingPage() {
             <div className="border-t border-stone-200 pt-4 flex justify-end">
               <button
                 onClick={() => setOpenAiModal(false)}
-                className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white font-medium text-xs rounded transition-colors shadow-sm cursor-pointer border-none"
+                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs rounded transition-colors shadow-sm cursor-pointer border-none"
               >
                 保存关闭
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Theme Select Modal */}
+      {openThemeModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-950/45 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white border border-stone-200 rounded-lg max-w-sm w-full shadow-xl p-6 relative flex flex-col gap-4 animate-in zoom-in-95 duration-200 text-left font-sans">
+            <button 
+              onClick={() => setOpenThemeModal(false)}
+              className="absolute top-4 right-4 text-stone-400 hover:text-stone-600 text-sm p-1 cursor-pointer font-sans bg-transparent border-none"
+              title="关闭"
+            >
+              ✕
+            </button>
+
+            <div className="border-b border-stone-200 pb-3">
+              <h2 className="text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
+                🎨 网页配色方案
+              </h2>
+              <p className="text-xs text-stone-505 mt-1">
+                选择您偏好的主题背景风格。该设置将保存在本地并自动应用。
+              </p>
+            </div>
+
+            <div className="space-y-4 pb-2 pt-2 max-h-[60vh] overflow-y-auto pr-1">
+              {(() => {
+                const themesList = [
+                  { id: 'dndmanual', name: '📕 龙与地下城手册', group: '经典地志与人文', desc: '根据官方 D&D 规则手册/怪物图鉴排版提取：暖象牙卡纸色底、深邃炭黑字迹与龙与地下城经典暗血红主标题交织（默认）' },
+                  { id: 'fiveetools', name: '🔵 5etools 蓝配色', group: '经典地志与人文', desc: '高度还原官方 5etools 中文双栏工具站排版结构：纯白纸感背景配以微黄、暖象牙纸张色底作为部件容器，点缀以经典的 5etools 标志性钴蓝标题与炭黑文字' },
+                  { id: 'parchment', name: '📜 人类：兼爱羊皮纸', group: '经典地志与人文', desc: '经典复古人族黄铜与深褐暖色羊皮纸张，护眼且优雅' },
+                  { id: 'candlekeep', name: '🌲 烛堡：书卷绿林', group: '经典地志与人文', desc: '宁静沉稳的墨竹翠羽与书桌红木褐，墨卷留香书香门第首选' },
+                  { id: 'swordcoast', name: '⚓ 剑湾：蓝墨古卷', group: '经典地志与人文', desc: '航海图纸的淡雅褪色蓝与羊皮墨水蓝，辅以低饱和海盐绿，呈现经典桌面冒险地图风格' },
+                  { id: 'waterdeep', name: '🏰 深水城：繁华商贸', group: '经典地志与人文', desc: '中性明亮的石板灰白背景，搭配彰显财富的奢华亮金交互色，呈现自由之城的繁盛气派' },
+                  { id: 'shadowfell', name: '💀 堕影冥界：灰白视界', group: '经典地志与人文', desc: '褪离色彩的中性黑白灰调，以纯粹的高阶老旧文本质感呈现极简护眼结构' },
+                  { id: 'feywild', name: '🌸 妖精荒野：幻境花海', group: '经典地志与人文', desc: '轻盈霓幻的樱草粉与野生薰衣草紫，富有迷迭香魔力的春意幻境' },
+                  { id: 'astral', name: '🌌 星际星海：太虚天盘', group: '经典地志与人文', desc: '深海太虚墨蓝与紫荧恒星折光，璀璨梦幻的高阶玄秘星盘色彩' },
+                  { id: 'dark', name: '🌙 核心：深幽夜幕', group: '经典地志与人文', desc: '更广明度范围的高对比度冷灰深色模式，不带任何环境光晕的经典明快黑暗底色' },
+
+                  { id: 'highforest', name: '🏹 精灵：高深绿野', group: '种族与血统特色', desc: '古树绿梢：温润的常青松针绿与原宿林木金，充满自然植物气息与灵动' },
+                  { id: 'dwarf', name: '⛏️ 矮人：深山秘银', group: '种族与血统特色', desc: '秘银大堂：稳重炭黑玄武岩体，缀以秘银纯亮银与锻造炉膛赤金色' },
+                  { id: 'avernus', name: '🔥 提夫林：九域惩击', group: '种族与血统特色', desc: '炼狱邪曜：余烬微粒黑，衬托焦黑阿弗纳斯熔岩爆炎与亮丽邪魅明橙' },
+                  { id: 'gnome', name: '⚙️ 侏儒：日曜旅程', group: '种族与血统特色', desc: '黄金周日：古铜与明黄色交织的复古日曜日光泽，呈现灵动活泼的探索旅程' },
+                  { id: 'dragonborn', name: '🪙 龙裔：火山洗礼', group: '种族与血统特色', desc: '火山吐息：赤火铜与红宝石鳞片折光质感，气势雄浑，威严夺目' },
+                  { id: 'underdark', name: '🔮 卓尔：荧光深邃', group: '种族与血统特色', desc: '幽暗地下：深邃黑曜石，泛着秘法紫玛瑙莹光，契合地牢夜间体验' }
+                ];
+
+                const groups = themesList.reduce((acc, current) => {
+                  if (!acc[current.group]) {
+                    acc[current.group] = [];
+                  }
+                  acc[current.group].push(current);
+                  return acc;
+                }, {} as Record<string, typeof themesList>);
+
+                return Object.entries(groups).map(([groupName, items]) => (
+                  <div key={groupName} className="space-y-2">
+                    <div className="text-xs font-bold font-sans text-stone-500 uppercase tracking-wider border-l-2 border-amber-500 pl-2 py-0.5 mt-4">
+                      {groupName}
+                    </div>
+                    <div className="grid grid-cols-1 gap-2.5">
+                      {items.map((theme) => (
+                        <button
+                          key={theme.id}
+                          onClick={() => {
+                            setCurrentTheme(theme.id);
+                            localStorage.setItem('dndTheme', theme.id);
+                            document.documentElement.setAttribute('data-theme', theme.id);
+                          }}
+                          className={`w-full text-left p-3 rounded border transition-all cursor-pointer flex flex-col gap-1 ${
+                            currentTheme === theme.id 
+                              ? 'border-amber-500 bg-amber-50/50 shadow-sm' 
+                              : 'border-stone-200 bg-white hover:border-amber-300 hover:bg-stone-50'
+                          }`}
+                        >
+                          <div className="flex justify-between items-center w-full">
+                            <span className={`font-semibold text-sm ${currentTheme === theme.id ? 'text-amber-800' : 'text-stone-800'}`}>
+                              {theme.name}
+                            </span>
+                            {currentTheme === theme.id && <span className="text-amber-600">✓</span>}
+                          </div>
+                          <span className="text-[11px] text-stone-500">{theme.desc}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+
+            <div className="border-t border-stone-200 pt-4 flex justify-end">
+              <button
+                onClick={() => setOpenThemeModal(false)}
+                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs rounded transition-colors shadow-sm cursor-pointer border-none"
+              >
+                关闭
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* XGE Step Settings Modal */}
+      {openXgeStepSettingsModal && (
+        <div id="modal-xge-step-settings" className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-950/45 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white border border-stone-200 rounded-lg max-w-md w-full shadow-xl p-6 relative flex flex-col gap-4 animate-in zoom-in-95 duration-200 text-left font-sans">
+            <button 
+              id="btn-close-xge-step-settings"
+              onClick={() => setOpenXgeStepSettingsModal(false)}
+              className="absolute top-4 right-4 text-stone-400 hover:text-stone-600 text-sm p-1 cursor-pointer font-sans bg-transparent border-none"
+              title="关闭"
+            >
+              ✕
+            </button>
+
+            <div className="border-b border-stone-200 pb-3">
+              <h2 className="text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
+                📜 XGE 经历生成设置
+              </h2>
+              <p className="text-xs text-stone-500 mt-1">
+                配置角色创建中「5.细节」步骤里的 Xanathar 经历生成选项。
+              </p>
+            </div>
+
+            <div className="space-y-4 text-sm font-sans">
+              <div className="flex flex-col gap-4">
+                <div className="flex items-start gap-2.5">
+                  <input
+                    type="checkbox"
+                    id="chk-xge-enabled-details"
+                    checked={xgeEnabledInDetails}
+                    onChange={(e) => {
+                      const val = e.target.checked;
+                      setXgeEnabledInDetails(val);
+                      localStorage.setItem('xgeEnabledInDetails', String(val));
+                    }}
+                    className="w-4 h-4 mt-0.5 text-amber-600 border-stone-350 rounded focus:ring-amber-500 cursor-pointer accent-amber-500"
+                  />
+                  <label htmlFor="chk-xge-enabled-details" className="text-xs font-semibold text-stone-700 cursor-pointer flex-1 select-none">
+                    在「细节」面板中启用 XGE 经历生成功能
+                    <span className="block text-[11px] text-stone-550 font-normal mt-1 leading-normal">
+                      开启后，在角色创建第 5 步「细节」中的“背景故事”栏位旁会激活「生成生平经历」按钮。默认关闭。
+                    </span>
+                  </label>
+                </div>
+
+                <div className="flex items-start gap-2.5 border-t border-stone-150 pt-3">
+                  <input
+                    type="checkbox"
+                    id="chk-xge-use-nonphb-details"
+                    checked={xgeUseNonPhbInDetails}
+                    onChange={(e) => {
+                      const val = e.target.checked;
+                      setXgeUseNonPhbInDetails(val);
+                      localStorage.setItem('xgeUseNonPhbInDetails', String(val));
+                    }}
+                    className="w-4 h-4 mt-0.5 text-amber-600 border-stone-350 rounded focus:ring-amber-500 cursor-pointer accent-amber-500"
+                  />
+                  <label htmlFor="chk-xge-use-nonphb-details" className="text-xs font-semibold text-stone-700 cursor-pointer flex-1 select-none">
+                    在「细节」中进行经历生成时启用非 PHB 职业与背景映射
+                    <span className="block text-[11px] text-stone-550 font-normal mt-1 leading-normal">
+                      若启用，当检测到或指定扩展背景与职业时（如血猎、奇艺发明家或自设背景），程序会给予支持和智能匹配，不再报错或回退。
+                    </span>
+                  </label>
+                </div>
+
+                <div className="flex items-start gap-2.5 border-t border-stone-150 pt-3">
+                  <input
+                    type="checkbox"
+                    id="chk-xge-use-expanded-details"
+                    checked={xgeUseExpandedInDetails}
+                    onChange={(e) => {
+                      const val = e.target.checked;
+                      setXgeUseExpandedInDetails(val);
+                      localStorage.setItem('xgeUseExpandedInDetails', String(val));
+                    }}
+                    className="w-4 h-4 mt-0.5 text-amber-600 border-stone-350 rounded focus:ring-amber-500 cursor-pointer accent-amber-500"
+                  />
+                  <label htmlFor="chk-xge-use-expanded-details" className="text-xs font-semibold text-stone-700 cursor-pointer flex-1 select-none">
+                    在「细节」中进行经历生成时默认使用额外扩展内容描述
+                    <span className="block text-[11px] text-stone-550 font-normal mt-1 leading-normal">
+                      若启用，在掷骰宿命或变数时，将会额外合并并加载各种特殊传奇奇遇、不测命运及波澜表。
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-stone-200 pt-4 flex justify-end">
+              <button
+                id="btn-save-xge-step-settings"
+                onClick={() => setOpenXgeStepSettingsModal(false)}
+                className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs rounded transition-colors shadow-sm cursor-pointer border-none"
+              >
+                保存并关闭
               </button>
             </div>
           </div>
@@ -831,28 +1217,134 @@ export function LandingPage() {
             </div>
 
             <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1.5">
-                  选择背景：
-                </label>
-                <select
-                  value={xgePreviewBg}
-                  onChange={(e) => setXgePreviewBg(e.target.value)}
-                  className="w-full text-xs bg-white border border-stone-200 rounded px-2.5 py-1.5 focus:border-amber-500 focus:outline-none cursor-pointer h-[34px]"
-                >
-                  <option value="acolyte">侍祭 (Acolyte)</option>
-                  <option value="charlatan">骗子 (Charlatan)</option>
-                  <option value="criminal">罪犯 (Criminal)</option>
-                  <option value="entertainer">艺人 (Entertainer)</option>
-                  <option value="folk-hero">平民英雄 (Folk Hero)</option>
-                  <option value="guild-artisan">工匠行会 (Guild Artisan)</option>
-                  <option value="noble">贵族 (Noble)</option>
-                  <option value="outlander">荒野隐士 (Outlander)</option>
-                  <option value="sage">贤者 (Sage)</option>
-                  <option value="sailor">水手 (Sailor)</option>
-                  <option value="soldier">士兵 (Soldier)</option>
-                  <option value="urchin">孤儿 (Urchin)</option>
-                </select>
+              <div className="flex flex-col gap-2 bg-amber-50/50 p-2 rounded border border-amber-200">
+                <div className="flex items-start gap-2">
+                  <input 
+                    type="checkbox"
+                    id="xgeNonPhbSupportToggle"
+                    checked={localStorage.getItem('useNonPhbSupportXge') !== 'false'}
+                    onChange={(e) => {
+                      localStorage.setItem('useNonPhbSupportXge', String(e.target.checked));
+                      setXgePreviewText(xgePreviewText + ' ');
+                      setTimeout(() => setXgePreviewText((prev) => prev.trim()), 0);
+                    }}
+                    className="w-4 h-4 mt-0.5 text-amber-600 rounded bg-white border-stone-300 focus:ring-amber-500 cursor-pointer"
+                  />
+                  <label htmlFor="xgeNonPhbSupportToggle" className="text-xs font-semibold text-amber-900 cursor-pointer flex-1">
+                    开启非 PHB 背景/职业支持
+                    <span className="block text-[10px] text-amber-700/80 font-normal mt-0.5">
+                      不仅支持 PHB，还解锁所有扩展包中的职业与背景的故事支持。
+                    </span>
+                  </label>
+                </div>
+                <div className="flex items-start gap-2 border-t border-amber-200/50 pt-2">
+                  <input 
+                    type="checkbox"
+                    id="xgeExpandedToggle"
+                    checked={localStorage.getItem('useExpandedXge') === 'true'}
+                    onChange={(e) => {
+                      localStorage.setItem('useExpandedXge', String(e.target.checked));
+                      setXgePreviewText(xgePreviewText + ' ');
+                      setTimeout(() => setXgePreviewText((prev) => prev.trim()), 0);
+                    }}
+                    className="w-4 h-4 mt-0.5 text-amber-600 rounded bg-white border-stone-300 focus:ring-amber-500 cursor-pointer"
+                  />
+                  <label htmlFor="xgeExpandedToggle" className="text-xs font-semibold text-amber-900 cursor-pointer flex-1">
+                    启用个人故事扩展（非官方内容）
+                    <span className="block text-[10px] text-amber-700/80 font-normal mt-0.5">
+                      解锁数倍于原版的自制随机背景、奇遇、命运波澜。
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    选择职业：
+                  </label>
+                  <select
+                    value={xgePreviewClass}
+                    onChange={(e) => setXgePreviewClass(e.target.value)}
+                    className="w-full text-xs bg-white border border-stone-200 rounded px-2.5 py-1.5 focus:border-amber-500 focus:outline-none cursor-pointer h-[34px]"
+                  >
+                    <option value="">(空缺则随机)</option>
+                    {localStorage.getItem('useNonPhbSupportXge') !== 'false' 
+                      ? classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)
+                      : [
+                          {id: 'barbarian', name: '野蛮人'},
+                          {id: 'bard', name: '吟游诗人'},
+                          {id: 'cleric', name: '牧师'},
+                          {id: 'druid', name: '德鲁伊'},
+                          {id: 'fighter', name: '战士'},
+                          {id: 'monk', name: '武僧'},
+                          {id: 'paladin', name: '圣武士'},
+                          {id: 'ranger', name: '游侠'},
+                          {id: 'rogue', name: '游荡者'},
+                          {id: 'sorcerer', name: '术士'},
+                          {id: 'warlock', name: '邪术师'},
+                          {id: 'wizard', name: '法师'}
+                        ].map(c => <option key={c.id} value={c.id}>{c.name}</option>)
+                    }
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    选择背景：
+                  </label>
+                  <select
+                    value={xgePreviewBg}
+                    onChange={(e) => setXgePreviewBg(e.target.value)}
+                    className="w-full text-xs bg-white border border-stone-200 rounded px-2.5 py-1.5 focus:border-amber-500 focus:outline-none cursor-pointer h-[34px]"
+                  >
+                    <option value="">(空缺则随机)</option>
+                    {localStorage.getItem('useNonPhbSupportXge') !== 'false' 
+                      ? backgrounds.map(b => <option key={b.id} value={b.id}>{b.name}</option>)
+                      : [
+                          {id: 'acolyte', name: '侍祭'},
+                          {id: 'charlatan', name: '骗子'},
+                          {id: 'criminal', name: '罪犯'},
+                          {id: 'entertainer', name: '艺人'},
+                          {id: 'folk-hero', name: '平民英雄'},
+                          {id: 'guild-artisan', name: '工匠行会'},
+                          {id: 'hermit', name: '隐士'},
+                          {id: 'noble', name: '贵族'},
+                          {id: 'outlander', name: '荒野隐士'},
+                          {id: 'sage', name: '贤者'},
+                          {id: 'sailor', name: '水手'},
+                          {id: 'soldier', name: '士兵'},
+                          {id: 'urchin', name: '孤儿'}
+                        ].map(b => <option key={b.id} value={b.id}>{b.name}</option>)
+                    }
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    年龄：
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="随机"
+                    value={xgePreviewAge}
+                    onChange={(e) => setXgePreviewAge(e.target.value ? parseInt(e.target.value, 10) : '')}
+                    className="w-full text-xs bg-white border border-stone-200 rounded px-2.5 py-1.5 focus:border-amber-500 focus:outline-none h-[34px]"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                    魅力调整值：
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="默认 +0"
+                    value={xgePreviewChaMod}
+                    onChange={(e) => setXgePreviewChaMod(e.target.value ? parseInt(e.target.value, 10) : '')}
+                    className="w-full text-xs bg-white border border-stone-200 rounded px-2.5 py-1.5 focus:border-amber-500 focus:outline-none h-[34px]"
+                  />
+                </div>
               </div>
 
               <div className="flex justify-between items-center bg-stone-50 border border-stone-200 rounded p-3">
@@ -861,7 +1353,15 @@ export function LandingPage() {
                 </span>
                 <button
                   onClick={() => {
-                    const text = generateXgeBackstory({ backgroundId: xgePreviewBg });
+                    const useExpanded = localStorage.getItem('useExpandedXge') === 'true';
+                    const useNonPhbSupport = localStorage.getItem('useNonPhbSupportXge') !== 'false';
+                    const ctx = { 
+                      backgroundId: xgePreviewBg, 
+                      classId: xgePreviewClass,
+                      age: typeof xgePreviewAge === 'number' ? xgePreviewAge : undefined,
+                      chaMod: typeof xgePreviewChaMod === 'number' ? xgePreviewChaMod : undefined
+                    };
+                    const text = generateXgeBackstory(ctx, { useExpanded, useNonPhbSupport });
                     setXgePreviewText(text);
                   }}
                   className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-medium text-xs rounded transition-colors shadow-xs cursor-pointer border-none flex items-center gap-1 font-sans"
@@ -889,7 +1389,7 @@ export function LandingPage() {
             <div className="border-t border-stone-200 pt-4 flex justify-end">
               <button
                 onClick={() => setOpenXgeModal(false)}
-                className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white font-medium text-xs rounded transition-colors shadow-sm cursor-pointer border-none"
+                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs rounded transition-colors shadow-sm cursor-pointer border-none"
               >
                 关闭面板
               </button>
@@ -1129,7 +1629,7 @@ export function LandingPage() {
                   {!showImportInput ? (
                     <button
                       onClick={() => setShowImportInput(true)}
-                      className="px-3 py-1.5 bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold rounded transition-colors shadow-xs border-none cursor-pointer flex items-center gap-1 font-sans"
+                      className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded transition-colors shadow-xs border-none cursor-pointer flex items-center gap-1 font-sans"
                     >
                       📥 点击导入配置
                     </button>
@@ -1167,7 +1667,7 @@ export function LandingPage() {
               <button
                 id="btn-exp-close"
                 onClick={() => setOpenExpModal(false)}
-                className="px-5 py-2 bg-stone-900 hover:bg-stone-800 text-white font-medium text-sm rounded transition-colors shadow-sm cursor-pointer border-none"
+                className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium text-sm rounded transition-colors shadow-sm cursor-pointer border-none"
               >
                 保存并关闭
               </button>
@@ -1226,6 +1726,25 @@ export function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* Toolbox Modals */}
+      {openEncounterModal && <EncounterCalculator onClose={() => setOpenEncounterModal(false)} />}
+      {openPartyModal && (
+        <PartyGenerator 
+          onClose={() => {
+            setOpenPartyModal(false);
+            const saved = localStorage.getItem('dndChars');
+            if (saved) setSavedChars(JSON.parse(saved));
+          }} 
+          onSaveCharacter={() => {
+            const saved = localStorage.getItem('dndChars');
+            if (saved) setSavedChars(JSON.parse(saved));
+          }}
+        />
+      )}
+      {openNameModal && <NameGeneratorModal onClose={() => setOpenNameModal(false)} />}
+      {openPartyNameModal && <PartyNameGeneratorModal onClose={() => setOpenPartyNameModal(false)} />}
+      {openDetailGenModal && <AppearancePersonalityGenerator onClose={() => setOpenDetailGenModal(false)} />}
     </div>
   );
 }

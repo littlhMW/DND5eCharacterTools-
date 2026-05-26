@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { useEffect } from 'react';
 import { CharacterProvider, useCharacter } from './context/CharacterContext';
 import { WizardLayout } from './components/WizardLayout';
 import { CharacterSheet } from './components/CharacterSheet';
@@ -19,6 +20,11 @@ function MainApp() {
 }
 
 export default function App() {
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('dndTheme') || 'dndmanual';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }, []);
+
   return (
     <CharacterProvider>
       <MainApp />

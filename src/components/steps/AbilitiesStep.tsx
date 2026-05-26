@@ -180,7 +180,7 @@ export function AbilitiesStep() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 w-full max-w-2xl bg-white border border-stone-200 rounded-lg p-6 shadow-sm">
+      <div className="flex-1 w-full max-w-2xl bg-white border border-stone-200 rounded-lg p-3 sm:p-6 shadow-sm">
          
          {/* Headers & Controls */}
          <div className="mb-6 border-b border-stone-100 pb-4">
@@ -253,15 +253,15 @@ export function AbilitiesStep() {
 
          {/* Attributes Table */}
          <div className="overflow-x-auto">
-             <table className="w-full text-left min-w-max border-collapse">
+             <table className="w-full text-left min-w-[380px] sm:min-w-max border-collapse">
                  <thead>
                      <tr className="border-b-2 border-stone-200">
-                         <th className="pb-2 pt-2 px-3 font-semibold text-stone-600 w-16"></th>
-                         <th className="pb-2 pt-2 px-3 font-semibold text-stone-600 text-center">基础</th>
-                         <th className="pb-2 pt-2 px-3 font-semibold text-stone-600 text-center">种族</th>
-                         <th className="pb-2 pt-2 px-3 font-semibold text-stone-600 text-center">职业</th>
-                         <th className="pb-2 pt-2 px-3 font-semibold text-stone-600 text-center">总计</th>
-                         <th className="pb-2 pt-2 px-3 font-semibold text-stone-600 text-center">调整值</th>
+                         <th className="pb-1.5 pt-1.5 px-1 sm:px-3 font-semibold text-stone-600 w-10 sm:w-16"></th>
+                         <th className="pb-1.5 pt-1.5 px-1 sm:px-3 font-semibold text-stone-600 text-center">基础</th>
+                         <th className="pb-1.5 pt-1.5 px-1 sm:px-3 font-semibold text-stone-600 text-center">种族</th>
+                         <th className="pb-1.5 pt-1.5 px-1 sm:px-3 font-semibold text-stone-600 text-center">职业</th>
+                         <th className="pb-1.5 pt-1.5 px-1 sm:px-3 font-semibold text-stone-600 text-center">总计</th>
+                         <th className="pb-1.5 pt-1.5 px-1 sm:px-3 font-semibold text-stone-600 text-center">调整</th>
                      </tr>
                  </thead>
                  <tbody>
@@ -277,14 +277,14 @@ export function AbilitiesStep() {
 
                          return (
                              <tr key={ab.id} className="border-b border-stone-100 hover:bg-stone-50/50 transition-colors">
-                                 <td className="py-3 px-3 font-bold font-serif text-stone-800">{ab.id}</td>
+                                 <td className="py-2.5 px-1 sm:px-3 font-bold font-serif text-stone-800 text-xs sm:text-sm">{ab.id}</td>
                                  <td className="py-3 px-3">
                                      <div className="flex justify-center items-center h-full">
                                          {mode === 'manual' && (
                                              <div className="flex items-center space-x-2 bg-white rounded-lg p-1 border border-stone-200 shadow-sm">
-                                                 <button onClick={() => updateAbility(ab.id, Math.max(3, actualVal - 1))} className="w-8 h-8 rounded-md bg-stone-50 hover:bg-stone-100 text-stone-600 font-mono">-</button>
+                                                 <button onClick={() => updateAbility(ab.id, Math.max(3, actualVal - 1))} className="w-5.5 h-5.5 sm:w-8 sm:h-8 flex items-center justify-center rounded-md bg-stone-50 hover:bg-stone-100 text-stone-600 font-mono text-xs sm:text-base border-none cursor-pointer">-</button>
                                                  <span className="w-6 text-center font-mono font-medium">{actualVal}</span>
-                                                 <button onClick={() => updateAbility(ab.id, Math.min(20, actualVal + 1))} className="w-8 h-8 rounded-md bg-stone-50 hover:bg-stone-100 text-stone-600 font-mono">+</button>
+                                                 <button onClick={() => updateAbility(ab.id, Math.min(20, actualVal + 1))} className="w-5.5 h-5.5 sm:w-8 sm:h-8 flex items-center justify-center rounded-md bg-stone-50 hover:bg-stone-100 text-stone-600 font-mono text-xs sm:text-base border-none cursor-pointer">+</button>
                                              </div>
                                          )}
                                          {mode === 'pointbuy' && (
@@ -309,7 +309,7 @@ export function AbilitiesStep() {
                                              <select 
                                                  value={standardAssignments[ab.id] !== undefined ? standardAssignments[ab.id] : ""}
                                                  onChange={e => handleAssignChange(ab.id, e.target.value, true)}
-                                                 className="w-24 p-2 border border-stone-200 rounded-lg bg-white shadow-sm font-mono text-center focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                                 className="w-20 sm:w-24 p-1 sm:p-2 border border-stone-200 rounded-lg bg-white shadow-sm font-mono text-center text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
                                              >
                                                  <option value="">-</option>
                                                  {STANDARD_ARRAY.map((v, i) => {
@@ -324,7 +324,7 @@ export function AbilitiesStep() {
                                                  value={rollAssignments[ab.id] !== undefined ? rollAssignments[ab.id] : ""}
                                                  onChange={e => handleAssignChange(ab.id, e.target.value, false)}
                                                  disabled={rolledValues.length === 0}
-                                                 className="w-24 p-2 border border-stone-200 rounded-lg bg-white shadow-sm font-mono text-center focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-50 disabled:bg-stone-100"
+                                                 className="w-20 sm:w-24 p-1 sm:p-2 border border-stone-200 rounded-lg bg-white shadow-sm font-mono text-center text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-50 disabled:bg-stone-100 cursor-pointer"
                                              >
                                                  <option value="">-</option>
                                                  {rolledValues.map((v, i) => {
@@ -337,20 +337,20 @@ export function AbilitiesStep() {
                                      </div>
                                  </td>
                                  <td className="py-3 px-3 text-center">
-                                     <span className="inline-block px-3 py-1 bg-stone-100 rounded-md font-mono text-stone-500 border border-stone-200">
+                                     <span className="inline-block px-1.5 sm:px-3 py-0.5 sm:py-1 bg-stone-50 rounded-md font-mono text-stone-500 border border-stone-200 text-xs sm:text-sm">
                                          {racialBonus}
                                      </span>
                                  </td>
                                  <td className="py-3 px-3 text-center">
-                                     <span className="inline-block px-3 py-1 bg-blue-50 rounded-md font-mono text-blue-600 border border-blue-200">
+                                     <span className="inline-block px-1.5 sm:px-3 py-0.5 sm:py-1 bg-blue-50 rounded-md font-mono text-blue-600 border border-blue-200 text-xs sm:text-sm">
                                          {classBonus}
                                      </span>
                                  </td>
-                                 <td className="py-3 px-3 text-center font-bold font-serif text-lg text-stone-800">
+                                 <td className="py-2.5 px-1 sm:px-3 text-center font-bold font-serif text-sm sm:text-lg text-stone-800">
                                      {!isAssigned && (mode === 'standard' || mode === 'roll') ? '-' : total}
                                  </td>
                                  <td className="py-3 px-3 text-center">
-                                     <span className={`inline-block px-3 py-1 font-mono font-bold rounded-lg border ${mod >= 0 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-stone-100 text-stone-600 border-stone-200'}`}>
+                                     <span className={`inline-block px-1.5 sm:px-3 py-0.5 sm:py-1 font-mono font-bold rounded-lg border text-xs sm:text-sm ${mod >= 0 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-stone-55  text-stone-500 border-stone-200'}`}>
                                          {!isAssigned && (mode === 'standard' || mode === 'roll') ? '-' : modStr}
                                      </span>
                                  </td>

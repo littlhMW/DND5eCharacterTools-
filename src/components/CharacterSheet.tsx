@@ -129,7 +129,7 @@ const knownIds = useMemo(() => {
             const isSaveProficient = saves.includes(ab);
             const abilitySkills = Object.entries(SKILL_ABILITIES).filter(([, a]) => a === ab).map(([s]) => s);
             return (
-              <div key={ab} className="bg-[#faf8f5] border-2 border-stone-300 rounded-b-3xl rounded-t-sm p-4 text-center shadow-sm flex flex-col relative pb-5">
+              <div key={ab} className="bg-white border-2 border-stone-300 rounded-b-3xl rounded-t-sm p-4 text-center shadow-sm flex flex-col relative pb-5">
                 <div className="flex flex-col items-center mb-2">
                   <div className="text-[10px] sm:text-xs font-sans tracking-widest text-stone-500 font-bold mb-1 uppercase">{abNames[ab]} {ab}</div>
                   <div className="text-4xl font-serif text-stone-900 font-bold">{score}</div>
@@ -162,15 +162,15 @@ const knownIds = useMemo(() => {
         <div className="col-span-1 md:col-span-5 grid grid-cols-1 md:grid-cols-2 gap-8 md:pl-6 pt-4 md:pt-0">
           <div className="space-y-6">
             <div className="grid grid-cols-3 gap-4">
-              <div className="bg-[#faf8f5] p-4 rounded-t-full rounded-b-xl border-2 border-stone-300 text-center shadow-sm flex flex-col justify-center relative pt-8">
+              <div className="bg-white p-4 rounded-t-full rounded-b-xl border-2 border-stone-300 text-center shadow-sm flex flex-col justify-center relative pt-8">
                 <div className="text-[10px] text-stone-500 uppercase font-bold tracking-widest mb-1 absolute top-3 left-1/2 -translate-x-1/2 w-full">护甲等级</div>
                 <div className="text-4xl font-serif text-stone-900">{10 + getMod('DEX')}</div>
               </div>
-              <div className="bg-[#faf8f5] p-4 rounded-xl border-2 border-stone-300 text-center shadow-sm flex flex-col justify-center">
+              <div className="bg-white p-4 rounded-xl border-2 border-stone-300 text-center shadow-sm flex flex-col justify-center">
                 <div className="text-[10px] text-stone-500 uppercase font-bold tracking-widest mb-1">速度</div>
                 <div className="text-3xl font-serif text-stone-900">{race?.speed || 30} <span className="text-xs text-stone-500 font-sans">尺</span></div>
               </div>
-              <div className="bg-[#fcfaf8] p-4 rounded-t-xl rounded-b-full border-2 border-amber-200 text-center shadow-sm flex flex-col justify-center pb-8 relative">
+              <div className="bg-amber-100/10 p-4 rounded-t-xl rounded-b-full border-2 border-amber-200 text-center shadow-sm flex flex-col justify-center pb-8 relative">
                 <div className="text-[10px] text-amber-900/60 uppercase font-bold tracking-widest mb-1">生命值</div>
                 <div className="text-4xl font-serif text-amber-800 font-bold">{(cls?.hitDie || 10) + getMod('CON') + (c.level - 1) * ((cls?.hitDie || 10) / 2 + 1 + getMod('CON'))}</div>
                 <div className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[10px] text-amber-800/60 font-sans whitespace-nowrap">生命骰: {c.level}d{cls?.hitDie || 10}</div>
@@ -179,7 +179,7 @@ const knownIds = useMemo(() => {
             
           </div>
           <div className="space-y-6">
-            <div className="bg-[#faf8f5] rounded-xl border-2 border-stone-300 p-6 shadow-sm h-full">
+            <div className="bg-white rounded-xl border-2 border-stone-300 p-6 shadow-sm h-full">
               <h3 className="text-xl font-serif mb-4 text-stone-900 border-b border-stone-200 pb-2">熟练项与语言</h3>
               <div className="space-y-4 text-sm font-sans">
                 <div>
@@ -364,10 +364,10 @@ if (cls.id === 'wizard') {
   // 背景与细节 Tab (保持不变)
 
   return (
-    <div className="min-h-screen bg-[#f9f8f6] font-serif text-stone-900 p-4 md:p-8 md:pt-12 relative overflow-hidden">
+    <div className="min-h-screen bg-stone-100 font-serif text-stone-900 p-4 md:p-8 md:pt-12 relative overflow-hidden">
       <div className="fixed inset-0 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/rice-paper-2.png')] opacity-30 z-0 mix-blend-multiply"></div>
       
-      <div className="max-w-7xl mx-auto bg-[#faf8f5] border-[3px] border-double border-stone-300 rounded-xl shadow-2xl overflow-hidden pb-4 ring-1 ring-stone-900/10 relative z-10">
+      <div className="max-w-7xl mx-auto bg-white border-[3px] border-double border-stone-300 rounded-xl shadow-2xl overflow-hidden pb-4 ring-1 ring-stone-900/10 relative z-10">
         {/* Header */}
         <div className="px-8 md:px-12 py-12 flex flex-col md:flex-row justify-between items-end bg-gradient-to-br from-[#faf8f5] to-[#f4eee6] relative overflow-hidden border-b-2 border-stone-200">
           <div className="absolute top-0 right-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/handmade-paper.png')] opacity-40 mix-blend-multiply pointer-events-none" />
@@ -414,7 +414,7 @@ if (cls.id === 'wizard') {
             <button key={tab} onClick={() => setActiveTab(tab)}
               className={`px-6 py-4 text-sm md:text-base font-bold tracking-widest whitespace-nowrap rounded-t-lg transition-all duration-200 z-10 relative top-[2px] ${
                 activeTab === tab 
-                  ? 'text-amber-900 bg-[#faf8f5] border-t-2 border-x-2 border-stone-300 shadow-[0_-2px_6px_rgba(0,0,0,0.05)]' 
+                  ? 'text-amber-900 bg-white border-t-2 border-x-2 border-stone-300 shadow-[0_-2px_6px_rgba(0,0,0,0.05)]' 
                   : 'text-stone-600 hover:text-stone-800 hover:bg-stone-200/50 border-t-2 border-x-2 border-transparent'
               }`}
             >{tab}</button>
@@ -422,14 +422,14 @@ if (cls.id === 'wizard') {
         </div>
 
         {/* Content */}
-        <div className="p-4 md:p-10 bg-[#faf8f5] min-h-[65vh] relative text-stone-800">
+        <div className="p-4 md:p-10 bg-white min-h-[65vh] relative text-stone-800">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/rice-paper-2.png')] opacity-20 pointer-events-none mix-blend-multiply"></div>
           <div className="relative z-10">
           {activeTab === '概览' && renderMainTab()}
           {activeTab === '职业特性' && (() => {
             return (
             <div className="space-y-6 animate-in fade-in grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="bg-[#faf8f5] rounded-xl border-2 border-stone-300 shadow-sm p-8 h-fit">
+              <div className="bg-stone-50 rounded-xl border-2 border-stone-300 shadow-sm p-8 h-fit">
                 <h3 className="text-2xl font-serif text-amber-800 mb-6 border-b-2 border-stone-300 pb-3 font-bold tracking-tight">职业特性</h3>
                 <ul className="space-y-6">
                   {[
@@ -476,7 +476,7 @@ if (cls.id === 'wizard') {
                   ))}
                 </ul>
               </div>
-              <div className="bg-[#faf8f5] rounded-xl border-2 border-stone-300 shadow-sm p-8 h-fit">
+              <div className="bg-stone-50 rounded-xl border-2 border-stone-300 shadow-sm p-8 h-fit">
                 <h3 className="text-2xl font-serif text-amber-800 mb-6 border-b-2 border-stone-300 pb-3 font-bold tracking-tight">种族与背景特性</h3>
                 <ul className="space-y-6">
                   {race?.traits
@@ -534,7 +534,7 @@ if (cls.id === 'wizard') {
 
             if (chosenFeats.length === 0) {
               return (
-                <div className="flex flex-col items-center justify-center p-12 bg-[#faf8f5] rounded-xl border-2 border-stone-300 border-dashed opacity-70">
+                <div className="flex flex-col items-center justify-center p-12 bg-white rounded-xl border-2 border-stone-300 border-dashed opacity-70">
                   <span className="text-4xl mb-4">📜</span>
                   <h3 className="text-xl font-serif text-stone-600 mb-2">尚未获得任何专长</h3>
                   <p className="text-stone-500 font-sans text-sm text-center">你的角色在此等级尚未选择专长，或者选择了属性提升（ASI）。</p>

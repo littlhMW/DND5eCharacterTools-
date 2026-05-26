@@ -5,7 +5,8 @@ import { classes } from '../../data/classes';
 import { backgrounds } from '../../data/backgrounds';
 import { getAIConfig, generateBackstoryAndAppearance } from '../../utils/aiHelper';
 import { generateXgeBackstory } from '../../utils/xgeLifeGenerator';
-import { Sparkles } from 'lucide-react';
+import { generateRandomName, isRandomNameEnabled } from '../../utils/nameGenerator';
+import { Sparkles, Dices, Scroll } from 'lucide-react';
 
 const INPUT_FIELDS = [
   { id: 'name', label: '角色名称' },
@@ -32,22 +33,60 @@ export function DetailsStep() {
   };
 
   const handleXgeGenerate = () => {
-    const xgeText = generateXgeBackstory({
-      backgroundId: state.character.backgroundId,
-      classId: state.character.classId,
-    });
+    const useExpanded = localStorage.getItem('xgeUseExpandedInDetails') === 'true';
+    const useNonPhbSupport = localStorage.getItem('xgeUseNonPhbInDetails') !== 'false';
+    
+    // Parse character details like age and ability modifiers
+    const ageVal = state.character.age ? parseInt(state.character.age, 10) : undefined;
+    const chaScore = state.character.baseAbilities?.CHA ?? 10;
+    const chaMod = Math.floor((chaScore - 10) / 2);
+
+    const xgeText = generateXgeBackstory(
+      { 
+        backgroundId: state.character.backgroundId, 
+        classId: state.character.classId,
+        age: isNaN(ageVal as number) ? undefined : ageVal,
+        chaMod: chaMod
+      },
+      { useExpanded, useNonPhbSupport }
+    );
     
     const currentBackstory = state.character.backstory || '';
-    const match = currentBackstory.match(/(这是你的人生[:：]|【XGE 经历：这是你的人生】[:：]?)/);
+    const markerStart = "※【万事指南 · 经历生平】※";
+    const markerEnd = "──────────────────────";
+    const xgeBlock = `${markerStart}\n${xgeText}\n${markerEnd}`;
     
     let newBackstory = '';
-    if (match && typeof match.index === 'number') {
-      const preText = currentBackstory.substring(0, match.index).trim();
-      newBackstory = preText ? `${preText}\n\n${xgeText}` : xgeText;
+    const startIndex = currentBackstory.indexOf(markerStart);
+    
+    if (startIndex !== -1) {
+      // Found the existing XGE block
+      const endIndex = currentBackstory.indexOf(markerEnd, startIndex);
+      if (endIndex !== -1) {
+        const beforeStr = currentBackstory.substring(0, startIndex).trim();
+        const afterStr = currentBackstory.substring(endIndex + markerEnd.length).trim();
+        
+        newBackstory = beforeStr;
+        if (afterStr) {
+          newBackstory += (newBackstory ? '\n\n' : '') + xgeBlock + '\n\n' + afterStr;
+        } else {
+          newBackstory += (newBackstory ? '\n\n' : '') + xgeBlock;
+        }
+      } else {
+        const beforeStr = currentBackstory.substring(0, startIndex).trim();
+        newBackstory = beforeStr ? `${beforeStr}\n\n${xgeBlock}` : xgeBlock;
+      }
     } else {
-      newBackstory = currentBackstory 
-        ? `${currentBackstory}\n\n${xgeText}`
-        : xgeText;
+      // Check for old legacy format tags in backstory to upgrade gracefully
+      const oldMatch = currentBackstory.match(/(【XGE 经历：这是你的人生】|这是你的人生：|这是你的人生:)/);
+      if (oldMatch && typeof oldMatch.index === 'number') {
+        const beforeStr = currentBackstory.substring(0, oldMatch.index).trim();
+        newBackstory = beforeStr ? `${beforeStr}\n\n${xgeBlock}` : xgeBlock;
+      } else {
+        // Just append to existing text
+        const baseStr = currentBackstory.trim();
+        newBackstory = baseStr ? `${baseStr}\n\n${xgeBlock}` : xgeBlock;
+      }
     }
       
     dispatch({
@@ -116,7 +155,7 @@ export function DetailsStep() {
       <div className="border-b border-stone-200 pb-3 mb-6 flex flex-col gap-1.5">
         <h2 className="text-2xl font-serif text-amber-600 flex items-center gap-2">
           <span>角色细节</span>
-          {aiLocalConfig.enabled && (
+          {aiLocalConfig.detailsEnabled && (
             <button
               onClick={handleAiGenerate}
               disabled={loading}
@@ -151,14 +190,24 @@ export function DetailsStep() {
           <div key={field.id} className={['personality', 'ideals', 'bonds', 'flaws', 'appearance', 'backstory'].includes(field.id) ? 'md:col-span-2' : ''}>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-sm font-semibold text-stone-700 font-sans">{field.label}</label>
-              {field.id === 'backstory' && (
+              {field.id === 'name' && isRandomNameEnabled() && (
+                <button
+                  type="button"
+                  onClick={() => dispatch({ type: 'UPDATE_BASIC_INFO', payload: { name: generateRandomName(state.character.raceId) } })}
+                  className="px-2.5 py-1 text-xs font-semibold text-amber-700 bg-amber-50 rounded border border-amber-200 hover:bg-amber-100/50 hover:border-amber-300 transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+                  title="随机生成姓名"
+                >
+                  <Dices size={14} /> 随机起名
+                </button>
+              )}
+              {field.id === 'backstory' && localStorage.getItem('xgeEnabledInDetails') === 'true' && (
                 <button
                   type="button"
                   onClick={handleXgeGenerate}
-                  className="px-2.5 py-1 text-xs font-semibold text-amber-700 bg-amber-50 rounded border border-amber-200 hover:bg-amber-100/50 hover:border-amber-300 transition-all flex items-center gap-1 cursor-pointer active:scale-95"
-                  title="生成生平经历并追加至背景故事"
+                  className="p-1.5 text-amber-700 bg-amber-50 rounded border border-amber-200 hover:bg-amber-100/50 hover:border-amber-300 transition-all flex items-center justify-center cursor-pointer active:scale-95"
+                  title="使用XGE人生经历生成"
                 >
-                  生成生平经历
+                  <Scroll size={14} />
                 </button>
               )}
             </div>

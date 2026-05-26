@@ -18,10 +18,12 @@ export function BackgroundStep() {
   const availableBackgrounds = backgrounds.filter(bg => isSourceEnabled(bg.source || 'phb', 'backgrounds'));
 
   const handleXgeGenerate = () => {
-    const xgeText = generateXgeBackstory({
-      backgroundId: state.character.backgroundId,
-      classId: state.character.classId,
-    });
+    const useExpanded = localStorage.getItem('useExpandedXge') === 'true';
+    const useNonPhbSupport = localStorage.getItem('useNonPhbSupportXge') !== 'false';
+    const xgeText = generateXgeBackstory(
+      { backgroundId: state.character.backgroundId, classId: state.character.classId },
+      { useExpanded, useNonPhbSupport }
+    );
     
     const currentBackstory = state.character.backstory || '';
     const match = currentBackstory.match(/(这是你的人生[:：]|【XGE 经历：这是你的人生】[:：]?)/);

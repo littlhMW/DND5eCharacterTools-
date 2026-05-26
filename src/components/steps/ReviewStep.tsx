@@ -78,7 +78,23 @@ export function ReviewStep() {
 
       <div 
         ref={cardRef}
-        className="w-full max-w-3xl bg-[#fdfaf6] border-2 border-stone-800 p-8 shadow-md text-stone-900 relative outline outline-offset-4 outline-2 outline-stone-300"
+        className="w-full max-w-3xl bg-white border-2 border-stone-800 p-8 shadow-md text-stone-900 relative outline outline-offset-4 outline-2 outline-stone-300"
+        style={{
+          backgroundColor: '#ffffff',
+          color: '#1c1917',
+          borderColor: '#1c1917',
+          ['--app-white' as any]: '#ffffff',
+          ['--app-stone-50' as any]: '#f5f5f4',
+          ['--app-stone-100' as any]: '#ffffff',
+          ['--app-stone-200' as any]: '#e7e5e4',
+          ['--app-stone-300' as any]: '#d6d3d1',
+          ['--app-stone-400' as any]: '#a8a29e',
+          ['--app-stone-500' as any]: '#78716c',
+          ['--app-stone-600' as any]: '#57534e',
+          ['--app-stone-700' as any]: '#44403c',
+          ['--app-stone-800' as any]: '#1c1917',
+          ['--app-stone-900' as any]: '#1c1917',
+        }}
       >
          {/* Top Section */}
          <div className="flex gap-6 border-b-2 border-stone-800 pb-6 mb-6">
@@ -195,15 +211,15 @@ export function ReviewStep() {
            <div className="col-span-1 flex flex-col gap-4">
              {/* AC, Init, Speed Box */}
              <div className="bg-white border-2 border-stone-800 p-2 rounded-xl flex gap-2">
-               <div className="flex-1 flex flex-col items-center justify-center border-2 border-stone-300 rounded-lg p-2 relative outline outline-2 outline-stone-800/20 bg-[#fdfaf6]">
+               <div className="flex-1 flex flex-col items-center justify-center border-2 border-stone-300 rounded-lg p-2 relative outline outline-2 outline-stone-800/20 bg-white">
                  <span className="text-[10px] text-stone-500 absolute top-1 uppercase font-bold text-center leading-none">护甲等级</span>
                  <span className="text-3xl font-serif mt-3">{baseAc}</span>
                </div>
-               <div className="flex-1 flex flex-col items-center justify-center border-2 border-stone-300 rounded-lg p-2 bg-[#fdfaf6]">
+               <div className="flex-1 flex flex-col items-center justify-center border-2 border-stone-300 rounded-lg p-2 bg-white">
                  <span className="text-[10px] text-stone-500 font-bold mb-1">先攻</span>
                  <span className="text-3xl font-serif">{dexMod >= 0 ? `+${dexMod}` : dexMod}</span>
                </div>
-               <div className="flex-1 flex flex-col items-center justify-center border-2 border-stone-300 rounded-lg p-2 bg-[#fdfaf6]">
+               <div className="flex-1 flex flex-col items-center justify-center border-2 border-stone-300 rounded-lg p-2 bg-white">
                  <span className="text-[10px] text-stone-500 font-bold mb-1">速度</span>
                  <span className="text-3xl font-serif">30</span>
                </div>

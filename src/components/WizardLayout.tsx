@@ -26,21 +26,21 @@ export function WizardLayout() {
   const StepComponent = currentStepData.component;
 
   return (
-    <div className="flex h-screen bg-[#fffdfc] text-stone-900 font-sans overflow-hidden">
+    <div className="flex h-screen bg-stone-100 text-stone-900 font-sans overflow-hidden">
       {/* Left panel: Wizard Steps & Configuration */}
-      <div className="flex-1 flex flex-col relative bg-[#fffdfc] shadow-sm z-10 w-full overflow-hidden">
+      <div className="flex-1 flex flex-col relative bg-stone-100 shadow-sm z-10 w-full overflow-hidden">
         
         {/* Header - Tabs */}
-        <header className="border-b border-stone-200">
-          <div className="max-w-4xl mx-auto w-full p-4 flex justify-between items-center gap-4">
-            <div className="flex space-x-2 overflow-x-auto flex-1">
+        <header className="border-b border-stone-200 bg-stone-100">
+          <div className="max-w-4xl mx-auto w-full p-2.5 md:p-4 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3">
+            <div className="flex space-x-1 sm:space-x-2 overflow-x-auto flex-1 pb-1 md:pb-0 scrollbar-none">
               {STEPS.map(step => (
                 <button
                   key={step.id}
                   onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: step.id })}
-                  className={`px-5 py-2 text-sm font-medium transition-all whitespace-nowrap border-b-2 ${
+                  className={`px-2 sm:px-4 py-1.5 md:py-2 text-xs sm:text-sm font-medium transition-all whitespace-nowrap border-b-2 flex-shrink-0 ${
                     state.currentStep === step.id
-                      ? 'border-amber-500 text-amber-700'
+                      ? 'border-amber-500 text-amber-700 font-bold'
                       : 'border-transparent text-stone-500 hover:text-stone-800 hover:border-stone-300'
                   }`}
                 >
@@ -48,10 +48,10 @@ export function WizardLayout() {
                 </button>
               ))}
             </div>
-            <div className="flex gap-2 flex-shrink-0 border-l border-stone-200 pl-4">
+            <div className="flex gap-2 justify-end md:justify-start flex-shrink-0 border-t md:border-t-0 md:border-l border-stone-200 pt-2 md:pt-0 pl-0 md:pl-4">
               <button 
                 onClick={() => dispatch({ type: 'SET_VIEW', payload: 'landing' })}
-                className="px-4 py-1.5 text-sm font-medium text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 rounded-sm transition border border-transparent"
+                className="px-3 py-1 text-xs md:text-sm font-medium text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 rounded-sm transition border border-transparent"
               >
                 主页
               </button>
@@ -75,7 +75,7 @@ export function WizardLayout() {
                   setSaveSuccess(true);
                   setTimeout(() => setSaveSuccess(false), 2000);
                 }}
-                className="px-4 py-1.5 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 rounded-sm transition min-w-[3.5rem] text-center"
+                className="px-3 py-1 text-xs md:text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 rounded-sm transition min-w-[3.2rem] md:min-w-[3.5rem] text-center"
               >
                 {saveSuccess ? '已保存 ✓' : '保存'}
               </button>
@@ -118,7 +118,7 @@ export function WizardLayout() {
       </div>
 
       {/* Right panel: Character Summary (Live update) */}
-      <div className="w-[320px] lg:w-[360px] xl:w-[400px] flex-shrink-0 bg-[#fefbf8] hidden lg:flex flex-col pt-6 overflow-y-auto border-l border-stone-200 relative z-0">
+      <div className="w-[320px] lg:w-[360px] xl:w-[400px] flex-shrink-0 bg-white hidden lg:flex flex-col pt-6 overflow-y-auto border-l border-stone-200 relative z-0">
         <CharacterSummary />
       </div>
     </div>

@@ -2,42 +2,465 @@
 @import "tailwindcss";
 
 @theme {
-  --color-stone-50: #fcf9f2;  /* Very Light Parchment */
-  --color-stone-100: #f4ece2; /* Main Background Parchment */
-  --color-stone-200: #d4c4a8; /* Borders */
-  --color-stone-300: #bba98b; /* Darker borders */
-  --color-stone-400: #9e8d75;
-  --color-stone-500: #8c785d;
-  --color-stone-600: #5c4b3f; /* Muted texts */
-  --color-stone-700: #4f3f2d;
-  --color-stone-800: #33281c;
-  --color-stone-900: #241e1a; /* Main Dark Text */
+  --color-stone-50: var(--app-stone-50);
+  --color-stone-100: var(--app-stone-100);
+  --color-stone-200: var(--app-stone-200);
+  --color-stone-300: var(--app-stone-300);
+  --color-stone-400: var(--app-stone-400);
+  --color-stone-500: var(--app-stone-500);
+  --color-stone-600: var(--app-stone-600);
+  --color-stone-700: var(--app-stone-700);
+  --color-stone-800: var(--app-stone-800);
+  --color-stone-900: var(--app-stone-900);
 
-  --color-white: #fdfaf5; /* Creamy paper white to replace blinding #FFF */
+  --color-white: var(--app-white);
 
-  --color-amber-50: #f7ebe6;
-  --color-amber-100: #ebd4d4;
-  --color-amber-200: #e0b798;
-  --color-amber-300: #cf936b;
-  --color-amber-400: #c17143;
-  --color-amber-500: #8b1a1a; /* Buttons/icons / Links (PHB style red) */
-  --color-amber-600: #7a1515; /* Dark Red Headings (PHB style) */
-  --color-amber-700: #5c1616; /* Deepest red accents */
-  --color-amber-800: #420f0f;
-  --color-amber-900: #2e0909;
+  --color-amber-50: var(--app-amber-50);
+  --color-amber-100: var(--app-amber-100);
+  --color-amber-200: var(--app-amber-200);
+  --color-amber-300: var(--app-amber-300);
+  --color-amber-400: var(--app-amber-400);
+  --color-amber-500: var(--app-amber-500);
+  --color-amber-600: var(--app-amber-600);
+  --color-amber-700: var(--app-amber-700);
+  --color-amber-800: var(--app-amber-800);
+  --color-amber-900: var(--app-amber-900);
 
   --font-serif: "Cormorant Garamond", "Noto Serif SC", "Playfair Display", "Times New Roman", Times, serif;
   --font-sans: "Inter", "Noto Sans SC", system-ui, -apple-system, sans-serif;
 }
 
+:root, [data-theme="dndmanual"] {
+  --app-stone-50: #fafaf5;  
+  --app-stone-100: #ffffff; 
+  --app-stone-200: #f2ebd9; 
+  --app-stone-300: #e2dac7; 
+  --app-stone-400: #beaf96;
+  --app-stone-500: #a1927a;
+  --app-stone-600: #85745d; 
+  --app-stone-700: #685945;
+  --app-stone-800: #4b3e2c;
+  --app-stone-900: #292218; 
+
+  --app-white: #ffffff; 
+
+  --app-amber-50: #faebe2;
+  --app-amber-100: #ebd3c8;
+  --app-amber-200: #dbaf8e;
+  --app-amber-300: #ca865a;
+  --app-amber-400: #b85a30;
+  --app-amber-500: #9c0c0d; 
+  --app-amber-600: #7e0c0d; 
+  --app-amber-700: #620a0b; 
+  --app-amber-800: #460708;
+  --app-amber-900: #2a0405;
+}
+
+[data-theme="fiveetools"] {
+  --app-stone-50: #fafaf5;  
+  --app-stone-100: #ffffff; 
+  --app-stone-200: #f2ebd9; 
+  --app-stone-300: #e2dac7; 
+  --app-stone-400: #beaf96;
+  --app-stone-500: #a1927a;
+  --app-stone-600: #85745d; 
+  --app-stone-700: #685945;
+  --app-stone-800: #4b3e2c;
+  --app-stone-900: #292218; 
+
+  --app-white: #ffffff; 
+
+  --app-amber-50: #eef6fc;
+  --app-amber-100: #d5e9fa;
+  --app-amber-200: #a7cfed;
+  --app-amber-300: #74aede;
+  --app-amber-400: #448ecc;
+  --app-amber-500: #005e9c; 
+  --app-amber-600: #004d80; 
+  --app-amber-700: #003a61; 
+  --app-amber-800: #002742;
+  --app-amber-900: #001626;
+}
+
+[data-theme="parchment"] {
+  --app-stone-50: #fcf9f2;  
+  --app-stone-100: #f4ece2; 
+  --app-stone-200: #d4c4a8; 
+  --app-stone-300: #bba98b; 
+  --app-stone-400: #9e8d75;
+  --app-stone-500: #8c785d;
+  --app-stone-600: #5c4b3f; 
+  --app-stone-700: #4f3f2d;
+  --app-stone-800: #33281c;
+  --app-stone-900: #241e1a; 
+
+  --app-white: #fdfaf5; 
+
+  --app-amber-50: #f7ebe6;
+  --app-amber-100: #ebd4d4;
+  --app-amber-200: #e0b798;
+  --app-amber-300: #cf936b;
+  --app-amber-400: #c17143;
+  --app-amber-500: #8b1a1a; 
+  --app-amber-600: #7a1515; 
+  --app-amber-700: #5c1616; 
+  --app-amber-800: #420f0f;
+  --app-amber-950: #2e0909;
+}
+
+[data-theme="dark"] {
+  --app-stone-50: #2a2e38;  
+  --app-stone-100: #333845; 
+  --app-stone-200: #4a5163; 
+  --app-stone-300: #656c80; 
+  --app-stone-400: #838a9d;
+  --app-stone-500: #9da4b5;
+  --app-stone-600: #b6bdcc; 
+  --app-stone-700: #ced3df;
+  --app-stone-800: #e3e7f0;
+  --app-stone-900: #f6f8fb; 
+
+  --app-white: #3b404f; 
+
+  --app-amber-50: #2a221f;
+  --app-amber-100: #3f332f;
+  --app-amber-200: #594841;
+  --app-amber-300: #7a6359;
+  --app-amber-400: #a18175;
+  --app-amber-500: #c29d8f; 
+  --app-amber-600: #d6b8ad; 
+  --app-amber-700: #e6d2c9; 
+  --app-amber-800: #f2e7e3;
+  --app-amber-900: #faf7f5;
+}
+
+[data-theme="feywild"] {
+  --app-stone-50: #faf7fc;  
+  --app-stone-100: #f2eaf7; 
+  --app-stone-200: #dfcfe6; 
+  --app-stone-300: #c9b0cf; 
+  --app-stone-400: #a884ab;
+  --app-stone-500: #88628b;
+  --app-stone-600: #654369; 
+  --app-stone-700: #4a2c4d;
+  --app-stone-800: #301a33;
+  --app-stone-900: #1d0e1f; 
+
+  --app-white: #fdfbfd; 
+
+  --app-amber-50: #fdf2f8;
+  --app-amber-100: #fce7f3;
+  --app-amber-200: #fbcfe8;
+  --app-amber-300: #f472b6;
+  --app-amber-400: #db2777;
+  --app-amber-500: #be185d; 
+  --app-amber-600: #9d174d; 
+  --app-amber-700: #831843; 
+  --app-amber-800: #500724;
+  --app-amber-900: #300315;
+}
+
+[data-theme="highforest"] {
+  --app-stone-50: #f4f6f4;  
+  --app-stone-100: #e6ebe6; 
+  --app-stone-200: #c2cfc2; 
+  --app-stone-300: #9fb39f; 
+  --app-stone-400: #789478;
+  --app-stone-500: #587358;
+  --app-stone-600: #3d523d; 
+  --app-stone-700: #2a3a2a;
+  --app-stone-800: #1c261c;
+  --app-stone-900: #0f160f; 
+
+  --app-white: #fafbfa; 
+
+  --app-amber-50: #fdf5eb;
+  --app-amber-100: #ebdcb9;
+  --app-amber-200: #dfc58f;
+  --app-amber-300: #d2ac65;
+  --app-amber-400: #bf8b31;
+  --app-amber-500: #137748; 
+  --app-amber-600: #0b6038; 
+  --app-amber-700: #054828; 
+  --app-amber-800: #01311b;
+  --app-amber-900: #001a0d;
+}
+
+
+
+[data-theme="underdark"] {
+  --app-stone-50: #1F1B2E;
+  --app-stone-100: #2E2841;
+  --app-stone-200: #3D3554;
+  --app-stone-300: #4D4167;
+  --app-stone-400: #5C4E7A;
+  --app-stone-500: #6B5B8D;
+  --app-stone-600: #8D80AA;
+  --app-stone-700: #B0A5C6;
+  --app-stone-800: #D2C9E3;
+  --app-stone-900: #F4EEFF;
+
+  --app-white: #050505;
+
+  --app-amber-50: #42134F;
+  --app-amber-100: #601D6F;
+  --app-amber-200: #7E278F;
+  --app-amber-300: #9D32AF;
+  --app-amber-400: #BB3CCF;
+  --app-amber-500: #D946EF;
+  --app-amber-600: #E272F3;
+  --app-amber-700: #EB9DF7;
+  --app-amber-800: #F4C9FB;
+  --app-amber-900: #FDF4FF;
+}
+
+
+[data-theme="avernus"] {
+  --app-stone-50: #181111;
+  --app-stone-100: #261919;
+  --app-stone-200: #332121;
+  --app-stone-300: #412A28;
+  --app-stone-400: #4E3230;
+  --app-stone-500: #5C3A38;
+  --app-stone-600: #846765;
+  --app-stone-700: #AD9392;
+  --app-stone-800: #D5C0BF;
+  --app-stone-900: #FDECEC;
+
+  --app-white: #050505;
+
+  --app-amber-50: #3D1308;
+  --app-amber-100: #5D1D0B;
+  --app-amber-200: #7C260D;
+  --app-amber-300: #9C3010;
+  --app-amber-400: #BB3912;
+  --app-amber-500: #DB4315;
+  --app-amber-600: #E45F38;
+  --app-amber-700: #ED7C5B;
+  --app-amber-800: #F6987E;
+  --app-amber-900: #FFB4A1;
+}
+
+
+[data-theme="astral"] {
+  --app-stone-50: #060D12;
+  --app-stone-100: #0F1E2B;
+  --app-stone-200: #1A2C3C;
+  --app-stone-300: #253B4D;
+  --app-stone-400: #2F495D;
+  --app-stone-500: #3A576E;
+  --app-stone-600: #657C8F;
+  --app-stone-700: #90A1AF;
+  --app-stone-800: #BBC6D0;
+  --app-stone-900: #E6EBF0;
+
+  --app-white: #050505;
+
+  --app-amber-50: #0F2F4A;
+  --app-amber-100: #143E61;
+  --app-amber-200: #194C78;
+  --app-amber-300: #1D5B8F;
+  --app-amber-400: #2269A6;
+  --app-amber-500: #2B87D3;
+  --app-amber-600: #33A4FF;
+  --app-amber-700: #69BDFF;
+  --app-amber-800: #A0D7FF;
+  --app-amber-900: #D6F0FF;
+}
+
+[data-theme="shadowfell"] {
+  --app-stone-50: #0A0A0A;
+  --app-stone-100: #181818;
+  --app-stone-200: #272727;
+  --app-stone-300: #353535;
+  --app-stone-400: #444444;
+  --app-stone-500: #525252;
+  --app-stone-600: #7B7B7B;
+  --app-stone-700: #A4A4A4;
+  --app-stone-800: #CCCCCC;
+  --app-stone-900: #F5F5F5;
+
+  --app-white: #050505;
+
+  --app-amber-50: #18181B;
+  --app-amber-100: #333338;
+  --app-amber-200: #4F4F54;
+  --app-amber-300: #6A6A71;
+  --app-amber-400: #86868D;
+  --app-amber-500: #A1A1AA;
+  --app-amber-600: #B9B9BF;
+  --app-amber-700: #D0D0D5;
+  --app-amber-800: #E8E8EA;
+  --app-amber-900: #FFFFFF;
+}
+
+
+[data-theme="dragonborn"] {
+  --app-stone-50: #FCF3EE;
+  --app-stone-100: #F2E4DC;
+  --app-stone-200: #DECCC2;
+  --app-stone-300: #CBB4A8;
+  --app-stone-400: #B79C8D;
+  --app-stone-500: #A38473;
+  --app-stone-600: #876A5A;
+  --app-stone-700: #6B5041;
+  --app-stone-800: #4F3528;
+  --app-stone-900: #331B0F;
+
+  --app-white: #FFFFFF;
+
+  --app-amber-50: #FFEBED;
+  --app-amber-100: #F9C7C9;
+  --app-amber-200: #F3A4A5;
+  --app-amber-300: #EC8080;
+  --app-amber-400: #E65C5C;
+  --app-amber-500: #D74343;
+  --app-amber-600: #C72A2A;
+  --app-amber-700: #9D1F1F;
+  --app-amber-800: #741313;
+  --app-amber-900: #4A0808;
+}
+
+[data-theme="candlekeep"] {
+  --app-stone-50: #FCFAF5;
+  --app-stone-100: #F0EBE3;
+  --app-stone-200: #E3DDD1;
+  --app-stone-300: #D7CEBE;
+  --app-stone-400: #CAC0AC;
+  --app-stone-500: #BEB19A;
+  --app-stone-600: #9A8E7A;
+  --app-stone-700: #766C5A;
+  --app-stone-800: #51493A;
+  --app-stone-900: #2D261A;
+
+  --app-white: #FFFFFF;
+
+  --app-amber-50: #FFEDD6;
+  --app-amber-100: #FAD9AF;
+  --app-amber-200: #F5C588;
+  --app-amber-300: #EFB262;
+  --app-amber-400: #EA9E3B;
+  --app-amber-500: #E58A14;
+  --app-amber-600: #C2740F;
+  --app-amber-700: #9F5E0A;
+  --app-amber-800: #7C4805;
+  --app-amber-900: #593200;
+}
+
+
+[data-theme="swordcoast"] {
+  --app-stone-50: #F4FAFA;
+  --app-stone-100: #E6F0F2;
+  --app-stone-200: #CADBE0;
+  --app-stone-300: #AFC6CD;
+  --app-stone-400: #93B1BB;
+  --app-stone-500: #779CA8;
+  --app-stone-600: #5F818C;
+  --app-stone-700: #486670;
+  --app-stone-800: #304B54;
+  --app-stone-900: #183038;
+
+  --app-white: #FFFFFF;
+
+  --app-amber-50: #E1F5F7;
+  --app-amber-100: #C8EAEF;
+  --app-amber-200: #AEDFE7;
+  --app-amber-300: #95D3DE;
+  --app-amber-400: #7BC8D6;
+  --app-amber-500: #62B5C6;
+  --app-amber-600: #49A2B5;
+  --app-amber-700: #388394;
+  --app-amber-800: #276573;
+  --app-amber-900: #164652;
+}
+
+[data-theme="gnome"] {
+  --app-stone-50: #F7F6F5;
+  --app-stone-100: #E2DFDB;
+  --app-stone-200: #CBC6C0;
+  --app-stone-300: #B3ADA5;
+  --app-stone-400: #9C9389;
+  --app-stone-500: #847A6E;
+  --app-stone-600: #6D665C;
+  --app-stone-700: #56524A;
+  --app-stone-800: #3F3D38;
+  --app-stone-900: #282926;
+
+  --app-white: #FFFFFF;
+
+  --app-amber-50: #FFFFFF;
+  --app-amber-100: #FEF4D2;
+  --app-amber-200: #FEE9A6;
+  --app-amber-300: #FDDD79;
+  --app-amber-400: #FCD24C;
+  --app-amber-500: #DFB746;
+  --app-amber-600: #C29B40;
+  --app-amber-700: #A68332;
+  --app-amber-800: #8A6C24;
+  --app-amber-900: #6E5416;
+}
+
+[data-theme="dwarf"] {
+  --app-stone-50: #F5F3F0;
+  --app-stone-100: #E4E0DC;
+  --app-stone-200: #D2CDC8;
+  --app-stone-300: #C1BAB3;
+  --app-stone-400: #AFA79F;
+  --app-stone-500: #9E948B;
+  --app-stone-600: #827972;
+  --app-stone-700: #665F58;
+  --app-stone-800: #4A443F;
+  --app-stone-900: #2E2925;
+
+  --app-white: #FFFFFF;
+
+  --app-amber-50: #FCEACC;
+  --app-amber-100: #F5D3A4;
+  --app-amber-200: #EEBC7D;
+  --app-amber-300: #E7A555;
+  --app-amber-400: #E08E2E;
+  --app-amber-500: #D97706;
+  --app-amber-600: #BA6506;
+  --app-amber-700: #9B5205;
+  --app-amber-800: #7B4005;
+  --app-amber-900: #5C2D04;
+}
+
+
+[data-theme="waterdeep"] {
+  --app-stone-50: #F8F9FA;
+  --app-stone-100: #E8EAED;
+  --app-stone-200: #D7DBE0;
+  --app-stone-300: #C7CDD2;
+  --app-stone-400: #B6BEC5;
+  --app-stone-500: #A6AFB8;
+  --app-stone-600: #828B96;
+  --app-stone-700: #5D6873;
+  --app-stone-800: #394451;
+  --app-stone-900: #14202E;
+
+  --app-white: #FFFFFF;
+
+  --app-amber-50: #E1EFFF;
+  --app-amber-100: #BBD3FB;
+  --app-amber-200: #96B7F7;
+  --app-amber-300: #709BF3;
+  --app-amber-400: #4B7FEF;
+  --app-amber-500: #2563EB;
+  --app-amber-600: #1F54CB;
+  --app-amber-700: #1945AB;
+  --app-amber-800: #13368B;
+  --app-amber-900: #0D276B;
+}
+
+
+
 body {
   background-color: var(--color-stone-100);
   color: var(--color-stone-900);
-  background-image: url('https://www.transparenttextures.com/patterns/old-wall.png');
   font-family: var(--font-serif);
 }
 
-/* Custom scrollbar for webkit */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -52,4 +475,3 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-stone-500);
 }
-

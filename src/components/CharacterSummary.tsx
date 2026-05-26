@@ -42,11 +42,11 @@ export function CharacterSummary() {
   const profBonus = getProficiencyBonus(c.level);
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#f9f8f6] p-8 overflow-y-auto w-full font-serif relative">
+    <div className="flex-1 flex flex-col h-full bg-white p-8 overflow-y-auto w-full font-serif relative">
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/rice-paper-2.png')] opacity-30 pointer-events-none mix-blend-multiply"></div>
       <div className="relative z-10 w-full flex-1 flex flex-col">
-      <div className="mb-6 border-b-2 border-stone-300 pb-4">
-        <h2 className="text-3xl font-serif text-stone-900 mb-3 drop-shadow-sm">{c.name || '未命名'}</h2>
+      <div className="mb-6 border-b-2 border-amber-600/30 pb-4">
+        <h2 className="text-3xl font-serif text-amber-800 mb-3 drop-shadow-sm">{c.name || '未命名'}</h2>
         <div className="text-stone-600 text-sm flex flex-wrap items-center gap-2 mt-1 font-sans">
           <span className="font-bold bg-white border border-stone-300 shadow-sm px-2 py-1 rounded-md text-amber-800">
             Level {c.level} <span className="ml-1 text-xs">{c.level}级</span>

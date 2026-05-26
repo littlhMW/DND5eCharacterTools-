@@ -5,6 +5,8 @@
 
 export interface AIConfig {
   enabled: boolean;
+  detailsEnabled: boolean; // 启用角色细节与生平润色
+  partyBioEnabled: boolean; // 启用冒险队小传书写
   provider: string; // 'deepseek' | 'gemini' | 'openai' | 'qwen' | 'kimi' | 'custom'
   apiKey: string;
   apiBaseUrl: string;
@@ -55,6 +57,8 @@ const LOCAL_STORAGE_KEY = 'dnd_ai_config';
 
 const defaultSettings: AIConfig = {
   enabled: false,
+  detailsEnabled: false,
+  partyBioEnabled: false,
   provider: 'deepseek',
   apiKey: '',
   apiBaseUrl: 'https://api.deepseek.com',
@@ -67,7 +71,9 @@ export function getAIConfig(): AIConfig {
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
-      return { ...defaultSettings, ...parsed };
+      const detailsEnabled = parsed.detailsEnabled !== undefined ? parsed.detailsEnabled : !!parsed.enabled;
+      const partyBioEnabled = parsed.partyBioEnabled !== undefined ? parsed.partyBioEnabled : (parsed.partyBioEnabledEnabled !== undefined ? parsed.partyBioEnabledEnabled : false);
+      return { ...defaultSettings, ...parsed, detailsEnabled, partyBioEnabled };
     }
   } catch (e) {
     console.error('Failed to parse AI Config:', e);
@@ -119,8 +125,8 @@ export async function generateBackstoryAndAppearance(
 ): Promise<AIResult> {
   const config = getAIConfig();
 
-  if (!config.enabled) {
-    throw new Error('AI 功能未开启，请先在工具箱配置并勾选启用。');
+  if (!config.detailsEnabled) {
+    throw new Error('AI 角色细节书写功能未开启，请先在工具箱配置并勾选启用。');
   }
 
   if (!config.apiKey.trim()) {
@@ -150,7 +156,7 @@ export async function generateBackstoryAndAppearance(
      在撰写外貌与生平故事时，必须严格尊重角色种族对应的年龄周期阶段，不要套用人类的绝对岁数概念。
 3. **中性化叙事**：在描写、背景和称谓中，默认采用完全中性、客观的表述（例如除非名字 and 描述带有强烈性别特征，否则避免无根据地假定角色的性别为“他”或“她”）。
 4. **朴实自然的文风**：文笔应当平实、公允、克制。避免使用夸大、空洞、过度华丽或救世主式的“天选/传奇/伟大”词藻，不要给角色强加不合常理的宏大宿命。
-5. **正常换行/分段**：在内容中，请合理地使用标准的换行符（\\n）来进行清晰的逻辑分段（不要写成一整块连续的长文本），保持文字的可读性与空气感。
+5. **正常换行/分段**：在内容中，请合理地使用标准的换行符（\n）来进行清晰的逻辑分段（不要写成一整块连续的长文本），保持文字的可读性与空气感。
 
 【返回格式要求】
 1. 必须且只能返回一个包含 "appearance"（外貌描写）和 "backstory"（背景故事）两个字段的 JSON 格式数据。
@@ -159,7 +165,7 @@ export async function generateBackstoryAndAppearance(
 
 【JSON 示例结构】
 {
-  "appearance": "先简单描述穿着装束与基本体貌（尽量中性化，文字平实），接着按逻辑通过换行 \\n\\n 划分，描述其随身行囊与装备等质感细节。字数大约 200-300 字。",
+  "appearance": "先简单描述穿着装束与基本体貌（尽量中性化，文字平实），接着按逻辑通过换行 \\n\\n 划分，描述其随身行囊与装备等质感细节。字数大约 200-350 字。",
   "backstory": "描写其如何习得相应职业、选择当冒险者的过程与动机（完美融合已有的背景细节与人生经历事件），文字质朴克制。通过换行 \\n\\n 分成 2-3 个小段落。字数大约 250-350 字。"
 }`;
 
@@ -231,7 +237,6 @@ export async function generateBackstoryAndAppearance(
     }
 
     let cleanText = rawContent.trim();
-    // Clean codeblock formatting if model generates markdown blocks
     if (cleanText.startsWith('```')) {
       cleanText = cleanText.replace(/^```(json)?\n?/, '').replace(/\n?```$/, '').trim();
     }
@@ -244,7 +249,6 @@ export async function generateBackstoryAndAppearance(
       return parsed;
     } catch (jsonErr) {
       console.warn('Fallback: Regex extraction since LLM output malformed JSON', rawContent);
-      // Fallback regex extractor if LLM returned JSON-like description within text
       const appearanceMatch = rawContent.match(/"appearance"\s*:\s*"([\s\S]*?)"\s*(,\s*"backstory"|$)/);
       const backstoryMatch = rawContent.match(/"backstory"\s*:\s*"([\s\S]*?)"/);
 
@@ -254,11 +258,147 @@ export async function generateBackstoryAndAppearance(
           backstory: backstoryMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"'),
         };
       }
-      
-      // If regex also failed, treat the entire string as background or report failure
       throw new Error(`未能成功解析为JSON。返回的原始文字：\n${rawContent}`);
     }
   } catch (err: any) {
     throw new Error(err.message || '网络连接异常，无法访问 AI 服务。');
+  }
+}
+
+/**
+ * Call the configured LLM API to generate the adventure party chronicle/biography.
+ */
+export async function generatePartyBiography(party: {
+  name: string;
+  accronym: string;
+  motif: string;
+  origin: string;
+  goal: string;
+  members: any[];
+  relationships: any[];
+}): Promise<string> {
+  const config = getAIConfig();
+
+  if (!config.partyBioEnabled) {
+    throw new Error('AI 冒险队小队故事功能未开启，请先在工具箱配置并勾选启用。');
+  }
+
+  if (!config.apiKey.trim()) {
+    throw new Error('API Key 未填写，请先在工具箱或界面中填写您的 API Key。');
+  }
+
+  if (!config.apiBaseUrl.trim()) {
+    throw new Error('API Base URL 未填写。');
+  }
+
+  if (!config.model.trim()) {
+    throw new Error('AI 模型名称未填写。');
+  }
+
+  const systemPrompt = `你是一位服务于博德之门或深水城某个大图书馆的编年史作家。你的职责是为那些在费伦大陆上留下痕迹的冒险小队撰写客观、沉稳的纪实录，以供后人查阅。
+
+你的笔触如同《黑暗精灵三部曲》或《魔戒》的叙事风格：采用第三人称全知视角，语调平静、典雅、克制，带着一丝距离感去观察和记录人物的命运。你从不用夸张的惊叹，也不作刻意的煽情。你相信，最动人的力量来自于对事实的精准白描。
+
+你的任务是：根据一支冒险小队的档案，推想并撰写他们在旅程中经历的具体事件与冒险片段。这不是人物介绍，而是他们的一段真实记录——他们曾去过哪里、面对过什么、做出了怎样的选择。
+
+【撰写要求】
+1. **故事为主，人物为辅**：全文以冒险事件为主体。不要在开头逐一罗列成员，而是在事件推进中，在恰当的时机用一两句话带出某人的特征或过往。人物介绍和背景占比不超过全文的10%。
+2. **编撰具体事件**：根据队伍的起源、目标和成员构成，推想他们可能经历过的任务、战斗、旅途或危机。把这些事件写具体——地点、遭遇、应对、结果。故事可以有死亡，背叛，胜利，失败等等，内容会丰富。
+3. **克制而典雅的叙述**：避免任何浮夸字眼。用冷静的白描代替抒情。让动作、对话和环境本身传递情绪。
+4. **自然融入人际关系**：人物之间的默契、嫌隙或羁绊，通过行动与对话展现，不做任何列表式的说明。
+5. **尊重D&D种族寿命常识**：精灵约100岁成年，矮人约50岁成年，侏儒约40岁成年。
+6. **中性化叙事**：除非名字或描述带有强烈性别特征，否则避免无根据假定性别。
+7. **禁用任何小标题**：用自然的段落过渡和空行组织文章，读起来如同一本编年史中的连续章节。
+8. **字数与换行**：500-800字。使用\\n进行逻辑分段，保持空气感。
+9. **直接输出正文**：不写任何客套话或前缀。从第一个句子开始。`;
+
+  // 格式化成员信息 —— 一段自然的小传草稿，方便AI融汇
+  const formatMemberBio = (member: any) => {
+    const captainNote = member.isCaptain ? '（小队队长）' : '';
+
+    let bio = `${member.name}，一位${member.race}${member.className}，${member.alignment}阵营，${member.age}岁。${captainNote}\n`;
+    bio += `  外貌：${member.appearance?.hairColor || '未知发色'}发色，${member.appearance?.eyeColor || '未知瞳色'}眼睛，${member.appearance?.skinColor || '未知肤色'}皮肤。${member.appearance?.feature || ''}\n`;
+    bio += `  性格与怪癖：${member.personality?.trait || '未知性格'}。${member.personality?.quirk || ''}\n`;
+
+    if (member.backstory) {
+      bio += `  生平背景：${member.backstory}\n`;
+    }
+    if (member.selfPositioning) {
+      bio += `  队伍定位：${member.selfPositioning}\n`;
+    }
+    return bio;
+  };
+
+  const formatAllMembers = (mList: any[]) => {
+    return mList.map((m: any) => formatMemberBio(m)).join('\n');
+  };
+
+  // 格式化关系
+  const formatRelations = (rList: any[]) => {
+    return rList.map((r: any) => {
+      const fromName = party.members.find((m: any) => m.id === r.fromId)?.name || '未知成员';
+      const toName = party.members.find((m: any) => m.id === r.toId)?.name || '未知成员';
+      return `- ${fromName} 对 ${toName}：${r.type}。${r.description}`;
+    }).join('\n');
+  };
+
+  const userPrompt = `以下是这支冒险小队的档案。
+
+**小队名称**：${party.name}（${party.accronym}）
+**徽记或信念**：${party.motif}
+**队伍起源**：${party.origin}
+**终极目标**：${party.goal}
+
+**成员简录**：
+${formatAllMembers(party.members)}
+
+**队员之间的羁绊与纠葛**：
+${formatRelations(party.relationships)}
+
+请根据以上素材，讲述这支小队的生平故事。`;
+
+  const baseUrlClean = config.apiBaseUrl.replace(/\/+$/, '');
+  const requestUrl = `${baseUrlClean}/chat/completions`;
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${config.apiKey.trim()}`,
+  };
+
+  const bodyData = {
+    model: config.model.trim(),
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ],
+    temperature: 0.8,
+  };
+
+  try {
+    const response = await fetch(requestUrl, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(bodyData),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      let parsedErr: any;
+      try {
+        parsedErr = JSON.parse(errText);
+      } catch (e) {}
+      const errMsg = parsedErr?.error?.message || errText || `HTTP 错误 ${response.status}`;
+      throw new Error(`API 冒险队伍小队故事请求失败: ${errMsg}`);
+    }
+
+    const resJson = await response.json();
+    const rawContent = resJson.choices?.[0]?.message?.content;
+    if (!rawContent) {
+      throw new Error('API 返回的数据中不包含冒险小队故事内容。');
+    }
+
+    return rawContent.trim();
+  } catch (err: any) {
+    throw new Error(err.message || '网络连接异常，无法访问 AI 辅助故事创作服务。');
   }
 }
