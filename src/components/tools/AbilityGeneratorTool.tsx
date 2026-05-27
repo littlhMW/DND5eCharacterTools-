@@ -3,6 +3,7 @@ import { Ability, Race, DndClass } from '../../types/dnd';
 import { races } from '../../data/races';
 import { classes } from '../../data/classes';
 import { isSourceEnabled } from '../../utils/expansionHelper';
+import { getAvailableRaces } from '../../utils/raceHelper';
 import { Dices, ListChecks, Coins, PenTool, RefreshCw, Star, Info } from 'lucide-react';
 
 const ABILITIES: { id: Ability; label: string; name: string; desc: string }[] = [
@@ -35,17 +36,7 @@ export function AbilityGeneratorTool({ onClose }: AbilityGeneratorToolProps) {
   const [selectedClassId, setSelectedClassId] = useState<string>('');
 
   // Filtered lists of races and classes based on active expansions
-  const enabledRaces = races.map(r => {
-    const validAlts = r.alternatives?.filter(alt => isSourceEnabled(alt.source || 'phb', 'races'));
-    if (validAlts && validAlts.length > 0) {
-      const alt = validAlts[0]; // Avoid random flickering on state render! Always use the first slot (e.g. Tasha Alternative)
-      return { ...alt, subraces: r.subraces?.filter(sr => isSourceEnabled(sr.source || alt.source || 'phb', 'races')) };
-    }
-    if (isSourceEnabled(r.source || 'phb', 'races')) {
-      return { ...r, subraces: r.subraces?.filter(sr => isSourceEnabled(sr.source || r.source || 'phb', 'races')) };
-    }
-    return null;
-  }).filter(Boolean) as Race[];
+  const enabledRaces = getAvailableRaces();
 
   const enabledClasses = classes.filter(c => isSourceEnabled(c.source || 'phb', 'classes'));
 

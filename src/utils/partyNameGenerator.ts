@@ -57,7 +57,7 @@ export function generatePartyNameWithRules(): string {
     // 模板D：核心名词 + 与 + 核心名词
     () => {
       const g1 = randomItem([...NOUNS.weapon, ...NOUNS.beast]);
-      const g2 = randomItem([...NOUNS.weapon, ...NOUNS.beast, "玫瑰", "匕首"]);
+      const g2 = randomItem([...NOUNS.weapon, ...NOUNS.beast, "玫瑰", "匕首","蔷薇","琴弦","杖","百合","弓"]);
       return g1 + "与" + g2;
     },
     // 模板E：修饰语 + 核心名词 + 之 + 核心名词
@@ -97,7 +97,7 @@ export function generatePartyNameWithRules(): string {
     // 模板J：氛围 + 后缀
     () => {
       const modifier = randomItem(MODIFIERS.atmosphere);
-      const suffix = randomItem([...SUFFIXES.general, "守望者", "行者"]);
+      const suffix = randomItem([...SUFFIXES.general, "守望者", "行者","者"]);
       return modifier + suffix;
     },
     // 模板K：材质 + 职能

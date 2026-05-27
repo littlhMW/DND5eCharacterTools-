@@ -19,6 +19,11 @@ const allAbilities = {
 export function ClassStep() {
   const { state, dispatch } = useCharacter();
   const [rolledGold, setRolledGold] = React.useState<Record<string, number>>({});
+  const [tempLevel, setTempLevel] = React.useState<number>(state.character.level);
+  
+  React.useEffect(() => {
+    setTempLevel(state.character.level);
+  }, [state.character.level]);
   
   const selectedClass = classes.find(c => c.id === state.character.classId);
   const selectedSubclass = selectedClass?.subclasses?.find(sc => sc.id === state.character.subclassId);
@@ -67,11 +72,19 @@ export function ClassStep() {
             type="range"
             min="1"
             max="20"
-            value={state.character.level}
-            onChange={(e) => dispatch({ type: 'SET_LEVEL', payload: parseInt(e.target.value) })}
+            step="0.01"
+            value={tempLevel}
+            onChange={(e) => {
+              const val = parseFloat(e.target.value);
+              setTempLevel(val);
+              const rounded = Math.round(val);
+              if (rounded !== state.character.level) {
+                dispatch({ type: 'SET_LEVEL', payload: rounded });
+              }
+            }}
             className="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-amber-600 outline-none focus:ring-2 focus:ring-amber-500/30 touch-none"
             style={{
-              background: `linear-gradient(to right, #d97706 ${(state.character.level - 1) / 19 * 100}%, #e7e5e4 ${(state.character.level - 1) / 19 * 100}%)`
+              background: `linear-gradient(to right, var(--color-amber-600) ${(tempLevel - 1) / 19 * 100}%, var(--color-stone-300) ${(tempLevel - 1) / 19 * 100}%)`
             }}
           />
           <div className="flex justify-between mt-2 text-xs font-sans text-stone-400 font-medium">

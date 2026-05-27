@@ -1,115 +1,236 @@
-# AI Agent Handover Guide
+# AI Agent Handover Guide (合并版)
 
-这份文档旨在为接手本应用（DND5e 角色创建 Wiki）开发的后续 AI 助手提供指导。为了保证维基的一致性和代码质量，请在处理相关任务时，严格遵守以下原则和代码结构规范。
+接手本应用（DND5e 角色创建 Wiki）开发时，请严格遵守以下原则。
 
 ## 一、 项目定位与语言规范
-1. **纯中文 Wiki**：
-   - 本项目定位于纯中文用户的 DND 5e 维基。
-   - **绝不采用中英对照**（例如：不能写 "力量 Strength" 或是 "精灵 Elf"），除部分 JSON 数据 `id` 属性或特殊标识符（如 `source: "phb"`）需要保持英文以便代码逻辑调用外，用户可见文本必须仅有**纯中文**。
-2. **术语与译名规范**：
-   - 专有名词请尽量采用官方/公认中文译名。
-   - 常见的扩展书名缩写应保持为纯小写作为 `source` 标识。参考以下正确缩写（严格比对）：
-     - 《玩家手册》 = `phb`
-     - 《地下城主指南》 = `dmg`
-     - 《珊娜萨的万事指南》 = `xge`
-     - 《塔莎的万象坩埚》 = `tce` 
-     - 《剑湾冒险指南》 = `scag`
-     - 《瓦罗的怪物指南》 = `vgm`
-     - 《魔邓肯的众敌卷册》 = `mtf`
-     - 《艾伯伦:从终末战争复苏》 = `erlw`
-     - 《荒洲探险家指南》 = `egw`
-     - 《拉尼卡的公会长指南》 = `ggr`
-     - 《塞洛斯的神话奥德赛》 = `mot`
-     - 《范·里希腾的鸦阁指南》 = `vrgr`
-     - 《费资本的巨龙宝库》 = `fod` 
-     - 《邪恶元素玩家指南》 = `eepc`
-     - 《湮灭之墓》 = `toa`
-3. **文本排版与表格**：
-   - **不要在描述字段里使用 Markdown 表格** （`| ... | ... |`），也**不要使用** Markdown 的无序列表（`- `）与加粗（`**`）。参考 `phb` 中的数据结构：所有文本应尽可能平铺直述。
-   - 遇到多选一或列举的情况，可以直接在段落中使用全角分号隔开（例如：`...；...；...`）或使用括号简述说明（例如：`选项A（效果）、选项B（效果）`）。
-   - **选项（Choices）与描述（Description）的分野**：
-     - **必须使用 `choices` 数组（分页选择器）的场景**：当玩家在建卡或升级时必须做出**明确选择**（例如等级提升给予的属性值提升、战斗风格N选1、某些种族随等级解锁的法术/属性选项、星辰德鲁伊形态等），务必将选项置于特性对象的 `choices` 数组中，以便触发前端的交互式选择与结果保存。
-     - **极力避免对额外语言使用选择器**：若种族特性赋予角色“额外语言”或“自选语言”，**切勿**将语言放进 `choices`（亦不要使用 `dynamic: 'language'`）。应当直接在其基础属性的 `languages` 数组中写入描述性文本（如 `['通用语', '两门自选语言']`），前端会自然将其呈现在总览及角色卡上。
-     - **简单列出（描述）**：如果只是对该特性的数个效果进行罗列说明（例如图腾勇士在描述中概述熊、鹰、狼的效果），可以直接在 `description` 中列举。
-     - **使用超链接列表**：如果列表非常详长，且不需要玩家在建卡期间选定（例如狂野术士需要随机骰的狂野魔法浪涌表），请不要将列表强塞进 `description` 或 `choices` 中，应当直接提供指向该表格的**超链接**。
-     - 包含投骰判定的较短纯文本列表（如无前缀连写），同样只写在 `description` 内，不加粗。
-4. **描述字数与文字深度规范**：
-   - **职业与子职业**：核心描述字数应当精炼，建议维持在 **80 字左右**（不宜超过 100 字 ），在前端展现时能快速传达设计理念与战斗定位。
-   - **种族与血统/亚种**：核心描述可参考《玩家手册》(PHB) 标准种族文字样式，建议维持在 **80 字左右**，侧重刻画起源背景、生理特征与扮演引导，维持维基厚重的角色塑造氛围。
-   - **分阶解锁特性与法术**：当一个种族、子种族或特性需要根据角色等级阶段性解锁功能（如卓尔魔法分别在1、3、5级解锁对应的法术）时，**绝不应将所有后续阶段的效果全融进一个特性的长文本中**。必须将特性**按等级拆开**为不同条目（例如：`{ name: '卓尔魔法：舞光术', level: 0 }`、` level: 3 `、` level: 5 ` 等），以此保证前端按照人物当前等级分段精准渲染，即“只有到了对应等级才显示对应等级的特性和魔法，到对应等级才解锁”。
-5. **PHB 内容保护**：
-   - **除非用户明确指出要求修改 PHB 内容，否则绝不允许修改玩家手册 (PHB) 中的任何数据**。保持 PHB 数据的准确性和稳定性是核心原则。
+- **纯中文 Wiki**：用户可见内容**不得**中英对照（如“力量 Strength”）。JSON `id`、`source` 等代码标识除外。
+- **术语与译名**：采用官方/公认中文译名。扩展书中文名与缩写（小写）必须严格对应：
+  - 《玩家手册》`phb`、《地下城主指南》`dmg`、《珊娜萨的万事指南》`xge`、《塔莎的万象坩埚》`tce`
+  - 《剑湾冒险指南》`scag`、《瓦罗的怪物指南》`vgm`、《魔邓肯的众敌卷册》`mtf`
+  - 《艾伯伦:从终末战争复苏》`erlw`、《荒洲探险家指南》`egw`、《拉尼卡的公会长指南》`ggr`
+  - 《塞洛斯的神话奥德赛》`mot`、《范·里希腾的鸦阁指南》`vrgr`、《费资本的巨龙宝库》`fod`
+  - 《邪恶元素玩家指南》`eepc`、《湮灭之墓》`toa`
+- **禁止在描述中使用**：Markdown 表格、无序列表（`- `）、加粗（`**`）。平铺直述，用全角分号或括号分隔。
+- **`choices` 仅用于明确选择**：如战斗风格、属性提升。**额外语言**直接写在基础属性的 `languages` 数组中（如 `['通用语', '两门自选语言']`），切勿放入 `choices` 或使用 `dynamic: 'language'`。
+- **长列表/掷骰表**：提供站内超链接，不要塞入 `description` 或 `choices`。
+- **字数**：职业/种族核心描述约 **80 字**，侧重定位与扮演。
+- **分阶解锁**：不同等级解锁的能力必须拆分为独立特性（每个带 `level` 属性），不可合并为长文本。
+- **PHB 内容保护**：除非明确要求，否则**禁止修改** `phb` 任何数据。
+- **非玩家种族**：源自 DMG 的 NPC 种族（如僵尸），`description` 开头加 `（非玩家种族）\n`。
 
-## 二、 数据来源唯一性
-1. **严格遵循参考文件**：
-    - **所有**种族、亚种、职业、子职业、背景、专长及法术数据，**必须严格且唯一地来源于项目提供的参考文件**（如 `/参考文件/` 目录下的相关文本）。严禁根据个人知识库自行引入参考文件中未包含的扩展内容。
+## 二、 数据来源与目录结构
+- **唯一来源**：所有种族、职业、法术等数据**必须**严格依据 `/参考文件/` 目录，不得凭个人知识库补充。
+- **目录**：`src/data/<扩展包缩写>/` 下存放各书数据；入口文件为 `backgrounds.ts`、`races.ts`、`classes.ts`、`feats.ts`、`spells.ts`（及 `spellLists.ts` 注册职业法术）。
+- **参考模板**：强制参考 `src/data/phb/` 下同类文件结构。
 
-## 三、 代码目录与数据结构构造
-项目的主要数据和逻辑代码存放在 `src` 目录下，其中需要特别注意的是 `src/data` 目录。
-- `src/data/phb/`、`src/data/tce/` 等目录按规则扩展包书籍划分。
-- 各大内容（如背景、种族、职业、专长）分别存放在 `src/data/backgrounds.ts`、`src/data/races.ts`、`src/data/classes.ts`、`src/data/feats.ts` 等根入口文件中。这些入口文件会从各个扩展包子目录里导入具体的数据数组。
-- 如果需要指认现有的职业、背景、和种族数据文件的大致位置与分布，请注意查阅：`src/data/<扩展包名缩写（如phb，xge，tce）>/` 下的 `races.ts`、`classes.ts`、`backgrounds.ts`。（目前大约有 20+ 个扩展包目录，数百条相关数据）。
-- 法术数据：存放于 `spells.ts` 之中。不同源的法术存放在对应的目录下（如 `tce/spells.ts`）。
-  - 添加法术后，如果属于某个特定职业使用，需要在 `src/data/spellLists.ts` 以对应职业（如 `artificer`）的数组中注册法术的 `id`。
-- 职业数据：存放于 `classes.ts`。所有新职业/子职业需要遵循 `types/dnd.ts` 中定义的 `DndClass` 联合结构。
+## 三、 代码实现规范
+- **扩展开关过滤**：获取可用种族列表时，**使用** `import { getAvailableRaces } from '../../utils/raceHelper'`，切勿重写 `map` 过滤逻辑。查询具体种族用 `getRaceByIdAndSource`。
+- **法术自选**：特性要求从职业法术列表选法术时，使用 `choices` 中 `dynamic: "spell"`，配合 `spellType` 和 `spellList: "职业名id"`，**禁止手动列出法术**。
+- **超链接格式**：统一用 Markdown `[名称](https://5e.dickytwister.org/...)`。
+  - 子职业链接：`https://5e.dickytwister.org/classes.html#基础职业中文_资源缩写,state:sub-子职业英文标识-资源缩写=b1`
+  - 子职业英文标识必须严格遵循项目预定义（例如：剑客诗人 `swords`、幽影游侠 `gloom-stalker`、狂野术士 `wild`、星辰德鲁伊 `stars`）。完整列表参见 `src/data/` 中各职业的子职业 ID。
 
-### 主要参考模板：
-新增种族、职业、法术等特性时，**强制参考** `src/data/phb/` 目录下的相关文件结构：
-- `phb` 提供了核心模板。
-- 特性（traits）里面如果附带链接指向维基中的其他地方，请参照以下内部超链接格式。
+## 四、 主题配色与 Tailwind 语义（高阶设计规范与部件字典）
 
-## 三、 超链接与交互机制
-在 `description` 中引入法术、物品等的外部链接时，使用了统一的 `a` 标签超链接系统，以便跳转到维基对应百科位置（基于 `https://5e.dickytwister.org`）：
-- **Markdown 短链接语法**（推荐使用此种）：`[关键词](Url)`
-  - 例如装备：`[工匠工具](https://5e.dickytwister.org/items.html#工匠工具_phb)`
-  - 法术或基础职业：`https://5e.dickytwister.org/classes.html#中文职业名_资源缩写`（例如 `[术士](https://5e.dickytwister.org/classes.html#术士_phb)`，注意使用中文）。
-  - **子职业链接格式**：对于子职业或其特殊表格（如狂野魔法），基础职业名使用中文，需要附加状态参数且子职业名及其缩写需要使用全小写英文：`https://5e.dickytwister.org/classes.html#基础职业中文_资源缩写,state:sub-子职业名英文标识-资源缩写=b1`。
-    - 例如狂野魔法术士（需注意其确切对应的系统标识为 wild）：`[狂野魔法浪涌表](https://5e.dickytwister.org/classes.html#术士_phb,state:sub-wild-phb=b1)`。
-  - **重要原则：子职业的 ID 标识（全英文标识）必须绝对遵循游戏资料与预定义的短写，否则无法正确跳转**：
-    - 术士（Sorcerer）：`storm` (XGE), `aberrant-mind` (TCE), `wild` (PHB - 注意非 wild-magic), `draconic` (PHB), `divine` (XGE), `clockwork-soul` (TCE), `shadow` (XGE)
-    - 奇械师（Artificer）：`alchemist` (TCE), `artillerist` (TCE), `battle-smith` (TCE), `armorer` (TCE)
-    - 野蛮人（Barbarian）：`storm-herald` (XGE), `zealot` (XGE), `wild-magic` (TCE - 注意非 wild), `berserker` (PHB), `totem-warrior` (PHB), `ancestral-guardian` (XGE), `beast` (TCE), `battlerager` (SCAG)
-    - 吟游诗人（Bard）：`creation` (TCE), `whispers` (XGE), `swords` (XGE), `spirits` (VRGR), `glamour` (XGE), `eloquence` (TCE), `lore` (PHB), `valor` (PHB)
-    - 牧师（Cleric）：`arcana` (SCAG), `tempest` (PHB), `forge` (XGE), `grave` (XGE), `light` (PHB), `trickery` (PHB), `peace` (TCE), `twilight` (TCE), `life` (PHB), `death` (DMG), `war` (PHB), `knowledge` (PHB), `order` (TCE), `nature` (PHB)
-    - 德鲁伊（Druid）：`spores` (TCE), `land` (PHB), `dreams` (XGE), `shepherd` (XGE), `stars` (TCE), `wildfire` (TCE), `moon` (PHB)
-    - 战士（Fighter）：`rune-knight` (TCE), `echo-knight` (EGW), `psi-warrior` (TCE), `eldritch-knight` (PHB), `arcane-archer` (XGE), `cavalier` (XGE), `samurai` (XGE), `champion` (PHB), `battle-master` (PHB), `purple-dragon-knight-banneret` (SCAG)
-    - 武僧（Monk）：`shadow` (PHB), `kensei` (XGE), `mercy` (TCE - 注意无需 way- 前缀), `sun-soul` (XGE), `open-hand` (PHB), `four-elements` (PHB), `astral-self` (TCE), `long-death` (SCAG), `drunken-master` (XGE)
-    - 圣武士（Paladin）：`devotion` (PHB - 注意无需 oath- 前缀), `vengeance` (PHB), `redemption` (XGE), `oathbreaker` (DMG), `glory` (TCE), `watchers` (TCE), `crown` (SCAG), `ancients` (PHB), `conquest` (XGE)
-    - 游侠（Ranger）：`monster-slayer` (XGE), `swarmkeeper` (TCE), `horizon-walker` (XGE), `hunter` (PHB), `beast-master` (PHB), `fey-wanderer` (TCE), `gloom-stalker` (XGE)
-    - 游荡者（Rogue）：`mastermind` (XGE), `scout` (XGE), `assassin` (PHB), `swashbuckler` (XGE), `arcane-trickster` (PHB), `phantom` (TCE), `soulknife` (TCE), `thief` (PHB), `inquisitive` (XGE)
-    - 邪术师（Warlock）：`undying` (SCAG), `great-old-one` (PHB), `genie` (TCE), `fathomless` (TCE), `undead` (VRGR), `celestial` (XGE), `fiend` (PHB), `archfey` (PHB), `hexblade` (XGE)
-    - 法师（Wizard）：`transmutation` (PHB - 注意无需 school-of- 前缀), `abjuration` (PHB), `illusion` (PHB), `enchantment` (PHB), `bladesinging` (TCE), `chronurgy` (EGW), `scribes` (TCE), `necromancy` (PHB), `evocation` (PHB), `divination` (PHB), `war` (XGE), `graviturgy` (EGW), `conjuration` (PHB)
-- 你可能会看到早期的 `<a target="_blank" href="..."></a>` 格式。现在统一通过 `React-Markdown` 插件覆盖 `<a/>` 的样式，因此你可以放心地直接使用标准的 Markdown 语法（`[名字](链接)`）来实现超链接。
+系统采用高级的 **「CSS 变量 + Tailwind CSS V4 语义反射」** 架构进行全局动态配色，**严禁硬编码色值**（如自定义 `#333`、`bg-blue-600`等）。
+所有样式均通过 CSS 变量绑定在 `src/index.css` 内，并在 HTML 的 `document.documentElement` 上通过 `data-theme` 属性实现动态切换。
 
-## 四、 后续维护与注意事项
-1. **每次大改动或功能突破时，请顺便更新根目录下的 `README.md`**：记录最新的扩展源支持状态和实现的功能列表。
-2. 尽量拆分模块。新增一个较大规模的数据块时，请遵循单一职责，单独加在对应书籍的文件下。
-3. 如果修改或补充了工具熟练项、法力列表等底层属性，要确定其能被 `hooks` 或是 `CharacterContext` 以及相关步骤组件（如 `ClassStep`, `SpellsStep` 等）捕获和渲染。
+### 1. 核心设计语义与颜色映射表
 
-80. **DMG 非玩家种族处理**：
-    - 源自《地下城主指南》(DMG) 的 NPC 种族及子种族（如僵尸、骷髅、地底侏儒等），必须在对应的 `description` 字段开头添加 `（非玩家种族）\n`。
+通过映射 `--color-stone-XX` 与 `--color-amber-XX` 语义，系统的 Tailwind 预设颜色类直接被转换为当前激活主题的调色板。
 
-81. **法术选择规范**：
-    - 当特性（如子职业能力、种族特性）要求玩家从特定职业法术列表中自选法术或戏法时，**必须使用引用已有列表的写法**，严禁手动列出法术。
-    - 正确写法：在 `choices` 选项中使用 `dynamic: "spell"`, `spellType: "cantrip"` (或 `"spell"`), `spellList: "职业名id"`。参考 `src/data/phb/classes.ts` 中法师的施法特性实现。
+| Tailwind 预制类 | 绑定的 CSS 属性变量 | 对应逻辑部件与页面位置说明 | 用户可见映射与关系 |
+| :--- | :--- | :--- | :--- |
+| `bg-stone-50` | `var(--app-stone-50)` | **次级背景层/步骤辅助背景**：用在不突出的容器区域，如表单侧栏背景、历史卡片详情页、已折叠项。 | 整体界面的第二视觉层级。 |
+| `bg-stone-100` | `var(--app-stone-100)` | **全页主容器底层**：整个页面的基础网页大背景（如 `min-h-screen bg-[#fafaf5]` 或暗底深黑灰）。 | 确定网页整体温婉书卷气或地牢夜间风的最底层。 |
+| `border-stone-200`| `var(--app-stone-200)` | **基准分割线与常规边框**：表格线、折叠标题下划线、主卡片轻度描边。 | 规划界面物理框架关系的关键灰线。 |
+| `text-stone-300` | `var(--app-stone-300)` | **弱化/禁用或默认占位符**：未填属性点时的占位数、未选步骤前的点划连接线、辅助指示器。 | 辅助低对比度边缘视觉。 |
+| `text-stone-400` | `var(--app-stone-400)` | **边缘辅助文本 / 图标修饰**：如“关闭 (✕)”符号颜色、等级Lv勋章底版字、不重要小提示。 | 保证足够阅读差异性的不惹眼说明。 |
+| `text-stone-500` | `var(--app-stone-500)` | **副描述/普通辅助说明**：每项规则源自哪本书的说明、种族特性的简要背景旁白（Italic 字体）。 | 用于非强调部分的正常规则注释。 |
+| `text-stone-600` | `var(--app-stone-600)` | **正文常规墨书字体**：最基本的描述段落字、长篇详细规则描述、熟练技能文本。 | 必须保证最高对比度和高阅读舒适度的核心文字。 |
+| `text-stone-800` | `var(--app-stone-800)` | **加粗文本与小标题**：特性选择项大字、卡片内加粗标注标题、主要标签文字。 | 引导段落呼吸的硬质骨架文本。 |
+| `text-stone-900` | `var(--app-stone-900)` | **最高级页面大标题 / 暗遮罩**：大卡片顶部标题（2xl / 3xl ）、模态框遮罩层最深主黑（用于高对比度）。 | 页面的绝对视觉焦点文字。 |
+| `bg-white` | `var(--app-white)` | **主卡片内胆/漂浮卡纸底**：卡片的主面板背景（如 `bg-white border border-stone-200 shadow-md` 中的白纸卡底板）。 | 即使在深色主题下，该类也可使卡片正确渲染成长夜灰影底。 |
+| `bg-amber-50` | `var(--app-amber-50)` | **微点缀衬色底/气泡高亮背景**：选中某个种族/职业时的金框内胆背景、激活状态标签纸高亮背景。 | 提示“此处已被我点击选中”的高雅色块。 |
+| `border-amber-500`| `var(--app-amber-500)`| **激活态高亮轮廓**：选中的卡片大描边、焦点步骤下方长横线、骰子点数弹跳外圆圈。 | 强烈的行为反馈外壳。 |
+| `bg-amber-600` | `var(--app-amber-600)` | **主操作/召唤动作按钮**：如“开启旅程”、“保存角色”、“筛掷(Roll!)” 按钮底色。 | 促进玩家进行“下一步”点击。 |
+| `hover:bg-amber-700`| `var(--app-amber-700)`| **主操作按钮悬停态**：鼠标指针放置在主动作按钮上的高对比渐变反馈。 | 提升桌面端操作连贯性。 |
+| `text-amber-700` | `var(--app-amber-700)` | **页面链接/强调重点文案**：指向跑团工具站 wiki 的跳转超链接、高亮提示文字（如“选择已满”）。| 提供在正文中打破常规单色系的耀眼标记。 |
 
-## 五、 网页配色与主题规范格式
-为了保证多主题系统的完美兼容，并在增设新组件时保持风格一致，所有的前端部件在赋予颜色时，必须严格遵守 `tailwind.css` 配合 CSS 变量映射的方式。**绝不允许使用写死的绝对颜色值（如 `#333` 或 `bg-[#1a1a1a]`）。**
+---
 
-### 1. 颜色标度与语义映射规范
-系统在 `src/index.css` 中注入了两套核心色板（各自从 50 到 900）。你必须在所有组件的类名选用中复用以下逻辑：
-- **`stone` 色系 (结构与中性色)**：
-  - `bg-stone-50` / `bg-stone-100`：页面大背景、卡片的基础背景。
-  - `bg-stone-200`：次级面板、卡片的边框或深一层背景。
-  - `text-stone-900`：页面内的标准高对比度主文本（标题、重要正文）。
-  - `text-stone-700`：页面内的次优辅助文本。
-  - `text-stone-500` 或 `text-stone-400`：说明性质或禁用、弱化的极小辅助说明。
-  - `border-stone-200` 或 `border-stone-300`：常用的部件边框。
-- **`amber` 色系 (品牌、强调、交互与特殊视效色)**：
-  - `text-amber-600`：主要的可交互链接、强力标题的点缀。
-  - `bg-amber-600`：主操作按钮（Primary Button）的基础底色（搭配 `text-white`，如果是极浅主题可能搭配更深文本）。
-  - `bg-amber-50` 或 `bg-amber-100`：用于卡片内的醒目提示高亮（Callout 背景）或次级可点击区域。
-  - `border-amber-400` 或 `border-amber-300`：用于高亮激活状态的容器边框（如选中的专长或种族）。
+### 2. 网页具体部件对应关系及层级架构 (Widget Dictionary)
 
-### 2. 深色模式区分度
-开发新增或调整深色主题时，务必保持视觉区分度。不要无脑套用纯黑色（`#000000`），应当根据设定的环境采用如深青灰、深沉紫、暮光蓝或墨影灰等丰富多彩的弱光底色，以彰显每个主题的独特地理沉浸感。
+以下针对页面核心组件，标明其对应的功能部件位置、变量渲染模式以及相互交互关系：
+
+#### 🎨 部件 A: 网页顶部主导航栏（Header / Deco-Navbar）
+*   **具体位置**：首页面最顶部栏（`LandingPage.tsx` 中的 `<nav>`，id: `landing-navbar`）。
+*   **渲染关系**：调用 `getNavbarStyles()`，该函数为全部 **16 种主题** 分别注入定制化对象（`nav`, `logoText`, `logoIcon`, `menuText`, `divider`, `itemHover`, `dropdownBg`, `dropdownText`, `mobileLinkText`, `mobileBorder`, `mobileAccordionBg`, `mobileSubText`, `iconColor`）。
+*   **核心关联**：在暗底、绿底、紫底、海蓝底等非传统亮白主题中，它会转换成对应的神秘深黑、丛林绿、星界蓝；不因全局 `bg-stone-50` 的变化而影响标题字、链接按钮的极限辨识。
+
+#### 📜 部件 B: 创建主导向卡片组 (Wizard Steps & Cards)
+*   **具体位置**：创建角色流程中的各类属性、种族选择方片（`src/components/steps/*`），包括 `OriginStep.tsx`、`ClassStep.tsx`、`BackgroundStep.tsx` 等。
+*   **渲染关系**：
+    *   **未选中状态卡片**：`bg-stone-50/40 border-stone-200 hover:border-amber-300 text-stone-600 hover:text-stone-800 hover:bg-stone-50 transition`。极高可读。
+    *   **已激活状态卡片**：`bg-amber-50/50 border-amber-500 shadow-md text-stone-900 border-2`。会有明亮的边框和更融洽的高亮底衬色。
+*   **核心关联**：不要使用硬编码的 `bg-yellow`，否则会在精灵高丽绿、九域炼狱黑主题中显得极其突兀。
+
+#### 📊 部件 C: 属性购点/检定调整器 (Point-Buy Sheet Tools)
+*   **具体位置**：在创建角色的第四步“属性”（`AbilitiesStep.tsx`）及 toolbox 的属性微调面板（`AbilityGeneratorTool.tsx`）。
+*   **渲染关系**：
+    *   **购点底板**：`bg-stone-50/50 border border-stone-200`
+    *   **调整器加减控钮 (- / +)**：`bg-stone-100 hover:bg-stone-200 text-stone-700 border-stone-200`
+    *   **属性总分提示圆环**：`bg-amber-50 border border-amber-300 text-amber-800`
+*   **核心关联**：在所有配色的重构中，确保减法数字不能因为变成高亮深色而在深褐色背景下看不懂。因此，深褐色矮人/狂暴龙裔中，使用不发暗的中深度岩褐色底座及白灰字配合。
+
+####  部件 D: 对话模态框与遮罩层 (Modals & Backdrop Overlays)
+*   **具体位置**：网页内弹出的设置框、扩展源配置框、骰子掷骰面板，如 `ThemeSettingsModal.tsx`，`ExpansionsModal.tsx` 等。
+*   **渲染关系**：
+    *   **透明大网罩 bg-stone-950/45**：遮盖底层网页交互的不惹眼幕布。
+    *   **模态内容背景层 `bg-white` (或主题反射款) 搭配阴影 shadow-xl**：呈现一个凸显在最前方的规则悬浮卡纸。
+    *   **关闭小叉字 `text-stone-400 hover:text-stone-600`**：辅助性操作按钮，点击即刻回弹。
+
+---
+
+### 3. 主题的三大分类规范 (Light, Dark & Neutral Classification)
+
+为了让页面排版在各种主题下都具有完美的对比度、护眼性与扮演美感，系统将 16 套经典主题按背景反射和明暗对比分为三大类：
+
+1. **浅色主题 (Light Themes)**：
+   - *特点*：背景面板为极浅的暖白、牙米、清绿或纸白色，文字为墨黑或深暗褐色。具有极佳的清晰度和书香感。
+   - *成员*：
+     - `dndmanual` (📕 龙与地下城手册)
+     - `parchment` (📜 人类：兼爱羊皮纸)
+     - `fiveetools` (🔵 5etools 钴蓝排版)
+     - `highforest` (🏹 精灵：高深绿野) *高洁晨风清亮绿*
+     - `shadowfell` (💀 堕影冥界：暗影无声) *冷冽清冷白灰地底，高对比碳黑字*
+
+2. **深色主题 (Dark Themes)**：
+   - *特点*：大背景为曜石黑、深邃极黑、星夜深蓝等高反差低亮度色彩。为保证文字高清阅读，使用对应主题极具发光霓虹感的炫彩亮色（粉紫荧光、星海恒光、克眼荧绿等）。
+   - *成员*：
+     - `dark` (👤 标准夜间深灰色)
+     - `underdark` (🔮 卓尔：荧光深邃)
+     - `avernus` (🔥 提夫林：九域惩击)
+     - `astral` (🌌 星界星海：太虚天盘)
+     - `feywild` (🌸 妖精荒野：幻境花海)
+     - `cocgreen` (🐙 邪神太古虚空墨绿)
+     - `waterdeep` (🏰 深水城：蔚蓝金冕)
+
+3. **中性色/过渡区主题 (Neutral Themes)**：
+   - *特点*：介于明暗之间的中低明度、低饱和色温过渡主题。选用不突兀的森林嫩绿、远洋灰青蓝、火山石烧制石、机工黄铜齿轮金，实现无刺激、无眼部高度紧张的舒适写实式视觉。
+   - *成员*
+     - `candlekeep` (🕯️ 烛堡：静谧繁花)
+     - `swordcoast` (⚓ 剑湾：蓝墨古卷)
+     - `gnome` (⚙️ 侏儒：日曜旅程)
+     - `dragonborn` (🪙 龙裔：火山岩浆)
+     - `dwarf` (⛏️ 矮人：巨石熔炉)
+
+---
+
+### 4. 全部 16 套经典主题的设计内核与配色哲学
+
+当您在进行配色方案后续迭代开发时，请务必贯彻各主题的背景定位与扮演意境。不要把这些颜色看作随意的 HEX 值，它们是 DnD 奇幻世界的灵魂映射：
+
+#### 🛑 **系列一：D&D 经典规则书、工具站与跑团联动彩蛋**
+1.  **`dndmanual` (📕 龙与地下城手册)**：
+    *   *意图*：还原 5e 官方规则书羊皮纸墨香质感。
+    *   *逻辑*：暖和略带陈旧的象牙米黄纸面底（`#fafaf5`），配合深邃大气的威严龙火酒红色（`#7e0c0d`）作为首要标题高亮和交互，透露复古经典的奇幻之美。
+2.  **`fiveetools` (🔵 5etools 钴蓝排版)**：
+    *   *意图*：致敬经典双栏 5etools 规则检索站排版逻辑。
+    *   *逻辑*：纯白和柔和象牙底衬，搭配极具标志性的明亮钴蓝色大标题（`#005e9c`）和冷灰色侧边辅助栏。
+3.  **`cocgreen` (🐙 克苏鲁召唤 - 邪神虚空墨绿)**：
+    *   *意图*：幽暗沉寂的旧日支配者太古手抄本，极度暗色高对比神秘护眼风格。
+    *   *逻辑*：深海无底的克苏鲁太虚墨绿底板（`#040c09`），浮动闪亮怪异的不可名状荧光绿（`#00ff88`）外缘和代表神秘气流的发狂秘法深紫。采用极亮和高显的古金羊皮纸字（`#fcdd93`）以保证在绝对暗夜底层下，中文大段字读起来极为舒服和不累眼。
+
+#### 🌍 **系列二：奇幻大洲与经典平行世界风貌**
+4.  **`candlekeep` (🕯️ 烛堡：静谧繁花)**：
+    *   *意图*：烛堡图书馆环抱的静雅森林之光，绿意盎然、春风怡人的中色调，极为护眼。
+    *   *逻辑*：淡雅的石灰色书院底板，森林常绿松针绿作为全局主体（`#142d1f`），点缀着不高饱和、带有一丝书卷朝露感的蔷薇淡灰粉（`#bf6b77`），如繁花自森林落叶中隐显。
+5.  **`swordcoast` (⚓ 剑湾：蓝墨古卷)**：
+    *   *意图*：未开拓大陆的海图、古旧墨水画笔，体现大航海冒险地图色彩。
+    *   *逻辑*：带有褪色纸灰的海浪蓝灰，航海图独有的海港羊皮墨绿蓝（`#183038`）交互色。
+6.  **`waterdeep` (🏰 深水城：蔚蓝金冕)**：
+    *   *意图*：深水城宏大的皇家海港海风蔚蓝，与富庶王都金币与皇冠上的永恒金黄璀璨碰撞。
+    *   *逻辑*：大气的深港蓝底盘（`#0d276b`）以及金碧辉煌的澄黄皇冠金（`#df8d03`）点缀高亮。
+7.  **`shadowfell` (💀 堕影冥界：暗影无声)**：
+    *   *意图*：永恒寂静、太阴遮护的阴冷剪影风格，寂灭穿雾，清冷幽静。
+    *   *逻辑*：采用类似《Limbo》在迷雾边缘的光影倒转排版。利用大雾中性白灰（`#e6e6ed`）为底卡，冷峻、孤傲的碳墨碑刻字（`#4c4c60`）在上勾勒，辅以中性极低饱和的寂冷紫灰（`#848496`）高亮，呈现最安宁的空无状态。
+8.  **`feywild` (🌸 妖精荒野：幻境花海)**：
+    *   *意图*：带有霓虹微光的妖精魔力原野、星尘薰衣草。
+    *   *逻辑*：紫罗精草的高贵幽美粉红（`#be185d`）和迷失夜空的高压深魅黑紫（`#1d0e1f`）。
+9.  **`astral` (🌌 星界星海：太虚天盘)**：
+    *   *意图*：浩瀚无垠的星盘轨迹，璀璨星海太虚。
+    *   *逻辑*：深海玄晶黑钢底，太虚耀眼星折射白（`#E6EBF0`）以及闪着群星极光的荧紫璀璨亮蓝。
+
+#### 👥 **系列三：D&D 种族血统与先民记忆**
+10. **`parchment` (📜 人类：兼爱羊皮纸)**：
+    *   *意图*：兼通六艺的短寿人型族，历史古卷的温润人文学者手卷。
+    *   *逻辑*：完全无害的温润羊皮底（`#fdfaf5`）与古旧红斑深褐朱砂赤墨（`#8b1a1a`）。
+11. **`highforest` (🏹 精灵：高深绿野)**：
+    *   *意图*：高深林野、翠叶嫩绿，轻灵越动。
+    *   *逻辑*：温润、饱含林木朝露的翠梢松绿和嫩苔绿，绝非喧夺刺目的亮黄色，表现木精灵般的敏捷与典雅。
+12. **`dwarf` (⛏️ 矮人：巨石熔炉)**：
+    *   *意图*：巨石之城坚实的铸锻工艺，花岗岩下的铁与熔融古铜。
+    *   *逻辑*：坦褐的粗粝泥金（`#b5a596`），带有熔岩余烬、赤铁矿石般稳重威严的熔炉金屑褐（`#a74b12`）。
+13. **`avernus` (🔥 提夫林：九域惩击)**：
+    *   *意图*：地狱烈焰熔岩爆闪，余烬灰烬冷却后极高对比度的爆裂。
+    *   *逻辑*：绝冥的岩灰黑，衬托焦灼爆裂中不灭的阿弗纳斯九狱炙橙色（`#DB4315`）。
+14. **`gnome` (⚙️ 侏儒：日曜旅程)**：
+    *   *意图*：活泼爱捣腾的的工程日晷机械。
+    *   *逻辑*：带有日晷抛光的闪金色（`#DFB746`）配合古老齿轮微黄铜。
+15. **`dragonborn` (🪙 龙裔：火山岩浆)**：
+    *   *意图*：龙裔威严、霸道的龙火吐息，中色温、大能量。
+    *   *逻辑*：黏土烧制火山岩板底座（`#dec7bc`），呼啸赤红的不发暗龙血赤红（`#bf1d1d`）。
+16. **`underdark` (🔮 卓尔：荧光深邃)**：
+    *   *意图*：地底最深处的黑曜石宫殿，幽暗发亮。
+    *   *逻辑*：暗紫石英宫底（`#1F1B2E`）配上闪瞎全场的地底荧光霓虹浅紫莹（`#D946EF`）光圈。
+
+---
+
+## 五、 其他注意事项
+- 每次大改动请更新 `README.md`，记录新增扩展源与功能。
+- 修改熟练项、法术列表等底层属性时，确保 `hooks`、`CharacterContext` 及相关步骤组件能正常捕获。
+- 若需引用内部表格或复杂列表，使用超链接，不内嵌。
+
+---
+
+## 六、 项目文件结构与功能设计图 (Project Directory Structure & Feature Map)
+
+本系统采用高内聚、扁平且模块分明的 React (Vite) + Tailwind 经典奇幻 Wiki 架构。以下为全部核心文件夹、文件及对应职责说明：
+
+| 目录与具体代码文件路径 | 核心挂载组件 / 功能标识 | 文件主要职责与对应关系说明 |
+| :--- | :--- | :--- |
+| **`src/types/dnd.ts`** | 全局类型定义核心 | 承载角色（`Character`）、种族（`Race`）、职业（`Class`）、背景（`Background`）、法术（`Spell`）、可选扩展包、以及状态流转 Reducer Action 基础类型。 |
+| **`src/context/CharacterContext.tsx`** | 全局状态引擎 | 使用 React Context 与 `useReducer` 驱动。控制整个创建流程的状态流、数据的持久加载（localStorage）、历史卡片管理以及状态动作派发。 |
+| **`src/components/LandingPage.tsx`** | 首页与生命周期 | 系统大入口，包含角色库列表、主题高悬配置项加载、删除盖板、侧边栏工具箱悬挂，以及通过 `getNavbarStyles()` 动态为十六套主题返回 navbar 配色。 |
+| **`src/components/WizardLayout.tsx`** | 创建向导壳体 | 统一的角色创建七步法导向布局容器，协调上下步交互（上一步、继续、完成保存），并动态切换各 Step 的激活样式。 |
+| **`src/components/CharacterSummary.tsx`**| 实时审查面板 | 右侧/底部固定挂圈的实时角色构建卡，随属性点消耗、种族选择及法术更动进行多维度数值属性加值、血量换算、熟练度即时渲染。 |
+| **`src/components/CharacterSheet.tsx`** | 电子角色卡渲染 | 创建完毕后，渲染一份极其硬核、优雅的纸质风格电子角色卡，支持打印和导出。 |
+| **`src/components/steps/`** | **「向导核心构建步骤」** | **具体开发步骤挂载位置**： |
+| ├─ `OriginStep.tsx` | 步骤一：种族血统 | 提供种族及子种族挑选，联动数据源扩展开关进行显示。 |
+| ├─ `ClassStep.tsx` | 步骤二：职业等级 | 包含职业、子职业、等级滑杆（已实现主题变量绑定高对比）及特性预览。 |
+| ├─ `BackgroundStep.tsx`| 步骤三：先民背景 | 配置背景、选择技能熟练项和自定义背景描述。 |
+| ├─ `AbilitiesStep.tsx` | 步骤四：属性购点 | 手动加点或预设阵列购点系统，高度对应 CSS 主题颜色变量体系。 |
+| ├─ `SpellsStep.tsx` | 步骤五：法术环阶 | 检测对应法术职业（如法师、牧师）动态提供可用法术、戏法卡选取。 |
+| ├─ `DetailsStep.tsx` | 步骤六：肖像插画 | 玩家角色名称、阵营设置、内置了**支持裁剪、缩放的玩家卡片头像上传与裁切器**（`ImageUploadWithCrop`）。 |
+| ├─ `ReviewStep.tsx` | 步骤七：终极大纲 | 角色总结总览。 |
+| **`src/components/modals/`** | **「高悬浮功能弹窗组件」** | **悬浮框部件挂载位置**： |
+| ├─ `ThemeSettingsModal.tsx`| 🎨 主题配色弹窗 | 展现 16 套主题选项并持久化对应。已精炼简化全部主题文字描述。 |
+| ├─ `ExpansionsModal.tsx` | 📚 扩展源开关弹窗 | 可控 phb、xge、tce、vgm、mtf、scag 等官方书扩展包联动检索。 |
+| ├─ `XgeStepSettingsModal.tsx`| 🎲 经历生成设置弹窗| 协调和精调《珊娜萨的万事指南》人生轨迹骰表细节。 |
+| **`src/components/tools/`** | **「快速跑团与工具箱面板」**| **悬浮辅助窗与跑团辅助器**（联动下拉菜单快速打开）： |
+| ├─ `QuickDiceRoller.tsx` | 🎲 快捷骰子掷骰 | 支持 1d4, 1d6, 1d8, 1d10, 1d12, 1d20, 1d100 弹窗掷骰，带物理动画。 |
+| ├─ `AppearancePersonalityGenerator.tsx`| 👤 外貌性格骰表 | 帮助跑团直接生成具有个性的外貌、瑕疵、怪癖描述。 |
+| ├─ `AbilityGeneratorTool.tsx`| 📊 属性生成面板 | 快速进行 3d6、4d20 或点数生成计算。 |
+| ├─ `EncounterCalculator.tsx`| ⚔️ 遭遇难度换算器| 多玩家、怪物的 CR 与挑战等级算法遭遇。 |
+| ├─ `PartyGenerator.tsx` | 👥 小队快速生成器 | 自动组建一队包含各种初始配比、职业、种族名称的完美玩家小队。 |
+| ├─ `XgeModal.tsx` | 📜 珊娜萨人生履历袋 | 全自动根据 XGE 设定规则掷出角色的生平事件、父母状况、意外财富及罪行，一键载入详情。 |
+| **`src/utils/`** | **「核心纯函数算法」** | **通用与辅助计算：** |
+| ├─ `raceHelper.ts` | 种族多扩展提取 | 过滤或查询可用种族，严禁手动直接 `map` 绕过扩展开关。 |
+| ├─ `expansionHelper.ts` | 扩展包标志计算 | 提供多本书的数据融合开关判定。 |
+| ├─ `proficiencies.ts` | 熟练加值与技能 | 计算熟练加值、语言加值和基础防具、武器。 |
+| ├─ `xgeLifeGenerator.ts` | 珊娜萨人生流计算 | 人生经历、童年背景、悲欢离合生成算法骰子引擎。 |
+| ├─ `customRollTraits.ts` | 自定义快捷摇骰库 | 控制性格、姓名、跑团初始奖励特征的随机。 |
+
+--- 
+*本指南由 AI 助手在 2026年5月27日 彻底整理并合并补全，所有开发规范与16套经典配色设计内核均完整保留。*

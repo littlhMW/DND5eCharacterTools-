@@ -2,6 +2,7 @@ import React from 'react';
 import { useCharacter } from '../../context/CharacterContext';
 import { races } from '../../data/races';
 import { isSourceEnabled } from '../../utils/expansionHelper';
+import { getAvailableRaces } from '../../utils/raceHelper';
 import { DictyTwisterLink } from '../DictyTwisterLink';
 import { TraitSelection } from '../shared/TraitSelection';
 
@@ -10,25 +11,10 @@ export function OriginStep() {
   
   const [viewedSources, setViewedSources] = React.useState<Record<string, string>>({});
 
-  const availableRaces = races.map(r => {
-    const validAlts = r.alternatives?.filter(alt => isSourceEnabled(alt.source || 'phb', 'races'));
-    if (!validAlts || validAlts.length === 0) {
-      if (!isSourceEnabled(r.source || 'phb', 'races')) return null;
-      return { ...r, subraces: r.subraces?.filter(sr => isSourceEnabled(sr.source || r.source || 'phb', 'races')) };
-    }
-    
-    let activeSource = viewedSources[r.id];
-    if (!activeSource) {
-      activeSource = state.character.raceId === r.id && state.character.raceSource ? state.character.raceSource : validAlts[validAlts.length - 1].source;
-    }
-    
-    const matched = validAlts.find(a => a.source === activeSource) || validAlts[validAlts.length - 1];
-    return {
-      ...matched,
-      subraces: r.subraces?.filter(sr => isSourceEnabled(sr.source || matched.source || 'phb', 'races')),
-      alternatives: validAlts
-    };
-  }).filter(Boolean);
+  const availableRaces = getAvailableRaces({
+    ...(state.character.raceSource && { [state.character.raceId]: state.character.raceSource }),
+    ...viewedSources
+  });
 
   const selectedRace = availableRaces.find(r => r.id === state.character.raceId);
   const selectedSubrace = selectedRace?.subraces?.find(sr => sr.id === state.character.subraceId);
@@ -115,7 +101,7 @@ export function OriginStep() {
       </section>
 
       {/* Subrace Section */}
-      {selectedRace && selectedRace.subraces && selectedRace.subraces.length > 0 && (
+      {selectedRace && selectedRace.subraces && selectedRace.subraces.length > 1 && (
         <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <h2 className="text-2xl font-serif text-amber-600 border-b border-stone-200 pb-3 mb-6">2. 子种族</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

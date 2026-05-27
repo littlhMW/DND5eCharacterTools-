@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCharacter } from '../context/CharacterContext';
-import { Book, Shield, Scroll, Swords, Github, ExternalLink, Info, Wand2, User, Settings, Menu, X } from 'lucide-react';
+import { Book, Shield, Scroll, Swords, Github, ExternalLink, Info, Wand2, User, Settings, Menu, X, Palette } from 'lucide-react';
 import { motion } from 'motion/react';
 import { classes } from '../data/classes';
 import { races, getRaceByIdAndSource } from '../data/races';
@@ -10,11 +10,21 @@ import { EXPANSIONS, getActiveExpansions, saveActiveExpansions, ExpansionBook, g
 import { generateXgeBackstory } from '../utils/xgeLifeGenerator';
 import { EncounterCalculator } from './tools/EncounterCalculator';
 import { PartyGenerator } from './tools/PartyGenerator';
-import { AppearancePersonalityGenerator } from './tools/AppearancePersonalityGenerator';
+import { AppearancePersonalityGenerator, RACES_MAPPING, getBestRaceAssetsKey, UNIVERSAL_APPEARANCE_FEATURES, PURE_MASKED_APPEARANCES, EXTRA_PERSON_TRAITS, EXTRA_QUIRKS, LAW_CHAOS_AXIS, GOOD_EVIL_AXIS } from './tools/AppearancePersonalityGenerator';
 import { NameGeneratorModal } from './tools/NameGeneratorModal';
+import { QuickDiceRoller } from './tools/QuickDiceRoller';
 import { generateRandomName } from '../utils/nameGenerator';
 import { PartyNameGeneratorModal } from './tools/PartyNameGeneratorModal';
 import { AbilityGeneratorTool } from './tools/AbilityGeneratorTool';
+import { ExpansionsModal } from './modals/ExpansionsModal';
+import { AiConfigModal } from './modals/AiConfigModal';
+import { ThemeSettingsModal } from './modals/ThemeSettingsModal';
+import { XgeStepSettingsModal } from './modals/XgeStepSettingsModal';
+import { XgeModal } from './tools/XgeModal';
+import { TitleGeneratorModal } from './tools/TitleGeneratorModal';
+import { generateTitle } from '../utils/titleGenerator';
+
+import { getAvailableRaces } from '../utils/raceHelper';
 
 export function LandingPage() {
   const { dispatch } = useCharacter();
@@ -33,6 +43,7 @@ export function LandingPage() {
   
   // Independent tool states for toolbox list dropdown & modals
   const [toolboxOpen, setToolboxOpen] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(false);
   const [openDiceModal, setOpenDiceModal] = useState(false);
   const [openPointBuyModal, setOpenPointBuyModal] = useState(false);
   const [openAiModal, setOpenAiModal] = useState(false);
@@ -43,13 +54,86 @@ export function LandingPage() {
   const [openNameModal, setOpenNameModal] = useState(false);
   const [openDetailGenModal, setOpenDetailGenModal] = useState(false);
   const [openPartyNameModal, setOpenPartyNameModal] = useState(false);
+  const [openTitleModal, setOpenTitleModal] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [openThemeModal, setOpenThemeModal] = useState(false);
   const [openXgeStepSettingsModal, setOpenXgeStepSettingsModal] = useState(false);
-  const [xgeEnabledInDetails, setXgeEnabledInDetails] = useState(() => localStorage.getItem('xgeEnabledInDetails') === 'true');
-  const [xgeUseExpandedInDetails, setXgeUseExpandedInDetails] = useState(() => localStorage.getItem('xgeUseExpandedInDetails') === 'true');
-  const [xgeUseNonPhbInDetails, setXgeUseNonPhbInDetails] = useState(() => localStorage.getItem('xgeUseNonPhbInDetails') !== 'false');
+  const [xgeEnabledInDetails, setXgeEnabledInDetails] = useState(() => {
+    const val = localStorage.getItem('xgeEnabledInDetails');
+    if (val === null) {
+      localStorage.setItem('xgeEnabledInDetails', 'true');
+      return true;
+    }
+    return val === 'true';
+  });
+  const [useExpandedXge, setUseExpandedXge] = useState(() => localStorage.getItem('useExpandedXge') === 'true');
+  const [useNonPhbSupportXge, setUseNonPhbSupportXge] = useState(() => localStorage.getItem('useNonPhbSupportXge') === 'true');
+  const [appGenEnabledInRandom, setAppGenEnabledInRandom] = useState(() => localStorage.getItem('appGenEnabledInRandom') !== 'false');
+  const [nameGenEnabledInRandom, setNameGenEnabledInRandom] = useState(() => localStorage.getItem('nameGenEnabledInRandom') !== 'false');
+  const [titleEnabledInRandom, setTitleEnabledInRandom] = useState(() => localStorage.getItem('titleEnabledInRandom') !== 'false');
+  const [showTitleOnSheet, setShowTitleOnSheet] = useState(() => localStorage.getItem('showTitleOnSheet') !== 'false');
+  const [showXpOnSheet, setShowXpOnSheet] = useState(() => localStorage.getItem('showXpOnSheet') !== 'false');
+  const [appGenEnabledInDetails, setAppGenEnabledInDetails] = useState(() => localStorage.getItem('appGenEnabledInDetails') !== 'false');
+  const [nameGenEnabledInTools, setNameGenEnabledInTools] = useState(() => localStorage.getItem('nameGenEnabledInTools') !== 'false');
+  
+  // Decoupled detailed states
+  const [traitGenEnabledInDetails, setTraitGenEnabledInDetails] = useState(() => localStorage.getItem('traitGenEnabledInDetails') !== 'false');
+  const [titleGenEnabledInDetails, setTitleGenEnabledInDetails] = useState(() => localStorage.getItem('titleGenEnabledInDetails') !== 'false');
+  const [partyNameGenEnabled, setPartyNameGenEnabled] = useState(() => localStorage.getItem('partyNameGenEnabled') !== 'false');
+  const [partyAppGenEnabled, setPartyAppGenEnabled] = useState(() => localStorage.getItem('partyAppGenEnabled') !== 'false');
+  const [partyTitleGenEnabled, setPartyTitleGenEnabled] = useState(() => localStorage.getItem('partyTitleGenEnabled') === 'true');
   const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem('dndTheme') || 'dndmanual');
+
+  const getThemeName = (themeId: string) => {
+    const names: Record<string, string> = {
+      dndmanual: '龙与地下城手册',
+      candlekeep: '烛堡：静谧繁花',
+      swordcoast: '剑湾：蓝墨古卷',
+      waterdeep: '深水城：蔚蓝金冕',
+      shadowfell: '堕影冥界：暗影无声',
+      feywild: '妖精荒野：幻境花海',
+      astral: '星界星海：太虚天盘',
+      parchment: '人类：兼爱羊皮纸',
+      highforest: '精灵：高深绿野',
+      dwarf: '矮人：巨石熔炉',
+      avernus: '提夫林：九域惩击',
+      gnome: '侏儒：日曜旅程',
+      dragonborn: '龙裔：火山岩浆',
+      underdark: '卓尔：荧光深邃',
+      golddragon: '金龙：崇高耀金',
+      halfling: '半身人：南瓜与清茶',
+      orc: '兽人：战狂绿血',
+      underdark_shroom: '幽暗地域：迷幻巨蕈',
+      icewind: '冰风谷的孤木林',
+      sigil: '环印城：石头与奥秘',
+      baldursgate: '博德之门：暮色降临',
+      neverwinter: '无冬城：冰雪与坚石',
+      mistyvale: '迷雾谷地：森冷木棕',
+      fiveetools: '5etools 钴蓝排版',
+      cocgreen: '克苏鲁邪神墨绿'
+    };
+    return names[themeId] || themeId;
+  };
+
+  const selectRandomTheme = () => {
+    const themeIds = [
+      'dndmanual', 'candlekeep', 'swordcoast', 'waterdeep', 'shadowfell', 'feywild',
+      'astral', 'parchment', 'highforest', 'dwarf', 'avernus', 'gnome',
+      'dragonborn', 'underdark', 'golddragon', 'halfling', 'orc', 'underdark_shroom', 'icewind', 'sigil', 'baldursgate', 'neverwinter', 'mistyvale', 'fiveetools', 'cocgreen'
+    ];
+    const options = themeIds.filter(id => id !== currentTheme);
+    const randomTheme = options[Math.floor(Math.random() * options.length)];
+    setCurrentTheme(randomTheme);
+    localStorage.setItem('dndTheme', randomTheme);
+    document.documentElement.setAttribute('data-theme', randomTheme);
+    
+    setToastText(`已随机切换配色方案！当前为：${getThemeName(randomTheme)}`);
+    setShowToast(true);
+    setTimeout(() => {
+      setShowToast(false);
+    }, 2500);
+  };
+
   const [activeExpansions, setActiveExpansions] = useState<string[]>(() => getActiveExpansions());
   const [expansionSettings, setExpansionSettings] = useState<Record<string, BookSettings>>(() => getExpansionSettings());
   const [xgePreviewBg, setXgePreviewBg] = useState('');
@@ -58,14 +142,12 @@ export function LandingPage() {
   const [xgePreviewChaMod, setXgePreviewChaMod] = useState<number | ''>('');
   const [xgePreviewText, setXgePreviewText] = useState('');
 
-  const [diceLog, setDiceLog] = useState<{ time: string, result: string }[]>([]);
-
   const TOOLBOX_ITEMS = [
     {
       id: 'dice',
       icon: '🎲',
-      title: '快速骰子掷器',
-      desc: '模拟 D20, D8 等各种骰子掷点',
+      title: '快速掷骰',
+      desc: '支持d4-d100及自定义组合',
       onClick: () => setOpenDiceModal(true)
     },
     {
@@ -116,6 +198,13 @@ export function LandingPage() {
       title: '小队名字生成',
       desc: '根据词库生成冒险队伍名字',
       onClick: () => setOpenPartyNameModal(true)
+    },
+    {
+      id: 'title-gen',
+      icon: '🎖️',
+      title: '冒险者称号生成',
+      desc: '生成极具跑团代入感的专属称号',
+      onClick: () => setOpenTitleModal(true)
     }
   ];
 
@@ -170,16 +259,6 @@ export function LandingPage() {
     } catch (e: any) {
       setExpMsg({ type: 'error', text: `❌ 导入失败：${e.message || '无效 JSON'}` });
     }
-  };
-
-  const handleRollDice = (sides: number) => {
-    const roll = Math.floor(Math.random() * sides) + 1;
-    const now = new Date();
-    const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-    setDiceLog((prev) => [
-      { time: timeStr, result: ` 投骰 d${sides}: 🎲 结果 [ ${roll} ]` },
-      ...prev
-    ].slice(0, 15));
   };
 
   const handleBookMasterToggle = (expId: string, checked: boolean) => {
@@ -266,65 +345,411 @@ export function LandingPage() {
     }
   };
 
+  const getCharacterCardStyles = (themeId: string) => {
+    switch (themeId) {
+      case 'swordcoast':
+        return {
+          card: "bg-[#2d2218] border-[#4a3424] hover:border-[#ffd499] text-[#f9f2e5] shadow-md",
+          title: "text-[#ffd499] font-serif font-bold",
+          metaText: "text-[#d6c9ba]",
+          levelBadge: "bg-[#3e2e21] text-[#ffd499]",
+          button: "bg-[#7c4d2d] hover:bg-[#915b37] text-white"
+        };
+      case 'cocgreen':
+        return {
+          card: "bg-[#0c1813] border-[#00ff88]/35 hover:border-[#00ff88] text-[#fcdd93] shadow-md",
+          title: "text-[#00ff88] font-serif font-bold",
+          metaText: "text-[#fcdd93]/70",
+          levelBadge: "bg-[#254a3c]/35 text-[#00ff88]",
+          button: "bg-[#00ff88]/80 hover:bg-[#00ff88] text-[#07120e] font-bold"
+        };
+      case 'dark':
+        return {
+          card: "bg-[#161922] border-stone-700/80 hover:border-amber-450 text-stone-100 shadow-md",
+          title: "text-white font-serif font-bold",
+          metaText: "text-[#ced3df]",
+          levelBadge: "bg-[#252a3a] text-amber-500",
+          button: "bg-amber-600 hover:bg-amber-700 text-white font-semibold"
+        };
+      case 'shadowfell':
+        return {
+          card: "bg-[#efeff5] border-[#b3b3cb] hover:border-[#5c5c7d] text-[#0a0a12] shadow-md",
+          title: "text-[#0a0a12] font-serif font-bold",
+          metaText: "text-[#5c5c7d]",
+          levelBadge: "bg-[#dcdce6] text-[#3a3a52]",
+          button: "bg-[#5c5c7d] hover:bg-[#3a3a52] text-white"
+        };
+      case 'underdark':
+        return {
+          card: "bg-[#130E20] border-[#3D3554] hover:border-[#D946EF] text-[#F4EEFF] shadow-md",
+          title: "text-[#F4EEFF] font-serif font-bold",
+          metaText: "text-[#A497C6]",
+          levelBadge: "bg-[#2E2841] text-[#D946EF]",
+          button: "bg-[#9D32AF] hover:bg-[#BB3CCF] text-white"
+        };
+      case 'avernus':
+        return {
+          card: "bg-[#1a0f15] border-[#38232e] hover:border-[#ff3d71] text-[#f0e2ea] shadow-md",
+          title: "text-[#ff7da7] font-serif font-bold",
+          metaText: "text-[#cca9bc]",
+          levelBadge: "bg-[#330a21] text-[#ff3d71]",
+          button: "bg-[#ff3d71] hover:bg-[#ff5e97] text-white"
+        };
+      case 'astral':
+        return {
+          card: "bg-[#0a0714] border-[#2c2354] hover:border-[#bf5bfa] text-[#ccc4fa] shadow-md",
+          title: "text-[#db9eff] font-serif font-bold",
+          metaText: "text-[#9c8df2]",
+          levelBadge: "bg-[#1c0d3a] text-[#bf5bfa]",
+          button: "bg-[#5c2ba6] hover:bg-[#aa40e6] text-[#faf5ff]"
+        };
+      case 'dwarf':
+        return {
+          card: "bg-[#1d1612] border-[#3d3229] hover:border-[#d35400] text-[#e6ded8] shadow-md",
+          title: "text-[#ffb780] font-serif font-bold",
+          metaText: "text-[#cbbcb0]",
+          levelBadge: "bg-[#3d3229] text-[#d35400]",
+          button: "bg-[#d35400] hover:bg-[#e35a16] text-white"
+        };
+      case 'dragonborn':
+        return {
+          card: "bg-[#2a0405] border-[#4a0f0e] hover:border-[#ff4444] text-[#fbbfbf] shadow-md",
+          title: "text-[#ffeacc] font-serif font-bold",
+          metaText: "text-[#fbbfbf]",
+          levelBadge: "bg-[#4a0f0e] text-[#ff4444]",
+          button: "bg-[#ff4444] hover:bg-[#e65100] text-white"
+        };
+      case 'candlekeep':
+        return {
+          card: "bg-[#edf0e2] border-[#dae2cb] hover:border-[#ff3c63] text-stone-900 shadow-sm",
+          title: "text-stone-950 font-serif font-bold",
+          metaText: "text-stone-700",
+          levelBadge: "bg-[#dae2cb] text-[#515931]",
+          button: "bg-[#ff3c63] hover:bg-[#e61a43] text-white font-semibold"
+        };
+      case 'gnome':
+        return {
+          card: "bg-[#dbd7d1] border-[#B3ADA5] hover:border-[#DFB746] text-stone-900 shadow-sm",
+          title: "text-stone-950 font-bold",
+          metaText: "text-stone-800",
+          levelBadge: "bg-[#c6c0b9] text-stone-900",
+          button: "bg-[#DFB746] hover:bg-[#C29B40] text-stone-950 font-medium"
+        };
+      case 'underdark_shroom':
+        return {
+          card: "bg-[#f4f2f8] border-[#cfc7e0] hover:border-[#c32ef0] text-[#29203a] shadow-sm",
+          title: "text-[#413557] font-serif font-bold",
+          metaText: "text-[#50406b]",
+          levelBadge: "bg-[#e7e3f0] text-[#c32ef0]",
+          button: "bg-[#c32ef0] hover:bg-[#a120cb] text-white"
+        };
+      case 'icewind':
+        return {
+          card: "bg-[#f6f8fb] border-[#d0d9e5] hover:border-[#568866] text-[#202733] shadow-sm",
+          title: "text-[#3d4a5c] font-serif font-bold",
+          metaText: "text-[#48576c]",
+          levelBadge: "bg-[#e8ecf3] text-[#568866]",
+          button: "bg-[#568866] hover:bg-[#3e664b] text-white"
+        };
+      case 'sigil':
+        return {
+          card: "bg-[#f5f5f5] border-[#d4d4d4] hover:border-[#d2831c] text-[#0a0a0a] shadow-sm",
+          title: "text-[#171717] font-serif font-bold",
+          metaText: "text-[#262626]",
+          levelBadge: "bg-[#e5e5e5] text-[#d2831c]",
+          button: "bg-[#d2831c] hover:bg-[#b06a12] text-white"
+        };
+      case 'baldursgate':
+        return {
+          card: "bg-[#161821] border-[#2e3348] hover:border-[#f29a50] text-[#f2f4fa] shadow-md",
+          title: "text-[#f2f4fa] font-serif font-bold",
+          metaText: "text-[#c2c9e0]",
+          levelBadge: "bg-[#1f2230] text-[#f29a50]",
+          button: "bg-[#f29a50] hover:bg-[#e08638] text-[#1f2230]"
+        };
+      case 'neverwinter':
+        return {
+          card: "bg-[#141b21] border-[#293a4a] hover:border-[#94cbf0] text-[#f4f7fb] shadow-md",
+          title: "text-[#f4f7fb] font-serif font-bold",
+          metaText: "text-[#c1d5ea]",
+          levelBadge: "bg-[#1c2731] text-[#94cbf0]",
+          button: "bg-[#94cbf0] hover:bg-[#7db4db] text-[#1c2731]"
+        };
+      case 'mistyvale':
+        return {
+          card: "bg-[#191817] border-[#3b3732] hover:border-[#5dc391] text-[#f5f3f0] shadow-md",
+          title: "text-[#f5f3f0] font-serif font-bold",
+          metaText: "text-[#cec8bd]",
+          levelBadge: "bg-[#262421] text-[#5dc391]",
+          button: "bg-[#5dc391] hover:bg-[#4aa578] text-[#191817]"
+        };
+      case 'golddragon':
+        return {
+          card: "bg-[#fdfaf0] border-[#fae4a7] hover:border-[#faa307] text-[#462208] shadow-sm",
+          title: "text-[#864614] font-serif font-bold",
+          metaText: "text-[#a45a13]",
+          levelBadge: "bg-[#fdf5e0] text-[#faa307]",
+          button: "bg-[#faa307] hover:bg-[#d68b00] text-white"
+        };
+      case 'halfling':
+        return {
+          card: "bg-[#f8f9f5] border-[#d7e0c9] hover:border-[#ec6d10] text-[#212915] shadow-sm",
+          title: "text-[#3f4c2c] font-serif font-bold",
+          metaText: "text-[#516137]",
+          levelBadge: "bg-[#eef2e7] text-[#ec6d10]",
+          button: "bg-[#ec6d10] hover:bg-[#ce5d00] text-white"
+        };
+      case 'orc':
+        return {
+          card: "bg-[#f6f8f5] border-[#ccd8ca] hover:border-[#d44d57] text-[#1b241a] shadow-sm",
+          title: "text-[#364434] font-serif font-bold",
+          metaText: "text-[#425340]",
+          levelBadge: "bg-[#e7ece5] text-[#d44d57]",
+          button: "bg-[#d44d57] hover:bg-[#b53a43] text-white"
+        };
+      default:
+        return {
+          card: "bg-white border border-stone-200 text-stone-900 hover:border-amber-300 shadow-sm",
+          title: "text-stone-900 font-serif font-bold group-hover:text-amber-700",
+          metaText: "text-stone-500",
+          levelBadge: "bg-stone-100 text-stone-700 font-mono",
+          button: "text-amber-600 hover:text-amber-700 w-full bg-amber-50 hover:bg-amber-100 py-2 rounded-lg transition-colors border-none cursor-pointer"
+        };
+    }
+  };
+
+  const getRandomGenModuleStyles = () => {
+    switch (currentTheme) {
+      // 1. 深色/特定主题：需要高度对比、柔和发光的极高可读面盘和配字
+      case 'dark':
+        return {
+          container: "bg-[#1e212b] border-[#2c2f3b] text-neutral-200 shadow-md",
+          title: "text-white font-serif font-bold",
+          desc: "text-[#ced3df] opacity-90",
+          button: "bg-amber-600 hover:bg-amber-700 text-white font-medium"
+        };
+      case 'shadowfell':
+        return {
+          container: "bg-[#efeff5] border-[#b3b3cb] text-[#0a0a12] shadow-md",
+          title: "text-[#0a0a12] font-serif font-bold",
+          desc: "text-[#5c5c7d] opacity-90",
+          button: "bg-amber-600 hover:bg-amber-700 text-white font-medium"
+        };
+      case 'underdark':
+        return {
+          container: "bg-[#130E20] border-[#3D3554] text-[#ECE6FC] shadow-md",
+          title: "text-[#D946EF] font-serif font-bold",
+          desc: "text-[#A497C6] opacity-90",
+          button: "bg-amber-600 hover:bg-amber-700 text-white font-medium"
+        };
+      case 'avernus':
+        return {
+          container: "bg-[#1E1219] border-[#38232e] text-[#f0e2ea] shadow-md",
+          title: "text-[#ff3d71] font-serif font-bold",
+          desc: "text-[#cca9bc] opacity-90",
+          button: "bg-amber-600 hover:bg-amber-700 text-white font-medium"
+        };
+      case 'astral':
+        return {
+          container: "bg-[#120e24] border-[#2c2354] text-[#ccc4fa] shadow-md",
+          title: "text-[#bf5bfa] font-serif font-bold",
+          desc: "text-[#9c8df2] opacity-90",
+          button: "bg-amber-600 hover:bg-amber-700 text-white font-medium"
+        };
+      case 'dwarf':
+        return {
+          container: "bg-[#1d1612] border-[#3d3229] text-[#e6ded8] shadow-md",
+          title: "text-[#d35400] font-serif font-bold",
+          desc: "text-[#cbbcb0] opacity-90",
+          button: "bg-amber-600 hover:bg-amber-700 text-white font-medium"
+        };
+      case 'dragonborn':
+        return {
+          container: "bg-[#2a0405] border-[#4a0f0e] text-[#fbbfbf] shadow-md",
+          title: "text-[#ff4444] font-serif font-bold",
+          desc: "text-[#fbbfbf] opacity-90",
+          button: "bg-amber-600 hover:bg-amber-700 text-white font-medium"
+        };
+      
+      // 2. 中性色主题
+      case 'candlekeep':
+        return {
+          container: "bg-[#dae2cb] border-[#c1cca3] text-stone-900 shadow-inner",
+          title: "text-stone-950 font-serif font-bold",
+          desc: "text-stone-800",
+          button: "bg-amber-600 hover:bg-amber-700 text-white font-medium"
+        };
+      case 'gnome':
+        return {
+          container: "bg-[#CBC6C0] border-[#B3ADA5] text-stone-900 shadow-inner",
+          title: "text-stone-950 font-bold",
+          desc: "text-stone-800",
+          button: "bg-amber-600 hover:bg-amber-700 text-white font-medium"
+        };
+      case 'cocgreen':
+        return {
+          container: "bg-[#0c1813] border-[#00ff88]/30 shadow-md text-[#fcdd93]",
+          title: "text-[#00ff88] font-serif font-bold",
+          desc: "text-[#fcdd93] opacity-90",
+          button: "bg-amber-600 hover:bg-amber-700 text-white font-medium"
+        };
+      case 'swordcoast':
+        return {
+          container: "bg-[#2d2218] border-[#4a3424] shadow-md text-[#f9f2e5]",
+          title: "text-[#ffd499] font-serif font-bold",
+          desc: "text-[#d6c9ba]",
+          button: "bg-amber-600 hover:bg-amber-700 text-white font-medium"
+        };
+      case 'baldursgate':
+        return {
+          container: "bg-[#161821] border-[#2e3348] text-[#f2f4fa] shadow-md",
+          title: "text-[#f29a50] font-serif font-bold",
+          desc: "text-[#c2c9e0] opacity-90",
+          button: "bg-amber-600 hover:bg-amber-700 text-white font-medium"
+        };
+      case 'neverwinter':
+        return {
+          container: "bg-[#141b21] border-[#293a4a] text-[#f4f7fb] shadow-md",
+          title: "text-[#94cbf0] font-serif font-bold",
+          desc: "text-[#c1d5ea] opacity-90",
+          button: "bg-amber-600 hover:bg-amber-700 text-white font-medium"
+        };
+      case 'mistyvale':
+        return {
+          container: "bg-[#191817] border-[#3b3732] text-[#f5f3f0] shadow-md",
+          title: "text-[#5dc391] font-serif font-bold",
+          desc: "text-[#cec8bd] opacity-90",
+          button: "bg-amber-600 hover:bg-amber-700 text-white font-medium"
+        };
+      case 'underdark_shroom':
+        return {
+          container: "bg-[#f4f2f8] border-[#cfc7e0] text-[#29203a] shadow-inner",
+          title: "text-[#413557] font-serif font-bold",
+          desc: "text-[#50406b]",
+          button: "bg-amber-600 hover:bg-amber-700 text-white font-medium"
+        };
+      case 'icewind':
+        return {
+          container: "bg-[#f6f8fb] border-[#d0d9e5] text-[#202733] shadow-inner",
+          title: "text-[#3d4a5c] font-serif font-bold",
+          desc: "text-[#48576c]",
+          button: "bg-amber-600 hover:bg-amber-700 text-white font-medium"
+        };
+      case 'sigil':
+        return {
+          container: "bg-[#f5f5f5] border-[#d4d4d4] text-[#0a0a0a] shadow-inner",
+          title: "text-[#171717] font-serif font-bold",
+          desc: "text-[#262626]",
+          button: "bg-amber-600 hover:bg-amber-700 text-white font-medium"
+        };
+      case 'golddragon':
+        return {
+          container: "bg-[#fdfaf0] border-[#fae4a7] text-[#462208] shadow-inner",
+          title: "text-[#864614] font-serif font-bold",
+          desc: "text-[#a45a13]",
+          button: "bg-amber-600 hover:bg-amber-700 text-white font-medium"
+        };
+      case 'halfling':
+        return {
+          container: "bg-[#f8f9f5] border-[#d7e0c9] text-[#212915] shadow-inner",
+          title: "text-[#3f4c2c] font-serif font-bold",
+          desc: "text-[#516137]",
+          button: "bg-amber-600 hover:bg-amber-700 text-white font-medium"
+        };
+      case 'orc':
+        return {
+          container: "bg-[#f6f8f5] border-[#ccd8ca] text-[#1b241a] shadow-inner",
+          title: "text-[#364434] font-serif font-bold",
+          desc: "text-[#425340]",
+          button: "bg-amber-600 hover:bg-amber-700 text-white font-medium"
+        };
+
+      // 3. 浅色主题
+      case 'dndmanual':
+      case 'fiveetools':
+      case 'parchment':
+      case 'highforest':
+      case 'feywild':
+      default:
+        return {
+          container: "bg-amber-100/80 border-amber-300/75 shadow-md text-amber-950",
+          title: "text-amber-900 font-serif font-bold",
+          desc: "text-stone-800",
+          button: "bg-amber-600 hover:bg-amber-700 text-white font-medium"
+        };
+    }
+  };
+
   // Generate starting adventurers
   const generateRandomCharacter = () => {
     if (races.length === 0 || classes.length === 0) return;
 
-    const validRaces = races.map(r => {
-      const validAlts = r.alternatives?.filter(alt => isSourceEnabled(alt.source || 'phb', 'races'));
-      if (validAlts && validAlts.length > 0) {
-        const alt = validAlts[Math.floor(Math.random() * validAlts.length)];
-        return { ...alt, subraces: r.subraces };
-      }
-      if (isSourceEnabled(r.source || 'phb', 'races')) return r;
-      return null;
-    }).filter(Boolean);
+    // 1. Filter valid races, classes, and backgrounds under active sourcebooks
+    const validRaces = getAvailableRaces();
     const validClasses = classes.filter(c => isSourceEnabled(c.source || 'phb', 'classes'));
     const validBackgrounds = backgrounds.filter(b => isSourceEnabled(b.source || 'phb', 'backgrounds'));
 
     if (validRaces.length === 0 || validClasses.length === 0) return;
 
-    // 1. Pick random race
+    // 2. Pick random race and subrace
     const randomRace = validRaces[Math.floor(Math.random() * validRaces.length)];
     let randomSubraceId = '';
     if (randomRace.subraces && randomRace.subraces.length > 0) {
-      const validSubraces = randomRace.subraces.filter(sr => isSourceEnabled(sr.source || randomRace.source || 'phb', 'races'));
+      const validSubraces = randomRace.subraces;
       if (validSubraces.length > 0) {
         const randomSub = validSubraces[Math.floor(Math.random() * validSubraces.length)];
         randomSubraceId = randomSub.id;
       }
     }
     
-    // 2. Pick random class
+    // 3. Pick random class and random subclass (since it's Lv. 3, subclass is always available/chosen)
     const randomClass = validClasses[Math.floor(Math.random() * validClasses.length)];
     let randomSubclassId = '';
-    if (randomClass.subclasses && randomClass.subclasses.length > 0) {
+    const subclassLevel = randomClass.subclassAvailableAtLevel || 3;
+    if (subclassLevel <= 3 && randomClass.subclasses && randomClass.subclasses.length > 0) {
       const validSubclasses = randomClass.subclasses.filter(sc => isSourceEnabled(sc.source || randomClass.source || 'phb', 'classes'));
       if (validSubclasses.length > 0) {
         const randomSubclass = validSubclasses[Math.floor(Math.random() * validSubclasses.length)];
         randomSubclassId = randomSubclass.id;
       }
     }
-    
-    // 3. Shuffled standard array
-    const stdArray = [15, 14, 13, 12, 10, 8];
-    for (let i = stdArray.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      const temp = stdArray[i];
-      stdArray[i] = stdArray[j];
-      stdArray[j] = temp;
-    }
-    
-    const abilities = {
-      STR: stdArray[0],
-      DEX: stdArray[1],
-      CON: stdArray[2],
-      INT: stdArray[3],
-      WIS: stdArray[4],
-      CHA: stdArray[5]
+
+    // 4. Smart ability point distribution (Standard Array [15,14,13,12,10,8] representing the optimal 27-point point-buy)
+    // Allocates high scores to prime class stats according to DND 5e rulebook classes logic
+    const stdScores = [15, 14, 13, 12, 10, 8];
+    const abilities: Record<string, number> = {
+      STR: 8, DEX: 8, CON: 8, INT: 8, WIS: 8, CHA: 8
     };
 
-    // 4. Pick random alignment
+    const primaryAbilities: string[] = randomClass.primaryAbility || [];
+    const castAbility: string = randomClass.spellcasting?.ability || '';
+    
+    // Construct attribute priorities for this class
+    const priorityList: string[] = [];
+    primaryAbilities.forEach(ab => {
+      if (!priorityList.includes(ab)) priorityList.push(ab);
+    });
+    if (castAbility && !priorityList.includes(castAbility)) {
+      priorityList.push(castAbility);
+    }
+    // High con and dex are universally critical for hitpoints and AC
+    if (!priorityList.includes('CON')) priorityList.push('CON');
+    if (!priorityList.includes('DEX')) priorityList.push('DEX');
+    
+    // Add remaining stats
+    const ALL_STATS = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
+    ALL_STATS.forEach(stat => {
+      if (!priorityList.includes(stat)) {
+        priorityList.push(stat);
+      }
+    });
+
+    // Match priorities to the ordered Standard Array scores
+    priorityList.forEach((stat, idx) => {
+      abilities[stat] = stdScores[idx];
+    });
+
+    // 5. Pick random alignment
     const ALIGNMENTS = [
       '守序善良', '中立善良', '混乱善良',
       '守序中立', '绝对中立', '混乱中立',
@@ -332,30 +757,100 @@ export function LandingPage() {
     ];
     const randomAlignment = ALIGNMENTS[Math.floor(Math.random() * ALIGNMENTS.length)];
 
-    // 5. Pick random background
+    // 6. Pick random background and suggested characteristics
     let randomBackgroundId = '';
+    let randomBg = null;
+    let personality = '';
+    let ideals = '';
+    let bonds = '';
+    let flaws = '';
+
     if (validBackgrounds && validBackgrounds.length > 0) {
-      const randomBg = validBackgrounds[Math.floor(Math.random() * validBackgrounds.length)];
+      randomBg = validBackgrounds[Math.floor(Math.random() * validBackgrounds.length)];
       randomBackgroundId = randomBg.id;
+      
+      if (randomBg.suggestedCharacteristics) {
+        const pTraits = randomBg.suggestedCharacteristics.personalityTraits || [];
+        const idls = randomBg.suggestedCharacteristics.ideals || [];
+        const bnds = randomBg.suggestedCharacteristics.bonds || [];
+        const flws = randomBg.suggestedCharacteristics.flaws || [];
+
+        if (pTraits.length > 0) personality = pTraits[Math.floor(Math.random() * pTraits.length)];
+        if (idls.length > 0) ideals = idls[Math.floor(Math.random() * idls.length)];
+        if (bnds.length > 0) bonds = bnds[Math.floor(Math.random() * bnds.length)];
+        if (flws.length > 0) flaws = flws[Math.floor(Math.random() * flws.length)];
+      }
     }
     
-    // 6. Generate Name
-    const generatedName = generateRandomName(randomRace.name);
+    // 7. Generate random Name
+    const generatedName = nameGenEnabledInRandom ? generateRandomName(randomRace.name) : '新角色';
+    const randomAge = (Math.floor(Math.random() * (60 - 18 + 1)) + 18).toString();
+
+    let generatedAppearance = '';
+    let generatedBackstory = `一位性格鲜明的 Lv. 3 ${randomClass.name}。冒险正等待着此人！`;
+
+    if (appGenEnabledInRandom) {
+      const raceNameKey = randomSubraceId ? `${randomRace.name}：${randomRace.subraces?.find(s => s.id === randomSubraceId)?.name || ''}` : randomRace.name;
+      const raceAssetsKey = getBestRaceAssetsKey(raceNameKey);
+      const raceAssets = RACES_MAPPING[raceAssetsKey];
+      
+      const randSkin = raceAssets.skin[Math.floor(Math.random() * raceAssets.skin.length)];
+      const randHair = raceAssets.hair[Math.floor(Math.random() * raceAssets.hair.length)];
+      const randEye = raceAssets.eye[Math.floor(Math.random() * raceAssets.eye.length)];
+      const randFeature = raceAssets.features[Math.floor(Math.random() * raceAssets.features.length)];
+      
+      const hasUniFeature = Math.random() < 0.35; // 35% chance to have a unique specific feature
+      let uniFeatures = '';
+      if (hasUniFeature) {
+        const numUniFeatures = Math.random() < 0.4 ? 2 : 1;
+        const shuffledUni = [...UNIVERSAL_APPEARANCE_FEATURES].sort(() => Math.random() - 0.5);
+        uniFeatures = shuffledUni.slice(0, numUniFeatures).join('；') + '。';
+      }
+
+      const genders: Array<'male' | 'female' | 'none'> = ['male', 'female', 'none'];
+      const randomGender = genders[Math.floor(Math.random() * genders.length)];
+      const pWord = randomGender === 'male' ? '他' : (randomGender === 'female' ? '她' : '其');
+      
+      const isPureMasked = Math.random() < 0.08; // 8% chance to be completely masked
+      if (isPureMasked) {
+        generatedAppearance = PURE_MASKED_APPEARANCES[Math.floor(Math.random() * PURE_MASKED_APPEARANCES.length)];
+      } else {
+        generatedAppearance = `${pWord}拥有${randSkin}，${randHair}，${randEye}。${pWord}${randFeature}。${uniFeatures}`;
+      }
+    }
+
+    // 8. Select starting skills matching background and class proficiencies
+    const skillSelections: string[] = [];
+    if (randomBg && randomBg.skillProficiencies) {
+      randomBg.skillProficiencies.forEach(s => {
+        if (!skillSelections.includes(s)) skillSelections.push(s);
+      });
+    }
+    if (randomClass && randomClass.skills) {
+      const clsChoices = randomClass.skills.choices || [];
+      const clsCount = randomClass.skills.count || 2;
+      const availableClsSkills = clsChoices.filter(s => !skillSelections.includes(s));
+      const shuffledClsSkills = [...availableClsSkills].sort(() => 0.5 - Math.random());
+      const selected = shuffledClsSkills.slice(0, Math.min(clsCount, shuffledClsSkills.length));
+      selected.forEach(s => skillSelections.push(s));
+    }
 
     const newChar = {
       id: crypto.randomUUID ? crypto.randomUUID() : `id-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
       name: generatedName,
+      title: titleEnabledInRandom ? generateTitle() : '',
       alignment: randomAlignment,
       deity: '',
-      age: '',
-      appearance: '',
+      age: randomAge,
+      appearance: generatedAppearance,
       specialty: '',
-      personality: '',
-      ideals: '',
-      bonds: '',
-      flaws: '',
-      backstory: '',
+      personality: personality,
+      ideals: ideals,
+      bonds: bonds,
+      flaws: flaws,
+      backstory: generatedBackstory,
       level: 3,
+      xp: 900,
       raceId: randomRace.id,
       raceSource: randomRace.source,
       subraceId: randomSubraceId || undefined,
@@ -363,7 +858,7 @@ export function LandingPage() {
       subclassId: randomSubclassId || undefined,
       backgroundId: randomBackgroundId,
       baseAbilities: abilities,
-      skillSelections: [],
+      skillSelections: skillSelections,
       languageSelections: [],
       equipmentSelections: [],
       traitSelections: {},
@@ -382,10 +877,11 @@ export function LandingPage() {
       localStorage.setItem('dndChars', JSON.stringify(updatedList));
       setSavedChars(updatedList);
       
-      const subNameStr = randomSubraceId ? ` (${randomRace.subraces?.find(s => s.id === randomSubraceId)?.name})` : '';
-      const subclassStr = randomSubclassId ? ` (${randomClass.subclasses.find(s => s.id === randomSubclassId)?.name})` : '';
+      const subObj = randomRace.subraces?.find(s => s.id === randomSubraceId);
+      const subNameStr = subObj ? (subObj.name.includes('本相') ? '' : ` (${subObj.name})`) : '';
+      const subclassStr = randomSubclassId ? ` (${randomClass.subclasses?.find(s => s.id === randomSubclassId)?.name || ''})` : '';
       
-      setToastText(`🎲 招募成功！全新的 3级（${randomRace.name}${subNameStr} / ${randomClass.name}${subclassStr}）已加入您的角色档案库，滚动至下方加载即可自定义编辑！`);
+      setToastText(`已自动创建 3级 ${randomRace.name}${subNameStr} ${randomClass.name}${subclassStr} 并存入角色库。`);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 5500);
     } catch (e) {
@@ -393,28 +889,495 @@ export function LandingPage() {
     }
   };
 
+  const getNavbarStyles = () => {
+    switch (currentTheme) {
+      case 'dndmanual':
+        return {
+          nav: "bg-[#7e0c0d] border-b border-[#620a0b] text-white shadow-md",
+          logoText: "text-white",
+          logoIcon: "text-amber-100",
+          menuText: "text-stone-100 hover:text-white hover:opacity-100 opacity-90",
+          divider: "text-[#a22b2d]/50",
+          itemHover: "hover:bg-[#9c0c0d]/70 hover:text-white",
+          dropdownBg: "bg-[#7e0c0d] border border-[#620a0b]",
+          dropdownText: "text-stone-100 hover:text-white",
+          mobileLinkText: "text-stone-100 hover:text-white",
+          mobileBorder: "border-stone-100/10",
+          mobileAccordionBg: "border-amber-200/20 bg-stone-900/15",
+          mobileSubText: "text-stone-200 hover:text-white",
+          iconColor: "text-amber-300",
+          isDark: true
+        };
+      case 'fiveetools':
+        return {
+          nav: "bg-[#004d80] border-b border-[#003a61] text-white shadow-md",
+          logoText: "text-white",
+          logoIcon: "text-sky-300",
+          menuText: "text-stone-100 hover:text-white hover:opacity-100 opacity-90",
+          divider: "text-sky-100/20",
+          itemHover: "hover:bg-[#005e9c]/70 hover:text-white",
+          dropdownBg: "bg-[#004d80] border border-[#003a61]",
+          dropdownText: "text-stone-100 hover:text-white",
+          mobileLinkText: "text-stone-100 hover:text-white",
+          mobileBorder: "border-stone-100/10",
+          mobileAccordionBg: "border-sky-200/20 bg-stone-900/15",
+          mobileSubText: "text-stone-200 hover:text-white",
+          iconColor: "text-sky-300",
+          isDark: true
+        };
+      case 'cocgreen':
+        return {
+          nav: "bg-[#07120e] border-b border-[#00ff88]/50 text-[#fcdd93] shadow-md",
+          logoText: "text-[#fcdd93]",
+          logoIcon: "text-[#00ff88]",
+          menuText: "text-[#d0f7e8] hover:text-[#00ff88] hover:opacity-100 opacity-90",
+          divider: "text-[#254a3c]",
+          itemHover: "hover:bg-[#112d22] hover:text-[#fcdd93]",
+          dropdownBg: "bg-[#07120e] border border-[#00ff88]/50",
+          dropdownText: "text-[#fcdd93] hover:text-[#00ff88]",
+          mobileLinkText: "text-[#fcdd93] hover:text-[#00ff88]",
+          mobileBorder: "border-emerald-500/10",
+          mobileAccordionBg: "border-emerald-500/20 bg-emerald-950/25",
+          mobileSubText: "text-stone-500 hover:text-[#00ff88]",
+          iconColor: "text-[#00ff88]",
+          isDark: true
+        };
+      case 'candlekeep':
+        return {
+          nav: "bg-[#adbc9f] border-b border-[#9db08d] text-stone-900 shadow-md",
+          logoText: "text-stone-900 font-serif font-bold",
+          logoIcon: "text-[#e61a43]",
+          menuText: "text-stone-800 hover:text-stone-950 font-bold opacity-100",
+          divider: "text-[#9db08d]/50",
+          itemHover: "hover:bg-[#9db08d]/40 hover:text-stone-910",
+          dropdownBg: "bg-[#adbc9f] border border-[#9db08d]",
+          dropdownText: "text-stone-800 hover:text-stone-950 hover:bg-[#9db08d]/30",
+          mobileLinkText: "text-stone-850 hover:text-stone-910",
+          mobileBorder: "border-[#9db08d]/40",
+          mobileAccordionBg: "border-[#e61a43]/20 bg-[#9db08d]/30",
+          mobileSubText: "text-stone-800 hover:text-[#e61a43]",
+          iconColor: "text-[#e61a43]",
+          isDark: false
+        };
+      case 'waterdeep':
+        return {
+          nav: "bg-[#0d276b] border-b border-[#12245b] text-[#fccd5d] shadow-md",
+          logoText: "text-[#ffe59e] font-serif font-extrabold",
+          logoIcon: "text-[#fccd5d]",
+          menuText: "text-[#f0f4ff] hover:text-[#fccd5d] opacity-100 font-bold",
+          divider: "text-[#12245b]/50",
+          itemHover: "hover:bg-[#12245b] hover:text-[#fccd5d]",
+          dropdownBg: "bg-[#0d276b] border border-[#12245b]",
+          dropdownText: "text-[#ffe59e] hover:text-[#fccd5d] hover:bg-[#12245b]",
+          mobileLinkText: "text-[#ffe59e] hover:text-[#fccd5d]",
+          mobileBorder: "border-[#12245b]/40",
+          mobileAccordionBg: "border-amber-500/20 bg-[#12245b]/30",
+          mobileSubText: "text-white hover:text-[#fccd5d]",
+          iconColor: "text-[#fccd5d]",
+          isDark: true
+        };
+      case 'dark':
+        return {
+          nav: "bg-[#2a2e38] border-b border-[#1f222b] text-white shadow-md",
+          logoText: "text-white font-bold",
+          logoIcon: "text-amber-400",
+          menuText: "text-white hover:text-amber-400 font-bold opacity-100",
+          divider: "text-stone-700",
+          itemHover: "hover:bg-[#333845] hover:text-white",
+          dropdownBg: "bg-[#2a2e38] border border-[#1f222b]",
+          dropdownText: "text-[#ededf2] hover:text-amber-400 hover:bg-[#333845]",
+          mobileLinkText: "text-[#ededf2] hover:text-amber-400",
+          mobileBorder: "border-stone-700",
+          mobileAccordionBg: "border-stone-700 bg-[#1f222b]/50",
+          mobileSubText: "text-stone-200 hover:text-white",
+          iconColor: "text-amber-400",
+          isDark: true
+        };
+      case 'underdark':
+        return {
+          nav: "bg-[#1F1B2E] border-b border-[#13101d] text-[#F4EEFF] shadow-md",
+          logoText: "text-[#F4EEFF] font-serif font-extrabold",
+          logoIcon: "text-[#D946EF]",
+          menuText: "text-[#ECE6FC] hover:text-[#D946EF] font-bold opacity-100",
+          divider: "text-[#3D3554]",
+          itemHover: "hover:bg-[#2E2841] hover:text-[#F4EEFF]",
+          dropdownBg: "bg-[#1F1B2E] border border-[#13101d]",
+          dropdownText: "text-[#F4EEFF] hover:text-[#D946EF] hover:bg-[#2E2841]",
+          mobileLinkText: "text-[#F4EEFF] hover:text-[#D946EF]",
+          mobileBorder: "border-[#3D3554]",
+          mobileAccordionBg: "border-fuchsia-500/20 bg-[#13101d]/50",
+          mobileSubText: "text-[#ECE6FC] hover:text-[#D946EF]",
+          iconColor: "text-[#D946EF]",
+          isDark: true
+        };
+      case 'avernus':
+        return {
+          nav: "bg-[#1e1219] border-b border-[#38232e] text-[#f0e2ea] shadow-md",
+          logoText: "text-[#ffe6ee] font-serif font-extrabold",
+          logoIcon: "text-[#ff5e97]",
+          menuText: "text-[#fff5f8] hover:text-[#ff7da7] font-bold opacity-100",
+          divider: "text-[#38232e]/50",
+          itemHover: "hover:bg-[#38232e] hover:text-white",
+          dropdownBg: "bg-[#1e1219] border border-[#38232e]",
+          dropdownText: "text-[#ffe6ee] hover:text-[#ff7da7] hover:bg-[#38232e]",
+          mobileLinkText: "text-[#ffe6ee] hover:text-[#ff7da7]",
+          mobileBorder: "border-[#38232e]/40",
+          mobileAccordionBg: "border-[#ff5e97]/20 bg-[#1e1219]/30",
+          mobileSubText: "text-white hover:text-[#ff7da7]",
+          iconColor: "text-[#ff5e97]",
+          isDark: true
+        };
+      case 'astral':
+        return {
+          nav: "bg-[#120e24] border-b border-[#2c2354] text-[#ccc4fa] shadow-md",
+          logoText: "text-[#f3e5ff] font-serif font-extrabold",
+          logoIcon: "text-[#bf5bfa]",
+          menuText: "text-[#faf5ff] hover:text-[#db9eff] font-bold opacity-100",
+          divider: "text-[#2c2354]/50",
+          itemHover: "hover:bg-[#2c2354] hover:text-white",
+          dropdownBg: "bg-[#120e24] border border-[#2c2354]",
+          dropdownText: "text-[#f3e5ff] hover:text-[#db9eff] hover:bg-[#2c2354]",
+          mobileLinkText: "text-[#f3e5ff] hover:text-[#db9eff]",
+          mobileBorder: "border-[#2c2354]/40",
+          mobileAccordionBg: "border-[#bf5bfa]/20 bg-[#120e24]/30",
+          mobileSubText: "text-white hover:text-[#db9eff]",
+          iconColor: "text-[#bf5bfa]",
+          isDark: true
+        };
+      case 'shadowfell':
+        return {
+          nav: "bg-[#111114]/95 border-b border-[#ffffff]/10 text-white shadow-md backdrop-blur",
+          logoText: "text-white font-serif font-extrabold tracking-widest",
+          logoIcon: "text-[#7c70a8] animate-pulse",
+          menuText: "text-stone-300 hover:text-white hover:opacity-100 font-medium transition-colors opacity-90",
+          divider: "text-[#ffffff]/15",
+          itemHover: "hover:bg-[#1a1a20]/85 hover:text-white",
+          dropdownBg: "bg-[#111114] border border-[#ffffff]/15 shadow-2xl",
+          dropdownText: "text-stone-200 hover:text-[#7c70a8]",
+          mobileLinkText: "text-white hover:text-[#7c70a8]",
+          mobileBorder: "border-[#ffffff]/10",
+          mobileAccordionBg: "border-[#7c70a8]/20 bg-[#1a1a20]/45",
+          mobileSubText: "text-stone-300 hover:text-white",
+          iconColor: "text-[#7c70a8]",
+          isDark: true
+        };
+      case 'parchment':
+        return {
+          nav: "bg-[#e5d9c2] border-b border-[#bcab8f] text-[#241e1a] shadow-sm",
+          logoText: "text-[#241e1a]",
+          logoIcon: "text-[#8b1a1a]",
+          menuText: "text-[#5c4b3f] hover:text-[#241e1a] hover:opacity-100 font-semibold opacity-90",
+          divider: "text-[#d4c4a8]",
+          itemHover: "hover:bg-[#f4ece2] hover:text-[#241e1a]",
+          dropdownBg: "bg-[#f4ece2] border border-[#bcab8f]",
+          dropdownText: "text-[#33281c] hover:text-[#8b1a1a]",
+          mobileLinkText: "text-[#241e1a] hover:text-[#8b1a1a]",
+          mobileBorder: "border-[#bcab8f]/40",
+          mobileAccordionBg: "border-[#d4c4a8]/50 bg-[#fafaf5]/40",
+          mobileSubText: "text-[#5c4b3f] hover:text-[#241e1a]",
+          iconColor: "text-[#8b1a1a]",
+          isDark: false
+        };
+      case 'highforest':
+        return {
+          nav: "bg-[#dfebd8] border-b border-[#c5dbba] text-[#1d3314] shadow-sm",
+          logoText: "text-[#1d3314] font-serif font-extrabold",
+          logoIcon: "text-[#a37d1a]",
+          menuText: "text-[#314d27] hover:text-[#1d3314] hover:opacity-100 opacity-100 font-bold",
+          divider: "text-[#c5dbba]",
+          itemHover: "hover:bg-[#cbdbcb]/75 hover:text-[#1d3314]",
+          dropdownBg: "bg-[#fafdfa] border border-[#c5dbba]",
+          dropdownText: "text-[#314d27] hover:text-[#1d3314]",
+          mobileLinkText: "text-[#314d27] hover:text-[#1d3314]",
+          mobileBorder: "border-[#c5dbba]/40",
+          mobileAccordionBg: "border-[#c5dbba]/30 bg-[#fafdfa]/40",
+          mobileSubText: "text-[#314d27] hover:text-[#1d3314]",
+          iconColor: "text-[#a37d1a]",
+          isDark: false
+        };
+      case 'dwarf':
+        return {
+          nav: "bg-[#2b231d] border-b border-[#3d3229] text-[#e6ded8] shadow-md",
+          logoText: "text-[#ffd9c2] font-serif font-extrabold",
+          logoIcon: "text-[#d35400]",
+          menuText: "text-[#fff4ed] hover:text-[#ffb780] font-bold opacity-100",
+          divider: "text-[#3d3229]/50",
+          itemHover: "hover:bg-[#3d3229] hover:text-[#ffffff]",
+          dropdownBg: "bg-[#2b231d] border border-[#3d3229]",
+          dropdownText: "text-[#ffd9c2] hover:text-[#ffb780] hover:bg-[#3d3229]",
+          mobileLinkText: "text-[#ffd9c2] hover:text-[#ffb780]",
+          mobileBorder: "border-[#3d3229]/40",
+          mobileAccordionBg: "border-[#d35400]/20 bg-[#2b231d]/30",
+          mobileSubText: "text-white hover:text-[#ffb780]",
+          iconColor: "text-[#d35400]",
+          isDark: true
+        };
+      case 'feywild':
+        return {
+          nav: "bg-[#4a2c4d] border-b border-[#301a33] text-white shadow-md",
+          logoText: "text-white",
+          logoIcon: "text-[#f472b6]",
+          menuText: "text-[#f2eaf7] hover:text-white hover:opacity-100 opacity-90",
+          divider: "text-[#654369]/50",
+          itemHover: "hover:bg-[#654369] hover:text-white",
+          dropdownBg: "bg-[#4a2c4d] border border-[#301a33]",
+          dropdownText: "text-[#f2eaf7] hover:text-white",
+          mobileLinkText: "text-[#f2eaf7] hover:text-white",
+          mobileBorder: "border-[#301a33]",
+          mobileAccordionBg: "border-[#c9b0cf]/20 bg-[#301a33]/30",
+          mobileSubText: "text-[#c9b0cf] hover:text-white",
+          iconColor: "text-[#f472b6]",
+          isDark: true
+        };
+      case 'gnome':
+        return {
+          nav: "bg-[#56524A] border-b border-[#3F3D38] text-[#F7F6F5] shadow-md",
+          logoText: "text-[#F7F6F5]",
+          logoIcon: "text-[#DFB746]",
+          menuText: "text-[#E2DFDB] hover:text-[#F7F6F5] hover:opacity-100 opacity-90",
+          divider: "text-[#6D665C]/50",
+          itemHover: "hover:bg-[#6D665C] hover:text-[#F7F6F5]",
+          dropdownBg: "bg-[#56524A] border border-[#3F3D38]",
+          dropdownText: "text-[#E2DFDB] hover:text-white",
+          mobileLinkText: "text-[#E2DFDB] hover:text-white",
+          mobileBorder: "border-[#3F3D38]",
+          mobileAccordionBg: "border-[#DFB746]/10 bg-[#3F3D38]/30",
+          mobileSubText: "text-[#CBC6C0] hover:text-white",
+          iconColor: "text-[#DFB746]",
+          isDark: true
+        };
+      case 'dragonborn':
+        return {
+          nav: "bg-[#3c0a0a] border-b border-[#4a0f0e] text-white shadow-md",
+          logoText: "text-[#ffeacc] font-serif font-extrabold",
+          logoIcon: "text-[#ff9800]",
+          menuText: "text-[#fffaf0] hover:text-[#ffc107] font-bold opacity-100",
+          divider: "text-[#4a0f0e]/50",
+          itemHover: "hover:bg-[#4a0f0e] hover:text-white",
+          dropdownBg: "bg-[#3c0a0a] border border-[#4a0f0e]",
+          dropdownText: "text-[#ffeacc] hover:text-[#ffc107] hover:bg-[#4a0f0e]",
+          mobileLinkText: "text-[#ffeacc] hover:text-[#ffc107]",
+          mobileBorder: "border-[#4a0f0e]/40",
+          mobileAccordionBg: "border-[#ff9800]/20 bg-[#3c0a0a]/30",
+          mobileSubText: "text-white hover:text-[#ffc107]",
+          iconColor: "text-[#ff9800]",
+          isDark: true
+        };
+      case 'swordcoast':
+        return {
+          nav: "bg-[#183038] border-b border-[#0f2025] text-[#fbf7ee] shadow-md",
+          logoText: "text-[#fbf7ee] font-serif",
+          logoIcon: "text-[#257e8a]",
+          menuText: "text-[#c5d6da] hover:text-white hover:opacity-100 opacity-90",
+          divider: "text-[#0f2025]/50",
+          itemHover: "hover:bg-[#25414b] hover:text-white",
+          dropdownBg: "bg-[#183038] border border-[#0f2025]",
+          dropdownText: "text-[#fbf7ee] hover:text-[#7BC8D6]",
+          mobileLinkText: "text-[#fbf7ee] hover:text-[#7BC8D6]",
+          mobileBorder: "border-[#0f2025]/40",
+          mobileAccordionBg: "border-[#5cb5bf]/20 bg-[#0f2025]/30",
+          mobileSubText: "text-[#c5d6da] hover:text-white",
+          iconColor: "text-[#257e8a]",
+          isDark: true
+        };
+      case 'golddragon':
+        return {
+          nav: "bg-[#fdf5e0] border-b border-[#fae4a7] text-[#462208] shadow-sm",
+          logoText: "text-[#864614] font-serif font-extrabold",
+          logoIcon: "text-[#faa307]",
+          menuText: "text-[#a45a13] hover:text-[#462208] font-bold opacity-100",
+          divider: "text-[#f4cf6a]",
+          itemHover: "hover:bg-[#fae4a7] hover:text-[#462208]",
+          dropdownBg: "bg-[#fdfaf0] border border-[#fae4a7]",
+          dropdownText: "text-[#864614] hover:text-[#462208]",
+          mobileLinkText: "text-[#864614] hover:text-[#462208]",
+          mobileBorder: "border-[#fae4a7]/50",
+          mobileAccordionBg: "border-[#faa307]/20 bg-[#fae4a7]/30",
+          mobileSubText: "text-[#a45a13] hover:text-[#462208]",
+          iconColor: "text-[#faa307]",
+          isDark: false
+        };
+      case 'halfling':
+        return {
+          nav: "bg-[#eef2e7] border-b border-[#d7e0c9] text-[#212915] shadow-sm",
+          logoText: "text-[#3f4c2c] font-serif font-extrabold",
+          logoIcon: "text-[#ec6d10]",
+          menuText: "text-[#516137] hover:text-[#212915] font-bold opacity-100",
+          divider: "text-[#bccba5]",
+          itemHover: "hover:bg-[#d7e0c9] hover:text-[#212915]",
+          dropdownBg: "bg-[#f8f9f5] border border-[#d7e0c9]",
+          dropdownText: "text-[#3f4c2c] hover:text-[#212915]",
+          mobileLinkText: "text-[#3f4c2c] hover:text-[#212915]",
+          mobileBorder: "border-[#d7e0c9]/50",
+          mobileAccordionBg: "border-[#ec6d10]/20 bg-[#d7e0c9]/30",
+          mobileSubText: "text-[#516137] hover:text-[#212915]",
+          iconColor: "text-[#ec6d10]",
+          isDark: false
+        };
+      case 'orc':
+        return {
+          nav: "bg-[#e7ece5] border-b border-[#ccd8ca] text-[#1b241a] shadow-sm",
+          logoText: "text-[#364434] font-serif font-extrabold",
+          logoIcon: "text-[#d44d57]",
+          menuText: "text-[#425340] hover:text-[#1b241a] font-bold opacity-100",
+          divider: "text-[#aabda7]",
+          itemHover: "hover:bg-[#ccd8ca] hover:text-[#1b241a]",
+          dropdownBg: "bg-[#f6f8f5] border border-[#ccd8ca]",
+          dropdownText: "text-[#364434] hover:text-[#1b241a]",
+          mobileLinkText: "text-[#364434] hover:text-[#1b241a]",
+          mobileBorder: "border-[#ccd8ca]/50",
+          mobileAccordionBg: "border-[#d44d57]/20 bg-[#ccd8ca]/30",
+          mobileSubText: "text-[#425340] hover:text-[#1b241a]",
+          iconColor: "text-[#d44d57]",
+          isDark: false
+        };
+      case 'underdark_shroom':
+        return {
+          nav: "bg-[#e7e3f0] border-b border-[#cfc7e0] text-[#29203a] shadow-sm",
+          logoText: "text-[#413557] font-serif font-extrabold",
+          logoIcon: "text-[#c32ef0]",
+          menuText: "text-[#50406b] hover:text-[#29203a] font-bold opacity-100",
+          divider: "text-[#b0a4cc]",
+          itemHover: "hover:bg-[#cfc7e0] hover:text-[#29203a]",
+          dropdownBg: "bg-[#f4f2f8] border border-[#cfc7e0]",
+          dropdownText: "text-[#413557] hover:text-[#29203a]",
+          mobileLinkText: "text-[#413557] hover:text-[#29203a]",
+          mobileBorder: "border-[#cfc7e0]/50",
+          mobileAccordionBg: "border-[#c32ef0]/20 bg-[#cfc7e0]/30",
+          mobileSubText: "text-[#50406b] hover:text-[#29203a]",
+          iconColor: "text-[#c32ef0]",
+          isDark: false
+        };
+      case 'icewind':
+        return {
+          nav: "bg-[#e8ecf3] border-b border-[#d0d9e5] text-[#202733] shadow-sm",
+          logoText: "text-[#3d4a5c] font-serif font-extrabold",
+          logoIcon: "text-[#568866]",
+          menuText: "text-[#48576c] hover:text-[#202733] font-bold opacity-100",
+          divider: "text-[#aebfd1]",
+          itemHover: "hover:bg-[#d0d9e5] hover:text-[#202733]",
+          dropdownBg: "bg-[#f6f8fb] border border-[#d0d9e5]",
+          dropdownText: "text-[#3d4a5c] hover:text-[#202733]",
+          mobileLinkText: "text-[#3d4a5c] hover:text-[#202733]",
+          mobileBorder: "border-[#d0d9e5]/50",
+          mobileAccordionBg: "border-[#568866]/20 bg-[#d0d9e5]/30",
+          mobileSubText: "text-[#48576c] hover:text-[#202733]",
+          iconColor: "text-[#568866]",
+          isDark: false
+        };
+      case 'sigil':
+        return {
+          nav: "bg-[#e5e5e5] border-b border-[#d4d4d4] text-[#0a0a0a] shadow-sm",
+          logoText: "text-[#171717] font-serif font-extrabold",
+          logoIcon: "text-[#d2831c]",
+          menuText: "text-[#262626] hover:text-[#0a0a0a] font-bold opacity-100",
+          divider: "text-[#a3a3a3]",
+          itemHover: "hover:bg-[#d4d4d4] hover:text-[#0a0a0a]",
+          dropdownBg: "bg-[#f5f5f5] border border-[#d4d4d4]",
+          dropdownText: "text-[#171717] hover:text-[#0a0a0a]",
+          mobileLinkText: "text-[#171717] hover:text-[#0a0a0a]",
+          mobileBorder: "border-[#d4d4d4]/50",
+          mobileAccordionBg: "border-[#d2831c]/20 bg-[#d4d4d4]/30",
+          mobileSubText: "text-[#262626] hover:text-[#0a0a0a]",
+          iconColor: "text-[#d2831c]",
+          isDark: false
+        };
+      case 'baldursgate':
+        return {
+          nav: "bg-[#1f2230] border-b border-[#2e3348] text-[#f2f4fa] shadow-md",
+          logoText: "text-[#f2f4fa] font-serif font-extrabold",
+          logoIcon: "text-[#f29a50]",
+          menuText: "text-[#c2c9e0] hover:text-[#f29a50] font-bold opacity-100",
+          divider: "text-[#414763]",
+          itemHover: "hover:bg-[#2e3348] hover:text-[#f2f4fa]",
+          dropdownBg: "bg-[#161821] border border-[#2e3348]",
+          dropdownText: "text-[#f2f4fa] hover:text-[#f29a50] hover:bg-[#2e3348]",
+          mobileLinkText: "text-[#f2f4fa] hover:text-[#f29a50]",
+          mobileBorder: "border-[#2e3348]/50",
+          mobileAccordionBg: "border-[#f29a50]/20 bg-[#2e3348]/30",
+          mobileSubText: "text-[#c2c9e0] hover:text-[#f29a50]",
+          iconColor: "text-[#f29a50]",
+          isDark: true
+        };
+      case 'neverwinter':
+        return {
+          nav: "bg-[#1c2731] border-b border-[#293a4a] text-[#f4f7fb] shadow-md",
+          logoText: "text-[#f4f7fb] font-serif font-extrabold",
+          logoIcon: "text-[#94cbf0]",
+          menuText: "text-[#c1d5ea] hover:text-[#94cbf0] font-bold opacity-100",
+          divider: "text-[#3a5068]",
+          itemHover: "hover:bg-[#293a4a] hover:text-[#f4f7fb]",
+          dropdownBg: "bg-[#141b21] border border-[#293a4a]",
+          dropdownText: "text-[#f4f7fb] hover:text-[#94cbf0] hover:bg-[#293a4a]",
+          mobileLinkText: "text-[#f4f7fb] hover:text-[#94cbf0]",
+          mobileBorder: "border-[#293a4a]/50",
+          mobileAccordionBg: "border-[#94cbf0]/20 bg-[#293a4a]/30",
+          mobileSubText: "text-[#c1d5ea] hover:text-[#94cbf0]",
+          iconColor: "text-[#94cbf0]",
+          isDark: true
+        };
+      case 'mistyvale':
+        return {
+          nav: "bg-[#262421] border-b border-[#3b3732] text-[#f5f3f0] shadow-md",
+          logoText: "text-[#f5f3f0] font-serif font-extrabold",
+          logoIcon: "text-[#5dc391]",
+          menuText: "text-[#cec8bd] hover:text-[#5dc391] font-bold opacity-100",
+          divider: "text-[#544f47]",
+          itemHover: "hover:bg-[#3b3732] hover:text-[#f5f3f0]",
+          dropdownBg: "bg-[#191817] border border-[#3b3732]",
+          dropdownText: "text-[#f5f3f0] hover:text-[#5dc391] hover:bg-[#3b3732]",
+          mobileLinkText: "text-[#f5f3f0] hover:text-[#5dc391]",
+          mobileBorder: "border-[#3b3732]/50",
+          mobileAccordionBg: "border-[#5dc391]/20 bg-[#3b3732]/30",
+          mobileSubText: "text-[#cec8bd] hover:text-[#5dc391]",
+          iconColor: "text-[#5dc391]",
+          isDark: true
+        };
+      default:
+        return {
+          nav: "bg-white border-b border-stone-200 text-stone-900 shadow-sm",
+          logoText: "text-amber-800",
+          logoIcon: "text-amber-600",
+          menuText: "text-stone-600 hover:text-amber-600",
+          divider: "text-stone-300",
+          itemHover: "hover:bg-stone-50 hover:text-stone-900",
+          dropdownBg: "bg-white border border-stone-200",
+          dropdownText: "text-stone-700 hover:text-amber-600",
+          mobileLinkText: "text-stone-700 hover:text-amber-600",
+          mobileBorder: "border-stone-200",
+          mobileAccordionBg: "border-amber-200/60 bg-stone-50/50",
+          mobileSubText: "text-stone-600 hover:text-stone-900",
+          iconColor: "text-amber-600",
+          isDark: false
+        };
+    }
+  };
+  const nv = getNavbarStyles();
+  const isDarkNav = nv.isDark;
+
   return (
     <div className="min-h-screen flex flex-col bg-stone-100 text-stone-900 font-sans selection:bg-amber-200">
       {/* Decorative Navbar */}
-      <nav id="landing-navbar" className="w-full px-4 sm:px-6 py-3.5 sm:py-4 flex justify-between items-center border-b border-stone-200 bg-white shadow-sm sticky top-0 z-50">
-        <div className="flex items-center gap-1.5 sm:gap-2 text-amber-800">
-          <Book className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" />
-          <span className="font-serif font-bold text-base sm:text-lg md:text-xl tracking-tight text-amber-805">
-            <span className="hidden sm:inline">Littlh的DND5E角色创建工具</span>
-            <span className="sm:hidden">DND5E角色创建</span>
+      <nav id="landing-navbar" className={`w-full px-4 sm:px-6 py-3.5 sm:py-4 flex justify-between items-center sticky top-0 z-50 transition-colors duration-200 ${nv.nav}`}>
+        <div className={`flex items-center gap-1 sm:gap-2 ${nv.logoText}`}>
+          <Book className={`w-4 h-4 sm:w-5 sm:h-5 ${nv.logoIcon}`} />
+          <span className="font-serif font-bold text-xs xs:text-sm sm:text-base md:text-lg tracking-tight leading-tight whitespace-nowrap">
+            Littlh的DND5E角色创建工具
           </span>
         </div>
         
         {/* Desktop menu */}
-        <div className="hidden md:flex gap-6 text-sm font-medium text-stone-600 items-center">
+        <div className="hidden md:flex gap-3 text-sm font-medium items-center">
           <div className="relative">
             <button
               id="btn-toolbox-toggle"
               onClick={(e) => {
                 e.preventDefault();
                 setToolboxOpen(!toolboxOpen);
+                setThemeOpen(false);
+                setSettingsOpen(false);
               }}
-              className="hover:text-amber-600 transition-colors bg-transparent border-none cursor-pointer flex items-center gap-1 font-medium text-sm text-stone-600 outline-none"
+              className={`transition-colors bg-transparent border-none cursor-pointer flex items-center gap-1 font-medium text-sm outline-none ${nv.menuText}`}
             >
               <Wand2 size={16} />
               工具箱
@@ -423,7 +1386,7 @@ export function LandingPage() {
             {toolboxOpen && (
               <>
                 <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setToolboxOpen(false)} />
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-stone-200 rounded shadow-lg py-1 z-50 animate-in fade-in slide-in-from-top-1 duration-100 text-left font-sans">
+                <div className={`absolute right-0 mt-2 w-48 rounded shadow-lg py-1 z-50 animate-in fade-in slide-in-from-top-1 duration-100 text-left font-sans ${nv.dropdownBg}`}>
                   {TOOLBOX_ITEMS.map((item) => (
                     <button
                       key={item.id}
@@ -432,7 +1395,7 @@ export function LandingPage() {
                         setToolboxOpen(false);
                         item.onClick();
                       }}
-                      className="w-full text-left px-4 py-2.5 text-xs text-stone-700 hover:bg-stone-50 hover:text-stone-900 transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent"
+                      className={`w-full text-left px-4 py-2.5 text-xs transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent ${nv.dropdownText} ${nv.itemHover}`}
                     >
                       {item.icon} {item.title}
                     </button>
@@ -442,94 +1405,161 @@ export function LandingPage() {
             )}
           </div>
           
-          <span className="text-stone-300">|</span>
+          <span className={nv.divider}>|</span>
+          {/* Theme Dropdown */}
+          <div className="relative">
+            <button
+              id="btn-nav-theme-dropdown"
+              onClick={(e) => {
+                e.preventDefault();
+                setThemeOpen(!themeOpen);
+                setToolboxOpen(false);
+                setSettingsOpen(false);
+              }}
+              title="配色方案"
+              className={`transition-colors bg-transparent border-none cursor-pointer flex items-center gap-1 font-medium text-sm outline-none ${nv.menuText}`}
+            >
+              <Palette size={16} />
+              <span className="text-[10px] opacity-60">▼</span>
+            </button>
+            {themeOpen && (
+              <>
+                <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setThemeOpen(false)} />
+                <div className={`absolute right-0 mt-2 w-56 rounded shadow-lg py-1 z-50 max-h-[70vh] overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-100 text-left font-sans ${nv.dropdownBg}`}>
+                  <button
+                    onClick={() => {
+                      setThemeOpen(false);
+                      selectRandomTheme();
+                    }}
+                    className={`w-full text-left px-4 py-2 text-xs font-bold transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent ${nv.dropdownText} ${nv.itemHover} border-b border-dashed border-stone-200/50 text-amber-500`}
+                  >
+                    🎲 随机切换主题 / 配色
+                  </button>
+                  {[
+                    { id: 'dndmanual', name: '📕 龙与地下城手册' },
+                    { id: 'candlekeep', name: '🕯️ 烛堡：静谧繁花' },
+                    { id: 'swordcoast', name: '⚓ 剑湾：蓝墨古卷' },
+                    { id: 'waterdeep', name: '🏰 深水城：蔚蓝金冕' },
+                    { id: 'shadowfell', name: '💀 堕影冥界：暗影无声' },
+                    { id: 'feywild', name: '🌸 妖精荒野：幻境花海' },
+                    { id: 'astral', name: '🌌 星界星海：太虚天盘' },
+                    { id: 'icewind', name: '❄️ 冰风谷的孤木林' },
+                    { id: 'sigil', name: '⚙️ 环印城：石头与奥秘' },
+                    { id: 'baldursgate', name: '🌇 博德之门：暮色降临' },
+                    { id: 'neverwinter', name: '🛡️ 无冬城：冰雪与坚石' },
+                    { id: 'mistyvale', name: '🌲 迷雾谷地：森冷木棕' },
+                    { id: 'parchment', name: '📜 人类：兼爱羊皮纸' },
+                    { id: 'highforest', name: '🏹 精灵：高深绿野' },
+                    { id: 'dwarf', name: '⛏️ 矮人：巨石熔炉' },
+                    { id: 'avernus', name: '🔥 提夫林：九域惩击' },
+                    { id: 'gnome', name: '⚙️ 侏儒：日曜旅程' },
+                    { id: 'dragonborn', name: '🪙 龙裔：火山岩浆' },
+                    { id: 'underdark', name: '🔮 卓尔：荧光深邃' },
+                    { id: 'golddragon', name: '🐉 金龙：崇高耀金' },
+                    { id: 'halfling', name: '🥧 半身人：南瓜与清茶' },
+                    { id: 'orc', name: '🪓 兽人：战狂绿血' },
+                    { id: 'underdark_shroom', name: '🍄 幽暗地域：迷幻巨蕈' },
+                    { id: 'fiveetools', name: '🔵 5etools 钴蓝排版' },
+                    { id: 'cocgreen', name: '🐙 克苏鲁邪神墨绿' }
+                  ].map((themeOpt) => (
+                    <button
+                      key={themeOpt.id}
+                      onClick={() => {
+                        setThemeOpen(false);
+                        setCurrentTheme(themeOpt.id);
+                        localStorage.setItem('dndTheme', themeOpt.id);
+                        document.documentElement.setAttribute('data-theme', themeOpt.id);
+                      }}
+                      className={`w-full text-left px-4 py-2 text-xs transition-colors flex items-center justify-between cursor-pointer border-none bg-transparent ${nv.dropdownText} ${nv.itemHover} ${currentTheme === themeOpt.id ? 'font-bold bg-black/5' : ''}`}
+                    >
+                      <span>{themeOpt.name}</span>
+                      {currentTheme === themeOpt.id && <span className="text-[10px]">✔</span>}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          <span className={nv.divider}>|</span>
           <div className="relative">
             <button
               id="btn-settings-toggle"
               onClick={(e) => {
                 e.preventDefault();
                 setSettingsOpen(!settingsOpen);
+                setToolboxOpen(false);
+                setThemeOpen(false);
               }}
-              className="hover:text-amber-600 transition-colors bg-transparent border-none cursor-pointer flex items-center gap-1 font-medium text-sm text-stone-600 outline-none"
+              title="设置"
+              className={`transition-colors bg-transparent border-none cursor-pointer flex items-center gap-1 font-medium text-sm outline-none ${nv.menuText}`}
             >
-              <Settings size={16} /> 设置
+              <Settings size={16} />
               <span className="text-[10px] opacity-60">▼</span>
             </button>
             {settingsOpen && (
               <>
                 <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setSettingsOpen(false)} />
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-stone-200 rounded shadow-lg py-1 z-50 animate-in fade-in slide-in-from-top-1 duration-100 text-left font-sans">
+                <div className={`absolute right-0 mt-2 w-48 rounded shadow-lg py-1 z-50 animate-in fade-in slide-in-from-top-1 duration-100 text-left font-sans ${nv.dropdownBg}`}>
                   <button
                     onClick={() => {
                       setSettingsOpen(false);
                       setOpenAiModal(true);
                     }}
-                    className="w-full text-left px-4 py-2.5 text-xs text-stone-700 hover:bg-stone-50 hover:text-stone-900 transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent"
+                    className={`w-full text-left px-4 py-2.5 text-xs transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent ${nv.dropdownText} ${nv.itemHover}`}
                   >
                     🤖 AI 辅助书写配置
                   </button>
                   <button
                     onClick={() => {
                       setSettingsOpen(false);
-                      setOpenThemeModal(true);
-                    }}
-                    className="w-full text-left px-4 py-2.5 text-xs text-stone-700 hover:bg-stone-50 hover:text-stone-900 transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent"
-                  >
-                    🎨 网页配色方案
-                  </button>
-                  <button
-                    onClick={() => {
-                      setSettingsOpen(false);
                       setOpenXgeStepSettingsModal(true);
                     }}
-                    className="w-full text-left px-4 py-2.5 text-xs text-stone-700 hover:bg-stone-50 hover:text-stone-900 transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent"
+                    className={`w-full text-left px-4 py-2.5 text-xs transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent ${nv.dropdownText} ${nv.itemHover}`}
                   >
-                    📜 XGE 经历生成设置
+                    ⚙️ 扩展角色功能
                   </button>
                 </div>
               </>
             )}
           </div>
           
+          <span className={nv.divider}>|</span>
           <button
               onClick={() => {
                   setOpenExpModal(true);
               }}
-              className="hover:text-amber-600 transition-colors bg-transparent border-none cursor-pointer flex items-center gap-1 font-medium text-sm text-stone-600 outline-none"
+              title="扩展管理"
+              className={`transition-colors bg-transparent border-none cursor-pointer flex items-center gap-1 font-medium text-sm outline-none ${nv.menuText}`}
           >
-              <Book size={16} /> 扩展管理
+              <Book size={16} />
           </button>
-
-          <span className="text-stone-300">|</span>
-          <a href="https://github.com/littlhMW/DND5eCharacterTools-" target="_blank" rel="noreferrer" className="flex items-center gap-1 hover:text-stone-900 text-stone-600 transition-colors font-sans leading-none no-underline">
-            <Github size={16} /> GitHub 开源
-          </a>
         </div>
 
         {/* Mobile menu toggle */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden flex items-center justify-center p-2 text-stone-600 hover:text-amber-800 focus:outline-none bg-transparent border-none cursor-pointer"
+          className={`md:hidden flex items-center justify-center p-2 focus:outline-none bg-transparent border-none cursor-pointer ${nv.mobileLinkText}`}
         >
           {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
 
         {/* Mobile Dropdown Panel */}
         {mobileMenuOpen && (
-          <div className="md:hidden w-full bg-white border-b border-stone-200 py-3 pb-4 px-4 shadow-lg absolute top-[100%] left-0 z-50 flex flex-col gap-2 font-sans animate-in slide-in-from-top-1 duration-150">
+          <div className={`md:hidden w-full border-b py-3 pb-4 px-4 shadow-lg absolute top-[100%] left-0 z-50 flex flex-col gap-2 font-sans animate-in slide-in-from-top-1 duration-150 ${nv.dropdownBg}`}>
             {/* Toolbox accordion */}
-            <div className="border-b border-stone-100 pb-2 pt-1">
+            <div className={`border-b pb-2 pt-1 ${nv.mobileBorder}`}>
               <button
                 onClick={() => setMobileToolsOpen(!mobileToolsOpen)}
-                className="w-full text-left py-1 text-sm font-semibold text-stone-700 hover:text-amber-600 flex justify-between items-center border-none bg-transparent cursor-pointer"
+                className={`w-full text-left py-1 text-sm font-semibold flex justify-between items-center border-none bg-transparent cursor-pointer ${nv.mobileLinkText}`}
               >
                 <span className="flex items-center gap-1.5">
-                  <Wand2 size={16} className="text-amber-600" /> 快速工具箱
+                  <Wand2 size={16} className={nv.iconColor} /> 快速工具箱
                 </span>
-                <span className="text-[10px] text-stone-400">{mobileToolsOpen ? '▲' : '▼'}</span>
+                <span className={`text-[10px] opacity-60`}>{mobileToolsOpen ? '▲' : '▼'}</span>
               </button>
               {mobileToolsOpen && (
-                <div className="pl-4 mt-2 border-l-2 border-amber-200/60 flex flex-col gap-1 bg-stone-50/50 py-1.5 rounded-r">
+                <div className={`pl-4 mt-2 border-l-2 flex flex-col gap-1 py-1.5 rounded-r ${nv.mobileBorder} ${nv.mobileAccordionBg}`}>
                   {TOOLBOX_ITEMS.map((item) => (
                     <button
                       key={item.id}
@@ -537,7 +1567,7 @@ export function LandingPage() {
                         setMobileMenuOpen(false);
                         item.onClick();
                       }}
-                      className="w-full text-left py-2 px-1 text-xs text-stone-600 hover:text-amber-800 transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer"
+                      className={`w-full text-left py-2 px-1 text-xs transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer ${nv.mobileSubText}`}
                     >
                       <span className="text-sm">{item.icon}</span>
                       <span>{item.title}</span>
@@ -548,24 +1578,24 @@ export function LandingPage() {
             </div>
 
             {/* Settings accordion */}
-            <div className="border-b border-stone-100 pb-2 pt-1">
+            <div className={`border-b pb-2 pt-1 ${nv.mobileBorder}`}>
               <button
                 onClick={() => setMobileSettingsOpen(!mobileSettingsOpen)}
-                className="w-full text-left py-1 text-sm font-semibold text-stone-700 hover:text-amber-600 flex justify-between items-center border-none bg-transparent cursor-pointer"
+                className={`w-full text-left py-1 text-sm font-semibold flex justify-between items-center border-none bg-transparent cursor-pointer ${nv.mobileLinkText}`}
               >
                 <span className="flex items-center gap-1.5">
-                  <Settings size={16} className="text-amber-600" /> 系统设置
+                  <Settings size={16} className={nv.iconColor} /> 系统设置
                 </span>
-                <span className="text-[10px] text-stone-400">{mobileSettingsOpen ? '▲' : '▼'}</span>
+                <span className={`text-[10px] opacity-60`}>{mobileSettingsOpen ? '▲' : '▼'}</span>
               </button>
               {mobileSettingsOpen && (
-                <div className="pl-4 mt-2 border-l-2 border-amber-200/60 flex flex-col gap-1 bg-stone-50/50 py-1.5 rounded-r">
+                <div className={`pl-4 mt-2 border-l-2 flex flex-col gap-1 py-1.5 rounded-r ${nv.mobileBorder} ${nv.mobileAccordionBg}`}>
                   <button
                     onClick={() => {
                       setMobileMenuOpen(false);
                       setOpenAiModal(true);
                     }}
-                    className="w-full text-left py-2 px-1 text-xs text-stone-600 hover:text-amber-800 transition-colors flex items-center gap-1.5 border-none bg-transparent cursor-pointer"
+                    className={`w-full text-left py-2 px-1 text-xs transition-colors flex items-center gap-1.5 border-none bg-transparent cursor-pointer ${nv.mobileSubText}`}
                   >
                     🤖 AI 辅助书写配置
                   </button>
@@ -574,7 +1604,7 @@ export function LandingPage() {
                       setMobileMenuOpen(false);
                       setOpenThemeModal(true);
                     }}
-                    className="w-full text-left py-2 px-1 text-xs text-stone-600 hover:text-amber-800 transition-colors flex items-center gap-1.5 border-none bg-transparent cursor-pointer"
+                    className={`w-full text-left py-2 px-1 text-xs transition-colors flex items-center gap-1.5 border-none bg-transparent cursor-pointer ${nv.mobileSubText}`}
                   >
                     🎨 网页配色方案
                   </button>
@@ -583,24 +1613,24 @@ export function LandingPage() {
                       setMobileMenuOpen(false);
                       setOpenXgeStepSettingsModal(true);
                     }}
-                    className="w-full text-left py-2 px-1 text-xs text-stone-600 hover:text-amber-800 transition-colors flex items-center gap-1.5 border-none bg-transparent cursor-pointer"
+                    className={`w-full text-left py-2 px-1 text-xs transition-colors flex items-center gap-1.5 border-none bg-transparent cursor-pointer ${nv.mobileSubText}`}
                   >
-                    📜 XGE 经历生成设置
+                    ⚙️ 生成器选项
                   </button>
                 </div>
               )}
             </div>
 
             {/* Expansion manager */}
-            <div className="border-b border-stone-100 pb-2 pt-1">
+            <div className={`border-b pb-2 pt-1 ${nv.mobileBorder}`}>
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   setOpenExpModal(true);
                 }}
-                className="w-full text-left py-1 text-sm font-semibold text-stone-700 hover:text-amber-600 flex items-center gap-1.5 border-none bg-transparent cursor-pointer"
+                className={`w-full text-left py-1 text-sm font-semibold flex items-center gap-1.5 border-none bg-transparent cursor-pointer ${nv.mobileLinkText}`}
               >
-                <Book size={16} className="text-amber-600" /> 扩展管理
+                <Book size={16} className={nv.iconColor} /> 扩展管理
               </button>
             </div>
 
@@ -610,9 +1640,9 @@ export function LandingPage() {
                 href="https://github.com/littlhMW/DND5eCharacterTools-"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-1.5 text-sm font-semibold text-stone-600 hover:text-stone-900 no-underline py-1"
+                className={`flex items-center gap-1.5 text-sm font-semibold no-underline py-1 transition-colors ${nv.mobileLinkText}`}
               >
-                <Github size={16} className="text-amber-600" /> GitHub 开源
+                <Github size={16} className={nv.iconColor} /> GitHub 开源
               </a>
             </div>
           </div>
@@ -645,7 +1675,7 @@ export function LandingPage() {
             <button
               id="btn-hero-start"
               onClick={handleStartCreation}
-              className="flex items-center gap-2 px-6 py-2.5 bg-amber-600 text-white rounded-md font-medium text-sm hover:bg-amber-700 transition-colors shadow-md w-full sm:w-auto justify-center group border-none cursor-pointer"
+              className="flex items-center gap-2 px-6 py-2.5 bg-amber-600 text-white rounded-md font-medium text-sm hover:bg-amber-700 transition-all shadow-md w-full sm:w-auto justify-center group border-none cursor-pointer active:scale-95"
             >
               <Swords className="w-4 h-4 group-hover:rotate-12 transition-transform" />
               创建新角色
@@ -659,11 +1689,12 @@ export function LandingPage() {
                 const cls = classes.find(c => c.id === char.classId);
                 const race = getRaceByIdAndSource(char.raceId, char.raceSource);
                 const currentCharId = char.id;
+                const cardStyles = getCharacterCardStyles(currentTheme);
                 return (
-                  <div key={char.id} className="bg-white p-5 rounded-md border border-stone-200 shadow-sm hover:border-amber-300 transition-colors group cursor-pointer relative" onClick={() => dispatch({ type: 'LOAD_CHARACTER', payload: char })}>
+                  <div key={char.id} className={`p-5 rounded-md border transition-all group cursor-pointer relative ${cardStyles.card}`} onClick={() => dispatch({ type: 'LOAD_CHARACTER', payload: char })}>
                     {deletingId === currentCharId && (
-                      <div className="absolute inset-0 bg-stone-900/95 text-white flex flex-col items-center justify-center p-5 rounded-md z-30" onClick={(e) => e.stopPropagation()}>
-                        <span className="text-sm font-semibold mb-3 text-stone-200">确定要删除这个角色吗？</span>
+                      <div className="absolute inset-0 bg-neutral-900/95 text-white flex flex-col items-center justify-center p-5 rounded-md z-30 shadow-2xl border border-stone-800" onClick={(e) => e.stopPropagation()}>
+                        <span className="text-sm font-semibold mb-3 text-neutral-100">确定要删除这个角色吗？</span>
                         <div className="flex gap-4">
                           <button 
                             onClick={(e) => {
@@ -674,7 +1705,7 @@ export function LandingPage() {
                               localStorage.setItem('dndChars', JSON.stringify(newChars));
                               setDeletingId(null);
                             }}
-                            className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white font-medium text-xs rounded transition-colors border-none cursor-pointer"
+                            className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white font-semibold text-xs rounded transition-colors border-none cursor-pointer shadow"
                           >
                             确认删除
                           </button>
@@ -684,14 +1715,14 @@ export function LandingPage() {
                               e.stopPropagation();
                               setDeletingId(null);
                             }}
-                            className="px-4 py-1.5 bg-stone-700 hover:bg-stone-600 text-stone-200 font-medium text-xs rounded transition-colors border-none cursor-pointer"
+                            className="px-4 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-semibold text-xs rounded transition-colors border-none cursor-pointer shadow"
                           >
                             取消
                           </button>
                         </div>
                       </div>
                     )}
-                    <h3 className="font-serif font-bold text-lg text-stone-900 group-hover:text-amber-700">{char.name || '未命名'}</h3>
+                    <h3 className={`font-serif font-bold text-lg ${cardStyles.title}`}>{char.name || '未命名'}</h3>
                     <button 
                       className="absolute top-4 right-4 text-stone-400 hover:text-red-500 transition-colors p-1 z-10 bg-transparent border-none cursor-pointer"
                       onClick={(e) => {
@@ -703,12 +1734,12 @@ export function LandingPage() {
                     >
                       <svg xmlns="http://www.w3.org/2005/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
                     </button>
-                    <p className="text-sm text-stone-500 mt-1 mb-4 flex items-center gap-2">
-                       <span className="inline-block bg-stone-100 px-2 py-0.5 rounded text-xs font-mono">Lv {char.level || 3}</span>
+                    <p className={`text-sm mt-1 mb-4 flex items-center gap-2 ${cardStyles.metaText}`}>
+                       <span className={`inline-block px-2 py-0.5 rounded text-xs font-mono ${cardStyles.levelBadge}`}>Lv {char.level || 3}</span>
                        <span>{race?.name || '未知种族'}</span>
                        <span>{cls?.name || '无职业'}</span>
                     </p>
-                    <button className="text-sm font-medium text-amber-600 hover:text-amber-700 w-full bg-amber-50 hover:bg-amber-100 py-2 rounded-lg transition-colors border-none cursor-pointer">
+                    <button className={`text-sm font-medium w-full py-2 rounded-lg transition-colors border-none cursor-pointer ${cardStyles.button}`}>
                       加载角色卡
                     </button>
                   </div>
@@ -722,131 +1753,68 @@ export function LandingPage() {
           )}
 
           {/* Random Character Generation Helper */}
-          <div className={`rounded-lg p-5 flex flex-col md:flex-row items-center justify-between gap-4 mb-8 transition-colors ${
-            currentTheme === 'fiveetools'
-              ? 'bg-[#f0f7fe] border border-blue-200'
-              : currentTheme === 'dndmanual'
-              ? 'bg-[#fdf3f3] border border-red-200'
-              : 'bg-amber-50/40 border border-amber-200/50'
-          }`}>
-            <div className="space-y-1 text-left">
-              <h3 className={`text-base font-bold flex items-center gap-1.5 font-serif ${
-                currentTheme === 'fiveetools'
-                  ? 'text-blue-900'
-                  : currentTheme === 'dndmanual'
-                  ? 'text-red-900'
-                  : 'text-stone-900'
-              }`}>
-                🎲 快速随机生成 (Lv. 3)
-              </h3>
-              <p className="text-xs text-stone-500 leading-relaxed">
-                遵循标准属性购点与规则库，随机生成包含种族、子种族、职业、子职、背景在内的 3 级角色并加入。
-              </p>
-            </div>
-            <button
-              id="btn-fast-random"
-              onClick={generateRandomCharacter}
-              className={`text-xs font-semibold px-4.5 py-2.5 rounded transition-all shrink-0 flex items-center gap-2 cursor-pointer shadow-sm border-none active:scale-95 ${
-                currentTheme === 'fiveetools'
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                  : currentTheme === 'dndmanual'
-                  ? 'bg-red-700 hover:bg-red-800 text-white'
-                  : 'bg-amber-600 hover:bg-amber-700 text-white'
-              }`}
-            >
-              <Swords size={14} />
-              随机生成
-            </button>
-          </div>
+          {(() => {
+            const blockStyles = getRandomGenModuleStyles();
+            return (
+              <div 
+                id="container-random-generation-helper"
+                className={`rounded-lg p-5 flex flex-col md:flex-row items-center justify-between gap-4 mb-8 border transition-all ${blockStyles.container}`}
+              >
+                <div className="space-y-1 text-left">
+                  <h3 className={`text-base font-bold flex items-center gap-1.5 font-serif ${blockStyles.title}`}>
+                    🎲 快速随机生成 (Lv. 3)
+                  </h3>
+                  <p className={`text-xs leading-relaxed ${blockStyles.desc}`}>
+                    遵循标准属性购点与规则库，随机生成包含种族、子种族、职业、子职、背景在内的 3 级角色并加入。
+                  </p>
+                </div>
+                <button
+                  id="btn-fast-random"
+                  onClick={generateRandomCharacter}
+                  className={`flex items-center gap-2 px-6 py-2.5 rounded-md font-medium text-sm transition-all shadow-md w-full sm:w-auto justify-center group border-none cursor-pointer active:scale-95 shrink-0 ${blockStyles.button}`}
+                >
+                  <Swords size={16} className="group-hover:rotate-12 transition-transform" />
+                  随机生成
+                </button>
+              </div>
+            );
+          })()}
         </div>
 
         {/* 工具箱组块 */}
         <div className="w-full max-w-7xl relative text-left mt-12 mb-8">
-          <h2 className="text-2xl font-serif font-bold text-amber-600 mb-6 flex items-center gap-3 border-b border-amber-600/30 pb-4">
-            <Wand2 size={24} className="text-amber-600" />
+          <h2 className={`text-2xl font-serif font-bold mb-6 flex items-center gap-3 pb-4 border-b ${
+            currentTheme === 'shadowfell' ? 'text-stone-900/90 border-stone-300/40' : 'text-amber-600 border-amber-600/30'
+          }`}>
+            <Wand2 size={24} className={currentTheme === 'shadowfell' ? 'text-stone-800' : 'text-amber-600'} />
             快速工具箱
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {TOOLBOX_ITEMS.map((item) => (
-              <button key={item.id} onClick={item.onClick} className="flex flex-col items-start text-left gap-2 p-4 bg-white border border-stone-200 rounded-xl shadow-sm hover:border-amber-400 hover:shadow-md transition-all cursor-pointer border-solid">
-                <span className="text-3xl mb-1">{item.icon}</span>
-                <span className="font-bold text-stone-900 text-sm">{item.title}</span>
-                <span className="text-[10px] text-stone-500 leading-tight">{item.desc}</span>
-              </button>
-            ))}
+            {TOOLBOX_ITEMS.map((item) => {
+              const cardBg = currentTheme === 'shadowfell'
+                ? 'bg-stone-800 border-stone-700/80 text-stone-100 hover:bg-stone-700 hover:border-amber-400'
+                : 'bg-white border-stone-200 text-stone-900 hover:border-amber-400 hover:shadow-md';
+              const titleColor = currentTheme === 'shadowfell' ? 'text-stone-50' : 'text-stone-900';
+              const descColor = currentTheme === 'shadowfell' ? 'text-stone-300' : 'text-stone-500';
+              
+              return (
+                <button 
+                  key={item.id} 
+                  onClick={item.onClick} 
+                  className={`flex flex-col items-start text-left gap-2 p-4 rounded-xl shadow-sm transition-all cursor-pointer border-solid border ${cardBg}`}
+                >
+                  <span className="text-3xl mb-1">{item.icon}</span>
+                  <span className={`font-bold text-sm ${titleColor}`}>{item.title}</span>
+                  <span className={`text-[10px] leading-tight ${descColor}`}>{item.desc}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </main>
 
-      {/* Dice Roller Modal */}
-      {openDiceModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-950/45 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white border border-stone-200 rounded-lg max-w-md w-full shadow-xl p-6 relative flex flex-col gap-4 animate-in zoom-in-95 duration-200 text-left">
-            <button 
-              onClick={() => setOpenDiceModal(false)}
-              className="absolute top-4 right-4 text-stone-400 hover:text-stone-600 text-sm p-1 cursor-pointer font-sans bg-transparent border-none"
-              title="关闭"
-            >
-              ✕
-            </button>
-
-            <div className="border-b border-stone-200 pb-3">
-              <h2 className="text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
-                🎲 快速骰点
-              </h2>
-              <p className="text-xs text-stone-500 mt-1">
-                点击下方按钮可投掷符合核心跑团规则的多面骰，掷骰结果将实时在此显示，不改变您的角色档案卡。
-              </p>
-            </div>
-
-            <div className="space-y-3.5 text-sm">
-              <div className="grid grid-cols-4 gap-2">
-                {[4, 6, 8, 10, 12, 20, 100].map((sides) => (
-                  <button
-                    key={sides}
-                    onClick={() => handleRollDice(sides)}
-                    className="py-2 bg-stone-50 hover:bg-amber-50 hover:text-amber-800 border border-stone-200 hover:border-amber-200 text-xs font-semibold rounded transition-colors cursor-pointer"
-                  >
-                    d{sides}
-                  </button>
-                ))}
-              </div>
-
-              <div className="mt-3">
-                <div className="text-[11px] font-semibold text-stone-500 mb-1 flex justify-between items-center">
-                  <span>投掷历史 (仅限本次)</span>
-                  {diceLog.length > 0 && (
-                    <button onClick={() => setDiceLog([])} className="text-stone-400 hover:text-stone-605 text-[10px] cursor-pointer bg-transparent border-none">
-                      清空听
-                    </button>
-                  )}
-                </div>
-                <div className="bg-stone-50 border border-stone-200 rounded p-2 text-xs font-mono h-32 overflow-y-auto space-y-1">
-                  {diceLog.length === 0 ? (
-                    <span className="text-stone-400 text-[10px] block text-center pt-8">暂无投掷，点击上方按钮测试手气</span>
-                  ) : (
-                    diceLog.map((log, idx) => (
-                      <div key={idx} className="text-stone-700 flex justify-between text-[11px] border-b border-stone-100/50 pb-0.5 animate-in slide-in-from-top-1 duration-100">
-                        <span>{log.time}</span>
-                        <span className="font-bold text-amber-800">{log.result}</span>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t border-stone-200 pt-4 flex justify-end">
-              <button
-                onClick={() => setOpenDiceModal(false)}
-                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs rounded transition-colors shadow-sm cursor-pointer border-none"
-              >
-                关闭
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Quick Dice Roller Modal */}
+      {openDiceModal && <QuickDiceRoller onClose={() => setOpenDiceModal(false)} />}
 
       {/* Point Buy Modal */}
       {openPointBuyModal && (
@@ -874,807 +1842,92 @@ export function LandingPage() {
         </div>
       )}
 
-      {/* AI Config Modal */}
-      {openAiModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-950/45 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white border border-stone-200 rounded-lg max-w-md w-full shadow-xl p-6 relative flex flex-col gap-4 animate-in zoom-in-95 duration-200 text-left font-sans">
-            <button 
-              onClick={() => setOpenAiModal(false)}
-              className="absolute top-4 right-4 text-stone-400 hover:text-stone-600 text-sm p-1 cursor-pointer font-sans bg-transparent border-none"
-              title="关闭"
-            >
-              ✕
-            </button>
+      <AiConfigModal
+        open={openAiModal}
+        onClose={() => setOpenAiModal(false)}
+        aiConfig={aiConfig}
+        setAiConfig={setAiConfig}
+        saveAIConfig={saveAIConfig}
+      />
 
-            <div className="border-b border-stone-200 pb-3">
-              <h2 className="text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
-                AI 辅助书写配置说明
-              </h2>
-              <p className="text-xs text-stone-505 mt-1">
-                启用与配置您的本地大模型 API 接口，实现平实有度、段落合理的文本扩写。
-              </p>
-            </div>
+      <ThemeSettingsModal
+        open={openThemeModal}
+        onClose={() => setOpenThemeModal(false)}
+        currentTheme={currentTheme}
+        setCurrentTheme={setCurrentTheme}
+      />
 
-            <div className="space-y-4 text-sm font-sans">
-              <div className="flex flex-col gap-2.5">
-                <label className="flex items-center gap-1.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={!!aiConfig.detailsEnabled}
-                    onChange={(e) => {
-                      const val = e.target.checked;
-                      const updated = saveAIConfig({ detailsEnabled: val, enabled: val || !!aiConfig.partyBioEnabled });
-                      setAiConfig(updated);
-                    }}
-                    className="w-4 h-4 text-amber-600 border-stone-300 rounded focus:ring-amber-500 cursor-pointer"
-                  />
-                  <span className="text-xs font-semibold text-stone-700">启用 AI 角色细节书写与生平润色 （角色栏位）</span>
-                </label>
+      <XgeStepSettingsModal
+        open={openXgeStepSettingsModal}
+        onClose={() => setOpenXgeStepSettingsModal(false)}
+        appGenEnabledInRandom={appGenEnabledInRandom}
+        setAppGenEnabledInRandom={setAppGenEnabledInRandom}
+        nameGenEnabledInRandom={nameGenEnabledInRandom}
+        setNameGenEnabledInRandom={setNameGenEnabledInRandom}
+        appGenEnabledInDetails={appGenEnabledInDetails}
+        setAppGenEnabledInDetails={setAppGenEnabledInDetails}
+        nameGenEnabledInTools={nameGenEnabledInTools}
+        setNameGenEnabledInTools={setNameGenEnabledInTools}
+        useExpandedXge={useExpandedXge}
+        setUseExpandedXge={setUseExpandedXge}
+        useNonPhbSupportXge={useNonPhbSupportXge}
+        setUseNonPhbSupportXge={setUseNonPhbSupportXge}
+        titleEnabledInRandom={titleEnabledInRandom}
+        setTitleEnabledInRandom={setTitleEnabledInRandom}
+        showTitleOnSheet={showTitleOnSheet}
+        setShowTitleOnSheet={setShowTitleOnSheet}
+        showXpOnSheet={showXpOnSheet}
+        setShowXpOnSheet={setShowXpOnSheet}
+        
+        traitGenEnabledInDetails={traitGenEnabledInDetails}
+        setTraitGenEnabledInDetails={setTraitGenEnabledInDetails}
+        titleGenEnabledInDetails={titleGenEnabledInDetails}
+        setTitleGenEnabledInDetails={setTitleGenEnabledInDetails}
+        partyNameGenEnabled={partyNameGenEnabled}
+        setPartyNameGenEnabled={setPartyNameGenEnabled}
+        partyAppGenEnabled={partyAppGenEnabled}
+        setPartyAppGenEnabled={setPartyAppGenEnabled}
+        partyTitleGenEnabled={partyTitleGenEnabled}
+        setPartyTitleGenEnabled={setPartyTitleGenEnabled}
+        xgeEnabledInDetails={xgeEnabledInDetails}
+        setXgeEnabledInDetails={setXgeEnabledInDetails}
+      />
 
-                <label className="flex items-center gap-1.5 cursor-pointer border-t border-stone-150 pt-2.5 mt-1">
-                  <input
-                    type="checkbox"
-                    checked={!!aiConfig.partyBioEnabled}
-                    onChange={(e) => {
-                      const val = e.target.checked;
-                      const updated = saveAIConfig({ partyBioEnabled: val, enabled: val || !!aiConfig.detailsEnabled });
-                      setAiConfig(updated);
-                    }}
-                    className="w-4 h-4 text-amber-600 border-stone-300 rounded focus:ring-amber-500 cursor-pointer"
-                  />
-                  <span className="text-xs font-semibold text-stone-700">启用 AI 冒险队小队故事撰写 （小队生成器）</span>
-                </label>
-              </div>
-
-              <p className="text-xs text-stone-500 leading-relaxed font-sans">
-                细节书写与小队故事撰写现已完全**独立隔离**运作。系统允许您根据需要，单独开启/关闭其中任意一项。
-                <br />
-                - 开启「细节书写」后，自定义单个角色的「外观」与「背景故事」中会出现闪光专属润色按钮。
-                <br />
-                - 开启「小队故事撰写」后，联袂 4 人小队生成器中会展现专属小队故事选项卡，为您编撰富有宿命羁绊的关系故事。
-              </p>
-
-              {(aiConfig.detailsEnabled || aiConfig.partyBioEnabled) ? (
-                <div className="space-y-2 border-t border-stone-150 pt-2 animate-in slide-in-from-top-1 duration-150">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-[10px] font-semibold text-stone-500 mb-0.5">接口提供商</label>
-                      <select
-                        value={aiConfig.provider}
-                        onChange={handleProviderChange}
-                        className="w-full text-xs bg-white border border-stone-200 rounded px-2.5 py-1.5 focus:border-amber-500 focus:outline-none cursor-pointer h-[34px]"
-                      >
-                        {PROVIDERS.map((p) => (
-                           <option key={p.id} value={p.id}>
-                            {p.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-semibold text-stone-500 mb-0.5">模型名</label>
-                      <input
-                        type="text"
-                        value={aiConfig.model}
-                        onChange={(e) => handleAiConfigChange('model', e.target.value)}
-                        placeholder="e.g. deepseek-chat"
-                        className="w-full text-xs bg-white border border-stone-200 rounded px-2.5 py-1.5 focus:border-amber-500 focus:outline-none font-mono h-[34px]"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-semibold text-stone-500 mb-0.5">
-                      API 密钥
-                    </label>
-                    <input
-                      type="password"
-                      value={aiConfig.apiKey}
-                      onChange={(e) => handleAiConfigChange('apiKey', e.target.value)}
-                      placeholder={aiConfig.provider === 'deepseek' ? 'sk-...' : '输入 API Key'}
-                      className="w-full text-xs bg-white border border-stone-200 rounded px-2.5 py-1.5 focus:border-amber-500 focus:outline-none"
-                    />
-                  </div>
-                  <div className="text-[10px] text-stone-500 italic mt-1 pb-1">
-                    * 所有配置和 API 密钥均保存在您的本地浏览器中，绝不上传至任何服务器，安全放心。
-                  </div>
-                </div>
-              ) : (
-                <div className="border border-dashed border-stone-200 rounded-lg p-5 bg-stone-50/50 text-stone-400 text-xs text-center flex flex-col justify-center items-center py-7 font-sans">
-                  AI 功能已全部关闭。若需启用角色卡或小队的 AI 撰稿能力，请勾选上方开关并配置 API。
-                </div>
-              )}
-            </div>
-
-            <div className="border-t border-stone-200 pt-4 flex justify-end">
-              <button
-                onClick={() => setOpenAiModal(false)}
-                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs rounded transition-colors shadow-sm cursor-pointer border-none"
-              >
-                保存关闭
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Theme Select Modal */}
-      {openThemeModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-950/45 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white border border-stone-200 rounded-lg max-w-sm w-full shadow-xl p-6 relative flex flex-col gap-4 animate-in zoom-in-95 duration-200 text-left font-sans">
-            <button 
-              onClick={() => setOpenThemeModal(false)}
-              className="absolute top-4 right-4 text-stone-400 hover:text-stone-600 text-sm p-1 cursor-pointer font-sans bg-transparent border-none"
-              title="关闭"
-            >
-              ✕
-            </button>
-
-            <div className="border-b border-stone-200 pb-3">
-              <h2 className="text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
-                🎨 网页配色方案
-              </h2>
-              <p className="text-xs text-stone-505 mt-1">
-                选择您偏好的主题背景风格。该设置将保存在本地并自动应用。
-              </p>
-            </div>
-
-            <div className="space-y-4 pb-2 pt-2 max-h-[60vh] overflow-y-auto pr-1">
-              {(() => {
-                const themesList = [
-                  { id: 'dndmanual', name: '📕 龙与地下城手册', group: '经典地志与人文', desc: '根据官方 D&D 规则手册/怪物图鉴排版提取：暖象牙卡纸色底、深邃炭黑字迹与龙与地下城经典暗血红主标题交织（默认）' },
-                  { id: 'fiveetools', name: '🔵 5etools 蓝配色', group: '经典地志与人文', desc: '高度还原官方 5etools 中文双栏工具站排版结构：纯白纸感背景配以微黄、暖象牙纸张色底作为部件容器，点缀以经典的 5etools 标志性钴蓝标题与炭黑文字' },
-                  { id: 'parchment', name: '📜 人类：兼爱羊皮纸', group: '经典地志与人文', desc: '经典复古人族黄铜与深褐暖色羊皮纸张，护眼且优雅' },
-                  { id: 'candlekeep', name: '🌲 烛堡：书卷绿林', group: '经典地志与人文', desc: '宁静沉稳的墨竹翠羽与书桌红木褐，墨卷留香书香门第首选' },
-                  { id: 'swordcoast', name: '⚓ 剑湾：蓝墨古卷', group: '经典地志与人文', desc: '航海图纸的淡雅褪色蓝与羊皮墨水蓝，辅以低饱和海盐绿，呈现经典桌面冒险地图风格' },
-                  { id: 'waterdeep', name: '🏰 深水城：繁华商贸', group: '经典地志与人文', desc: '中性明亮的石板灰白背景，搭配彰显财富的奢华亮金交互色，呈现自由之城的繁盛气派' },
-                  { id: 'shadowfell', name: '💀 堕影冥界：灰白视界', group: '经典地志与人文', desc: '褪离色彩的中性黑白灰调，以纯粹的高阶老旧文本质感呈现极简护眼结构' },
-                  { id: 'feywild', name: '🌸 妖精荒野：幻境花海', group: '经典地志与人文', desc: '轻盈霓幻的樱草粉与野生薰衣草紫，富有迷迭香魔力的春意幻境' },
-                  { id: 'astral', name: '🌌 星际星海：太虚天盘', group: '经典地志与人文', desc: '深海太虚墨蓝与紫荧恒星折光，璀璨梦幻的高阶玄秘星盘色彩' },
-                  { id: 'dark', name: '🌙 核心：深幽夜幕', group: '经典地志与人文', desc: '更广明度范围的高对比度冷灰深色模式，不带任何环境光晕的经典明快黑暗底色' },
-
-                  { id: 'highforest', name: '🏹 精灵：高深绿野', group: '种族与血统特色', desc: '古树绿梢：温润的常青松针绿与原宿林木金，充满自然植物气息与灵动' },
-                  { id: 'dwarf', name: '⛏️ 矮人：深山秘银', group: '种族与血统特色', desc: '秘银大堂：稳重炭黑玄武岩体，缀以秘银纯亮银与锻造炉膛赤金色' },
-                  { id: 'avernus', name: '🔥 提夫林：九域惩击', group: '种族与血统特色', desc: '炼狱邪曜：余烬微粒黑，衬托焦黑阿弗纳斯熔岩爆炎与亮丽邪魅明橙' },
-                  { id: 'gnome', name: '⚙️ 侏儒：日曜旅程', group: '种族与血统特色', desc: '黄金周日：古铜与明黄色交织的复古日曜日光泽，呈现灵动活泼的探索旅程' },
-                  { id: 'dragonborn', name: '🪙 龙裔：火山洗礼', group: '种族与血统特色', desc: '火山吐息：赤火铜与红宝石鳞片折光质感，气势雄浑，威严夺目' },
-                  { id: 'underdark', name: '🔮 卓尔：荧光深邃', group: '种族与血统特色', desc: '幽暗地下：深邃黑曜石，泛着秘法紫玛瑙莹光，契合地牢夜间体验' }
-                ];
-
-                const groups = themesList.reduce((acc, current) => {
-                  if (!acc[current.group]) {
-                    acc[current.group] = [];
-                  }
-                  acc[current.group].push(current);
-                  return acc;
-                }, {} as Record<string, typeof themesList>);
-
-                return Object.entries(groups).map(([groupName, items]) => (
-                  <div key={groupName} className="space-y-2">
-                    <div className="text-xs font-bold font-sans text-stone-500 uppercase tracking-wider border-l-2 border-amber-500 pl-2 py-0.5 mt-4">
-                      {groupName}
-                    </div>
-                    <div className="grid grid-cols-1 gap-2.5">
-                      {items.map((theme) => (
-                        <button
-                          key={theme.id}
-                          onClick={() => {
-                            setCurrentTheme(theme.id);
-                            localStorage.setItem('dndTheme', theme.id);
-                            document.documentElement.setAttribute('data-theme', theme.id);
-                          }}
-                          className={`w-full text-left p-3 rounded border transition-all cursor-pointer flex flex-col gap-1 ${
-                            currentTheme === theme.id 
-                              ? 'border-amber-500 bg-amber-50/50 shadow-sm' 
-                              : 'border-stone-200 bg-white hover:border-amber-300 hover:bg-stone-50'
-                          }`}
-                        >
-                          <div className="flex justify-between items-center w-full">
-                            <span className={`font-semibold text-sm ${currentTheme === theme.id ? 'text-amber-800' : 'text-stone-800'}`}>
-                              {theme.name}
-                            </span>
-                            {currentTheme === theme.id && <span className="text-amber-600">✓</span>}
-                          </div>
-                          <span className="text-[11px] text-stone-500">{theme.desc}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ));
-              })()}
-            </div>
-
-            <div className="border-t border-stone-200 pt-4 flex justify-end">
-              <button
-                onClick={() => setOpenThemeModal(false)}
-                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs rounded transition-colors shadow-sm cursor-pointer border-none"
-              >
-                关闭
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* XGE Step Settings Modal */}
-      {openXgeStepSettingsModal && (
-        <div id="modal-xge-step-settings" className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-950/45 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white border border-stone-200 rounded-lg max-w-md w-full shadow-xl p-6 relative flex flex-col gap-4 animate-in zoom-in-95 duration-200 text-left font-sans">
-            <button 
-              id="btn-close-xge-step-settings"
-              onClick={() => setOpenXgeStepSettingsModal(false)}
-              className="absolute top-4 right-4 text-stone-400 hover:text-stone-600 text-sm p-1 cursor-pointer font-sans bg-transparent border-none"
-              title="关闭"
-            >
-              ✕
-            </button>
-
-            <div className="border-b border-stone-200 pb-3">
-              <h2 className="text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
-                📜 XGE 经历生成设置
-              </h2>
-              <p className="text-xs text-stone-500 mt-1">
-                配置角色创建中「5.细节」步骤里的 Xanathar 经历生成选项。
-              </p>
-            </div>
-
-            <div className="space-y-4 text-sm font-sans">
-              <div className="flex flex-col gap-4">
-                <div className="flex items-start gap-2.5">
-                  <input
-                    type="checkbox"
-                    id="chk-xge-enabled-details"
-                    checked={xgeEnabledInDetails}
-                    onChange={(e) => {
-                      const val = e.target.checked;
-                      setXgeEnabledInDetails(val);
-                      localStorage.setItem('xgeEnabledInDetails', String(val));
-                    }}
-                    className="w-4 h-4 mt-0.5 text-amber-600 border-stone-350 rounded focus:ring-amber-500 cursor-pointer accent-amber-500"
-                  />
-                  <label htmlFor="chk-xge-enabled-details" className="text-xs font-semibold text-stone-700 cursor-pointer flex-1 select-none">
-                    在「细节」面板中启用 XGE 经历生成功能
-                    <span className="block text-[11px] text-stone-550 font-normal mt-1 leading-normal">
-                      开启后，在角色创建第 5 步「细节」中的“背景故事”栏位旁会激活「生成生平经历」按钮。默认关闭。
-                    </span>
-                  </label>
-                </div>
-
-                <div className="flex items-start gap-2.5 border-t border-stone-150 pt-3">
-                  <input
-                    type="checkbox"
-                    id="chk-xge-use-nonphb-details"
-                    checked={xgeUseNonPhbInDetails}
-                    onChange={(e) => {
-                      const val = e.target.checked;
-                      setXgeUseNonPhbInDetails(val);
-                      localStorage.setItem('xgeUseNonPhbInDetails', String(val));
-                    }}
-                    className="w-4 h-4 mt-0.5 text-amber-600 border-stone-350 rounded focus:ring-amber-500 cursor-pointer accent-amber-500"
-                  />
-                  <label htmlFor="chk-xge-use-nonphb-details" className="text-xs font-semibold text-stone-700 cursor-pointer flex-1 select-none">
-                    在「细节」中进行经历生成时启用非 PHB 职业与背景映射
-                    <span className="block text-[11px] text-stone-550 font-normal mt-1 leading-normal">
-                      若启用，当检测到或指定扩展背景与职业时（如血猎、奇艺发明家或自设背景），程序会给予支持和智能匹配，不再报错或回退。
-                    </span>
-                  </label>
-                </div>
-
-                <div className="flex items-start gap-2.5 border-t border-stone-150 pt-3">
-                  <input
-                    type="checkbox"
-                    id="chk-xge-use-expanded-details"
-                    checked={xgeUseExpandedInDetails}
-                    onChange={(e) => {
-                      const val = e.target.checked;
-                      setXgeUseExpandedInDetails(val);
-                      localStorage.setItem('xgeUseExpandedInDetails', String(val));
-                    }}
-                    className="w-4 h-4 mt-0.5 text-amber-600 border-stone-350 rounded focus:ring-amber-500 cursor-pointer accent-amber-500"
-                  />
-                  <label htmlFor="chk-xge-use-expanded-details" className="text-xs font-semibold text-stone-700 cursor-pointer flex-1 select-none">
-                    在「细节」中进行经历生成时默认使用额外扩展内容描述
-                    <span className="block text-[11px] text-stone-550 font-normal mt-1 leading-normal">
-                      若启用，在掷骰宿命或变数时，将会额外合并并加载各种特殊传奇奇遇、不测命运及波澜表。
-                    </span>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t border-stone-200 pt-4 flex justify-end">
-              <button
-                id="btn-save-xge-step-settings"
-                onClick={() => setOpenXgeStepSettingsModal(false)}
-                className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs rounded transition-colors shadow-sm cursor-pointer border-none"
-              >
-                保存并关闭
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* XGE This Is Your Life Config Modal */}
-      {openXgeModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-950/45 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white border border-stone-200 rounded-lg max-w-lg w-full shadow-xl p-6 relative flex flex-col gap-4 animate-in zoom-in-95 duration-200 text-left font-sans">
-            <button 
-              onClick={() => setOpenXgeModal(false)}
-              className="absolute top-4 right-4 text-stone-400 hover:text-stone-600 text-sm p-1 cursor-pointer font-sans bg-transparent border-none"
-              title="关闭"
-            >
-              ✕
-            </button>
-
-            <div className="border-b border-stone-200 pb-3">
-              <h2 className="text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
-                📜 XGE "这是你的人生" 掷骰面板
-              </h2>
-              <p className="text-xs text-stone-500 mt-1 leading-relaxed font-sans">
-                根基于《万事指南》（Xanathar's Guide to Everything）核心表随机拼合生成生动的人生经历。
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex flex-col gap-2 bg-amber-50/50 p-2 rounded border border-amber-200">
-                <div className="flex items-start gap-2">
-                  <input 
-                    type="checkbox"
-                    id="xgeNonPhbSupportToggle"
-                    checked={localStorage.getItem('useNonPhbSupportXge') !== 'false'}
-                    onChange={(e) => {
-                      localStorage.setItem('useNonPhbSupportXge', String(e.target.checked));
-                      setXgePreviewText(xgePreviewText + ' ');
-                      setTimeout(() => setXgePreviewText((prev) => prev.trim()), 0);
-                    }}
-                    className="w-4 h-4 mt-0.5 text-amber-600 rounded bg-white border-stone-300 focus:ring-amber-500 cursor-pointer"
-                  />
-                  <label htmlFor="xgeNonPhbSupportToggle" className="text-xs font-semibold text-amber-900 cursor-pointer flex-1">
-                    开启非 PHB 背景/职业支持
-                    <span className="block text-[10px] text-amber-700/80 font-normal mt-0.5">
-                      不仅支持 PHB，还解锁所有扩展包中的职业与背景的故事支持。
-                    </span>
-                  </label>
-                </div>
-                <div className="flex items-start gap-2 border-t border-amber-200/50 pt-2">
-                  <input 
-                    type="checkbox"
-                    id="xgeExpandedToggle"
-                    checked={localStorage.getItem('useExpandedXge') === 'true'}
-                    onChange={(e) => {
-                      localStorage.setItem('useExpandedXge', String(e.target.checked));
-                      setXgePreviewText(xgePreviewText + ' ');
-                      setTimeout(() => setXgePreviewText((prev) => prev.trim()), 0);
-                    }}
-                    className="w-4 h-4 mt-0.5 text-amber-600 rounded bg-white border-stone-300 focus:ring-amber-500 cursor-pointer"
-                  />
-                  <label htmlFor="xgeExpandedToggle" className="text-xs font-semibold text-amber-900 cursor-pointer flex-1">
-                    启用个人故事扩展（非官方内容）
-                    <span className="block text-[10px] text-amber-700/80 font-normal mt-0.5">
-                      解锁数倍于原版的自制随机背景、奇遇、命运波澜。
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <label className="block text-xs font-semibold text-stone-700 mb-1.5">
-                    选择职业：
-                  </label>
-                  <select
-                    value={xgePreviewClass}
-                    onChange={(e) => setXgePreviewClass(e.target.value)}
-                    className="w-full text-xs bg-white border border-stone-200 rounded px-2.5 py-1.5 focus:border-amber-500 focus:outline-none cursor-pointer h-[34px]"
-                  >
-                    <option value="">(空缺则随机)</option>
-                    {localStorage.getItem('useNonPhbSupportXge') !== 'false' 
-                      ? classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)
-                      : [
-                          {id: 'barbarian', name: '野蛮人'},
-                          {id: 'bard', name: '吟游诗人'},
-                          {id: 'cleric', name: '牧师'},
-                          {id: 'druid', name: '德鲁伊'},
-                          {id: 'fighter', name: '战士'},
-                          {id: 'monk', name: '武僧'},
-                          {id: 'paladin', name: '圣武士'},
-                          {id: 'ranger', name: '游侠'},
-                          {id: 'rogue', name: '游荡者'},
-                          {id: 'sorcerer', name: '术士'},
-                          {id: 'warlock', name: '邪术师'},
-                          {id: 'wizard', name: '法师'}
-                        ].map(c => <option key={c.id} value={c.id}>{c.name}</option>)
-                    }
-                  </select>
-                </div>
-                <div className="flex-1">
-                  <label className="block text-xs font-semibold text-stone-700 mb-1.5">
-                    选择背景：
-                  </label>
-                  <select
-                    value={xgePreviewBg}
-                    onChange={(e) => setXgePreviewBg(e.target.value)}
-                    className="w-full text-xs bg-white border border-stone-200 rounded px-2.5 py-1.5 focus:border-amber-500 focus:outline-none cursor-pointer h-[34px]"
-                  >
-                    <option value="">(空缺则随机)</option>
-                    {localStorage.getItem('useNonPhbSupportXge') !== 'false' 
-                      ? backgrounds.map(b => <option key={b.id} value={b.id}>{b.name}</option>)
-                      : [
-                          {id: 'acolyte', name: '侍祭'},
-                          {id: 'charlatan', name: '骗子'},
-                          {id: 'criminal', name: '罪犯'},
-                          {id: 'entertainer', name: '艺人'},
-                          {id: 'folk-hero', name: '平民英雄'},
-                          {id: 'guild-artisan', name: '工匠行会'},
-                          {id: 'hermit', name: '隐士'},
-                          {id: 'noble', name: '贵族'},
-                          {id: 'outlander', name: '荒野隐士'},
-                          {id: 'sage', name: '贤者'},
-                          {id: 'sailor', name: '水手'},
-                          {id: 'soldier', name: '士兵'},
-                          {id: 'urchin', name: '孤儿'}
-                        ].map(b => <option key={b.id} value={b.id}>{b.name}</option>)
-                    }
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <label className="block text-xs font-semibold text-stone-700 mb-1.5">
-                    年龄：
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="随机"
-                    value={xgePreviewAge}
-                    onChange={(e) => setXgePreviewAge(e.target.value ? parseInt(e.target.value, 10) : '')}
-                    className="w-full text-xs bg-white border border-stone-200 rounded px-2.5 py-1.5 focus:border-amber-500 focus:outline-none h-[34px]"
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="block text-xs font-semibold text-stone-700 mb-1.5">
-                    魅力调整值：
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="默认 +0"
-                    value={xgePreviewChaMod}
-                    onChange={(e) => setXgePreviewChaMod(e.target.value ? parseInt(e.target.value, 10) : '')}
-                    className="w-full text-xs bg-white border border-stone-200 rounded px-2.5 py-1.5 focus:border-amber-500 focus:outline-none h-[34px]"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center bg-stone-50 border border-stone-200 rounded p-3">
-                <span className="text-[11px] text-stone-600">
-                  生成人生经历：
-                </span>
-                <button
-                  onClick={() => {
-                    const useExpanded = localStorage.getItem('useExpandedXge') === 'true';
-                    const useNonPhbSupport = localStorage.getItem('useNonPhbSupportXge') !== 'false';
-                    const ctx = { 
-                      backgroundId: xgePreviewBg, 
-                      classId: xgePreviewClass,
-                      age: typeof xgePreviewAge === 'number' ? xgePreviewAge : undefined,
-                      chaMod: typeof xgePreviewChaMod === 'number' ? xgePreviewChaMod : undefined
-                    };
-                    const text = generateXgeBackstory(ctx, { useExpanded, useNonPhbSupport });
-                    setXgePreviewText(text);
-                  }}
-                  className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-medium text-xs rounded transition-colors shadow-xs cursor-pointer border-none flex items-center gap-1 font-sans"
-                >
-                  🎲 掷骰
-                </button>
-              </div>
-
-              {xgePreviewText ? (
-                <div className="space-y-1.5">
-                  <span className="block text-xs font-semibold text-stone-700">
-                     骰表掷骰生平结果预览:
-                  </span>
-                  <div className="bg-stone-50 border border-stone-200 p-3.5 rounded-lg max-h-[160px] overflow-y-auto text-xs text-stone-700 leading-relaxed font-sans whitespace-pre-wrap">
-                    {xgePreviewText}
-                  </div>
-                </div>
-              ) : (
-                <div className="border border-dashed border-stone-200 rounded-lg p-5 bg-stone-50/50 text-stone-405 text-xs text-center leading-relaxed">
-                  暂无掷骰。
-                </div>
-              )}
-            </div>
-
-            <div className="border-t border-stone-200 pt-4 flex justify-end">
-              <button
-                onClick={() => setOpenXgeModal(false)}
-                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs rounded transition-colors shadow-sm cursor-pointer border-none"
-              >
-                关闭面板
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <XgeModal
+        open={openXgeModal}
+        onClose={() => setOpenXgeModal(false)}
+        xgePreviewText={xgePreviewText}
+        setXgePreviewText={setXgePreviewText}
+        xgePreviewClass={xgePreviewClass}
+        setXgePreviewClass={setXgePreviewClass}
+        xgePreviewBg={xgePreviewBg}
+        setXgePreviewBg={setXgePreviewBg}
+        xgePreviewAge={xgePreviewAge}
+        setXgePreviewAge={setXgePreviewAge}
+        xgePreviewChaMod={xgePreviewChaMod}
+        setXgePreviewChaMod={setXgePreviewChaMod}
+        classes={classes}
+        backgrounds={backgrounds}
+      />
 
       {/* Expansion Books Modal */}
-      {openExpModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-950/45 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white border border-stone-200 rounded-lg max-w-4xl w-full shadow-xl p-6 relative flex flex-col gap-4 animate-in zoom-in-95 duration-200 text-left font-sans">
-            <button 
-              onClick={() => setOpenExpModal(false)}
-              className="absolute top-4 right-4 text-stone-400 hover:text-stone-600 text-sm p-1 cursor-pointer font-sans bg-transparent border-none"
-              title="关闭"
-            >
-              ✕
-            </button>
-
-            <div className="border-b border-stone-200 pb-3 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
-                  📚 扩展书与规则集管理
-                </h2>
-                <p className="text-xs text-stone-500 mt-1 max-w-xl pr-2 leading-relaxed">
-                  启用或禁用特定的官方扩展书。启用后，您可以进一步勾选是否开启该扩展内的 <strong>种族</strong>、<strong>职业</strong> 或 <strong>背景</strong> 功能。
-                  <span className="block mt-1">⭐️ <strong>存在同一种族的不同扩展时，在创建角色时点击扩展缩写切换扩展。</strong></span>
-                  <span className="block mt-1 font-medium text-amber-600">⚠️ 提示：扩展包目前为 Beta 测试版本，内容可能存在翻译或机制错漏，请谨慎参考。</span>
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    const allIds = EXPANSIONS.filter(e => !e.isCore).map(e => e.id);
-                    const newSettings = { ...expansionSettings };
-                    for (const expId of allIds) {
-                      newSettings[expId] = {
-                        enabled: true,
-                        races: true,
-                        classes: true,
-                        backgrounds: true,
-                        other: true
-                      };
-                    }
-                    setExpansionSettings(newSettings);
-                    saveExpansionSettings(newSettings);
-                    setActiveExpansions(allIds);
-                  }}
-                  className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs rounded transition-colors border border-stone-200 cursor-pointer"
-                >
-                  全选非核心
-                </button>
-                <button
-                  onClick={() => {
-                    const newSettings = { ...expansionSettings };
-                    for (const exp of EXPANSIONS) {
-                      if (exp.isCore) continue;
-                      newSettings[exp.id] = {
-                        enabled: false,
-                        races: false,
-                        classes: false,
-                        backgrounds: false,
-                        other: false
-                      };
-                    }
-                    setExpansionSettings(newSettings);
-                    saveExpansionSettings(newSettings);
-                    setActiveExpansions([]);
-                  }}
-                  className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs rounded transition-colors border border-stone-200 cursor-pointer"
-                >
-                  全不选
-                </button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto pr-1">
-              {EXPANSIONS.map((exp: ExpansionBook) => {
-                const bookSet = expansionSettings[exp.id] || { enabled: false, races: false, classes: false, backgrounds: false, other: false };
-                const isBookEnabled = exp.isCore || bookSet.enabled;
-                
-                return (
-                  <div key={exp.id} className={`p-3 rounded-md border transition-all flex flex-col ${isBookEnabled ? 'bg-amber-50/20 border-amber-200/50' : 'bg-stone-50/50 border-stone-200 opacity-60 hover:opacity-100'}`}>
-                    <div className="flex items-start justify-between gap-2 mb-1.5 border-b border-stone-100 pb-1.5">
-                      <div className="flex items-center flex-wrap gap-1.5">
-                        <span className="font-bold text-sm text-stone-900">{exp.name}</span>
-                        <span 
-                          onClick={() => {
-                            if (!exp.isCore) handleBookMasterToggle(exp.id, !bookSet.enabled);
-                          }}
-                          className={`text-[9px] ${!exp.isCore ? 'cursor-pointer hover:bg-stone-300' : ''} bg-stone-200 text-stone-505 px-1 py-0.5 rounded font-mono uppercase leading-none transition-colors`}
-                          title={!exp.isCore ? "点击切换整个规则书状态" : ""}
-                        >
-                          {exp.shortName}
-                        </span>
-                        {exp.isCore ? (
-                          <span className="text-[9px] bg-amber-500 text-white px-1 py-0.5 rounded leading-none">核心</span>
-                        ) : (
-                          <span className="text-[9px] bg-amber-50 text-amber-600 border border-amber-200 px-1 py-0.5 rounded leading-none">Beta 错漏谨用</span>
-                        )}
-                      </div>
-                      {!exp.isCore && (
-                        <div className="shrink-0 flex items-center h-full pt-0.5">
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input 
-                              type="checkbox" 
-                              className="sr-only peer"
-                              checked={bookSet.enabled}
-                              onChange={(e) => handleBookMasterToggle(exp.id, e.target.checked)}
-                            />
-                            <div className="w-7 h-4 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[12px] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-amber-500"></div>
-                          </label>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="text-[11px] text-stone-600 space-y-2.5 mt-1 flex-1 flex flex-col justify-between">
-                      <div>
-                        <p className="text-stone-500 leading-relaxed italic mb-2.5">
-                          {exp.description}
-                        </p>
-                        
-                        {/* Races */}
-                        {exp.races && (
-                          <div className={`flex items-start gap-1.5 text-[11px] mb-2 transition-opacity duration-200 ${!isBookEnabled || (bookSet.races === false && !exp.isCore) ? 'opacity-40' : 'opacity-100'}`}>
-                            <label className="shrink-0 flex items-center gap-1 cursor-pointer select-none">
-                              <input
-                                type="checkbox"
-                                disabled={exp.isCore || !bookSet.enabled}
-                                checked={exp.isCore ? true : bookSet.races}
-                                onChange={(e) => handleCategoryToggle(exp.id, 'races', e.target.checked)}
-                                className="w-3.5 h-3.5 rounded text-amber-600 focus:ring-amber-500 border-stone-300 accent-amber-600"
-                              />
-                              <span className="text-[10px] bg-amber-100 text-amber-800 px-1 py-0.5 rounded leading-none font-medium">
-                                种族
-                              </span>
-                            </label>
-                            <span className={`text-stone-700 leading-relaxed font-sans ${(!isBookEnabled || (bookSet.races === false && !exp.isCore)) ? 'line-through decoration-stone-400' : ''}`}>
-                              {exp.races}
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Classes */}
-                        {exp.classes && (
-                          <div className={`flex items-start gap-1.5 text-[11px] mb-2 transition-opacity duration-200 ${!isBookEnabled || (bookSet.classes === false && !exp.isCore) ? 'opacity-40' : 'opacity-100'}`}>
-                            <label className="shrink-0 flex items-center gap-1 cursor-pointer select-none">
-                              <input
-                                type="checkbox"
-                                disabled={exp.isCore || !bookSet.enabled}
-                                checked={exp.isCore ? true : bookSet.classes}
-                                onChange={(e) => handleCategoryToggle(exp.id, 'classes', e.target.checked)}
-                                className="w-3.5 h-3.5 rounded text-emerald-600 focus:ring-emerald-500 border-stone-300 accent-emerald-500"
-                              />
-                              <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded leading-none font-medium">
-                                职业
-                              </span>
-                            </label>
-                            <span className={`text-stone-700 leading-relaxed font-sans ${(!isBookEnabled || (bookSet.classes === false && !exp.isCore)) ? 'line-through decoration-stone-400' : ''}`}>
-                              {exp.classes}
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Backgrounds */}
-                        {exp.backgrounds && (
-                          <div className={`flex items-start gap-1.5 text-[11px] mb-2 transition-opacity duration-200 ${!isBookEnabled || (bookSet.backgrounds === false && !exp.isCore) ? 'opacity-40' : 'opacity-100'}`}>
-                            <label className="shrink-0 flex items-center gap-1 cursor-pointer select-none">
-                              <input
-                                type="checkbox"
-                                disabled={exp.isCore || !bookSet.enabled}
-                                checked={exp.isCore ? true : bookSet.backgrounds}
-                                onChange={(e) => handleCategoryToggle(exp.id, 'backgrounds', e.target.checked)}
-                                className="w-3.5 h-3.5 rounded text-indigo-650 focus:ring-indigo-500 border-stone-300 accent-indigo-650"
-                              />
-                              <span className="text-[10px] bg-violet-100 text-violet-800 px-1 py-0.5 rounded leading-none font-medium">
-                                背景
-                              </span>
-                            </label>
-                            <span className={`text-stone-700 leading-relaxed font-sans ${(!isBookEnabled || (bookSet.backgrounds === false && !exp.isCore)) ? 'line-through decoration-stone-400' : ''}`}>
-                              {exp.backgrounds}
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Other Features */}
-                        {exp.otherFeatures && (
-                          <div className={`flex items-start gap-1.5 text-[11px] mb-1 transition-opacity duration-200 ${!isBookEnabled || (bookSet.other === false && !exp.isCore) ? 'opacity-40' : 'opacity-100'}`}>
-                            <label className="shrink-0 flex items-center gap-1 cursor-pointer select-none">
-                              <input
-                                type="checkbox"
-                                disabled={exp.isCore || !bookSet.enabled}
-                                checked={exp.isCore ? true : bookSet.other}
-                                onChange={(e) => handleCategoryToggle(exp.id, 'other', e.target.checked)}
-                                className="w-3.5 h-3.5 rounded text-sky-600 focus:ring-sky-500 border-stone-300 accent-sky-500"
-                              />
-                              <span className="text-[10px] bg-sky-100 text-sky-900 px-1 py-0.5 rounded leading-none font-medium">
-                                其他
-                              </span>
-                            </label>
-                            <span className={`text-stone-605 leading-relaxed font-sans ${(!isBookEnabled || (bookSet.other === false && !exp.isCore)) ? 'line-through decoration-stone-400' : ''}`}>
-                              {exp.otherFeatures}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* 配置备份与同步 */}
-            <div className="mt-2 pt-3 border-t border-stone-200">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-xs font-semibold text-stone-800 flex items-center gap-1.5 font-serif">
-                    📋 规则书配置备份与导入
-                  </span>
-                  {expMsg.text && (
-                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded ${expMsg.type === 'success' ? 'bg-emerald-50 text-emerald-800 animate-in fade-in duration-150' : 'bg-red-50 text-red-800'}`}>
-                      {expMsg.text}
-                    </span>
-                  )}
-                </div>
-                
-                <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    onClick={handleExportConfig}
-                    className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded transition-colors shadow-xs border-none cursor-pointer flex items-center gap-1 font-sans"
-                    title="点击复制当前的规则书开启/关闭配置 JSON"
-                  >
-                    📤 点击复制配置
-                  </button>
-
-                  {!showImportInput ? (
-                    <button
-                      onClick={() => setShowImportInput(true)}
-                      className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded transition-colors shadow-xs border-none cursor-pointer flex items-center gap-1 font-sans"
-                    >
-                      📥 点击导入配置
-                    </button>
-                  ) : (
-                    <div className="flex items-center gap-1.5 animate-in slide-in-from-right-1 duration-150">
-                      <input
-                        type="text"
-                        placeholder="在此粘贴导出的配置 JSON 文本..."
-                        value={importString}
-                        onChange={(e) => setImportString(e.target.value)}
-                        className="text-white text-xs px-2.5 py-1.5 bg-stone-900 border border-stone-700 rounded focus:border-amber-500 focus:outline-none w-56 font-mono h-[32px] placeholder-stone-500"
-                      />
-                      <button
-                        onClick={handleImportConfig}
-                        className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded transition-colors border-none cursor-pointer h-[32px] flex items-center justify-center"
-                      >
-                        确认
-                      </button>
-                      <button
-                        onClick={() => {
-                          setShowImportInput(false);
-                          setImportString('');
-                        }}
-                        className="px-3 py-1 bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs font-semibold rounded transition-colors border-none cursor-pointer h-[32px] flex items-center justify-center"
-                      >
-                        取消
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t border-stone-200 pt-4 flex justify-end">
-              <button
-                id="btn-exp-close"
-                onClick={() => setOpenExpModal(false)}
-                className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium text-sm rounded transition-colors shadow-sm cursor-pointer border-none"
-              >
-                保存并关闭
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ExpansionsModal 
+        open={openExpModal} 
+        onClose={() => setOpenExpModal(false)}
+        expansionSettings={expansionSettings}
+        setExpansionSettings={setExpansionSettings}
+        saveExpansionSettings={saveExpansionSettings}
+        setActiveExpansions={setActiveExpansions}
+        handleBookMasterToggle={handleBookMasterToggle}
+        handleCategoryToggle={handleCategoryToggle}
+        handleExportConfig={handleExportConfig}
+        handleImportConfig={handleImportConfig}
+        showImportInput={showImportInput}
+        setShowImportInput={setShowImportInput}
+        importString={importString}
+        setImportString={setImportString}
+        expMsg={expMsg}
+      />
 
       {/* Footer & Credits */}
       <footer className="w-full bg-stone-50 border-t border-stone-200 py-16 px-6 relative z-10">
@@ -1745,6 +1998,7 @@ export function LandingPage() {
       {openNameModal && <NameGeneratorModal onClose={() => setOpenNameModal(false)} />}
       {openPartyNameModal && <PartyNameGeneratorModal onClose={() => setOpenPartyNameModal(false)} />}
       {openDetailGenModal && <AppearancePersonalityGenerator onClose={() => setOpenDetailGenModal(false)} />}
+      {openTitleModal && <TitleGeneratorModal onClose={() => setOpenTitleModal(false)} />}
     </div>
   );
 }

@@ -430,14 +430,14 @@ export function generateXgeBackstory(ctx: XgeContext, options?: XgeOptions): str
           "纯粹是一场身份错位，你阴差阳错顶替了一个死者，接手了对方隐秘的生活。",
           "你的直系亲属卷入神祇或宗主的争斗被全灭，你侥幸逃脱，只得以此隐蔽方式躲避追杀。"
         ])
-      : "岁月磨砺下，你历经波折与偶然的指引，最终选择了如今的谋生方式。";
+      : "最终你选择了如今的谋生方式。";
   }
 
   if (isExpanded) {
     bgMotivation += " " + pick([
-      "这一切刻入了你的灵魂，仿佛命运在刻意引导。",
-      "这段岁月赋予你超乎常人的警惕与直觉，为日后埋下伏笔。",
-      "尽管曾遭冷眼与磨难，你将其化作了锐利的生机。"
+      "你认为这仿佛是命运在刻意引导。",
+      "这段经历为日后埋下了伏笔。",
+      "它深刻影响了你之后的人生。"
     ]);
   }
 
@@ -552,29 +552,29 @@ export function generateXgeBackstory(ctx: XgeContext, options?: XgeOptions): str
           : clsId === "blood-hunter"
           ? "你加入对抗异界阴影的修会，通过血腥的仪轨获取反制怪物的力量。"
           : pick([
-              "你体内潜藏着不寻常的潜能，与其被它吞噬，你选择历经磨炼，驾驭这天赋化作武器。",
-              "这是家族世代传承的罕见技艺，为报血仇或不辜负过去，你豁出命开始这种冷僻的修行。",
-              "你觉得寻常魔法和刀剑太死板，便不守陈规，自己摸索出了这条离经叛道的职业之路。",
-              "一位濒死的域外来客，把不属于这片大陆的传承硬塞进你脑中，你别无选择，只能走下去。",
-              "一场禁忌的仪式永久改变了你的本质，将你逼上这条无法回头的职业异途。",
-              "为在乱世博取生存资本，你进行了异质置换，获得了旁门左道的力量。",
-              "你本是某位大能的试验品，顽强的生命力让你挺过一切，将实验残留化为特异技艺。",
-              "你在星界梦魇中浸泡过久，捡回命后，梦境里的狂乱法则在你这职业中生根发芽。",
-              "你憎恶正统的虚伪，借偷窥禁书和自行摸索，开辟出自己独具一格的实战流派。",
-              "这一切是一次失控的炼金或法术爆炸的意外产物，力量虽赋予你异于常人的职阶，却也让你如履薄冰。"
+              "你体内潜藏着不寻常的潜能你决定将天赋化作武器。",
+              "这是家族世代传承的罕见技艺，为报血仇或不辜负过去，你开始修行。",
+              "你觉得寻常魔法刀剑太无聊，便自己摸索出了这条道路。",
+              "一位濒死的存在，把它的传承硬塞进你脑中，你别无选择。",
+              "一场禁忌的仪式永久改变了你的本质，你别无选择。",
+              "你不擅长其他的，却意外擅长于此。",
+              "你本是某次实验的试验品，意外从中获得了力量。",
+              "你在某个位面停留，狂乱的法则在你的生命中生根发芽。",
+              "你憎恶正统的虚伪，借偷窥禁书自行摸索了道路。",
+              "某位存在本想夺取你的身体，却最终因为意外失败消散成为了你的力量。"
             ]))
-      : "在岁月中探求，你掌握了特殊力量的秘诀，踏上了这条不同寻常的修行路。";
+      : "你摸索着属于自己的方式，踏上了这条道途。";
   }
 
   if (isExpanded) {
     classDecision += " " + pick([
-      "你深知此道意味着极大的孤独与意志考验。",
-      "其中充满痛苦的撕裂，但你从未萌生退意。",
-      "而在无数生死瞬间迸发的能量，一次次证明这条路危险又光芒四射。"
+      "你深知此道意味着极大的考验。",
+      "这异常艰难，但你从未萌生退意。",
+      "你从此开始了这条道路。"
     ]);
   }
 
-  story += `关于你的人生方向，${bgMotivation}。而在职业的选择上，${classDecision}。`;
+  story += `关于你的人生方向，${bgMotivation}而在职业的选择上，${classDecision}`;
 
   // 段落分隔
   story += "\n\n";
@@ -712,68 +712,75 @@ export function generateXgeBackstory(ctx: XgeContext, options?: XgeOptions): str
   const generateEvent = () => {
     const r = Math.floor(Math.random() * 100) + 1;
     if (r <= 10) {
-      if (isExpanded && expandedLifeEvents.tragedy) return pick(expandedLifeEvents.tragedy);
-      return pick(baseTragedies);
+      const options = isExpanded && expandedLifeEvents.tragedy ? [...baseTragedies, ...expandedLifeEvents.tragedy] : baseTragedies;
+      return pick(options);
     }
     if (r <= 20) {
-      if (isExpanded && expandedLifeEvents.boon) return pick(expandedLifeEvents.boon);
-      return pick(baseBoons);
+      const options = isExpanded && expandedLifeEvents.boon ? [...baseBoons, ...expandedLifeEvents.boon] : baseBoons;
+      return pick(options);
     }
     if (r <= 30) {
-      if (isExpanded && expandedLifeEvents.love) return pick(expandedLifeEvents.love);
-      return pick([
+      const baseLoves = [
         "你坠入爱河或结了婚。如果你多次得到此结果，可以选择拥有一个孩子。与你的DM共同确定你爱慕之人的身份。",
         "你坠入爱河或结了婚。如果你多次得到此结果，可以选择拥有一个孩子。与你的DM共同确定你爱慕之人的身份。"
-      ]);
+      ];
+      const options = isExpanded && expandedLifeEvents.love ? [...baseLoves, ...expandedLifeEvents.love] : baseLoves;
+      return pick(options);
     }
     if (r <= 40) {
-      if (isExpanded && expandedLifeEvents.enemy) return pick(expandedLifeEvents.enemy);
-      return pick([
-        "你与一名冒险者结仇。投一个d6，奇数表示你应为这场裂痕负责，偶数则表示你是无辜的。使用补充表并与你的DM商议，以确定这个敌对角色的身份以及该敌人对你构成的危险。",
+      const baseEnemies = [
         "你与一名冒险者结仇。投一个d6，奇数表示你应为这场裂痕负责，偶数则表示你是无辜的。使用补充表并与你的DM商议，以确定这个敌对角色的身份以及该敌人对你构成的危险。"
-      ]);
+      ];
+      const options = isExpanded && expandedLifeEvents.enemy ? [...baseEnemies, ...expandedLifeEvents.enemy] : baseEnemies;
+      return pick(options);
     }
     if (r <= 50) {
-      if (isExpanded && expandedLifeEvents.friend) return pick(expandedLifeEvents.friend);
-      return pick([
-        "你与一名冒险者成了朋友。使用补充表并与你的DM合作，为这位友善角色添加更多细节，并确定你们的友谊是如何开始的。",
+      const baseFriends = [
         "你与一名冒险者成了朋友。使用补充表并与你的DM合作，为这位友善角色添加更多细节，并确定你们的友谊是如何开始的。"
-      ]);
+      ];
+      const options = isExpanded && expandedLifeEvents.friend ? [...baseFriends, ...expandedLifeEvents.friend] : baseFriends;
+      return pick(options);
     }
     if (r <= 70) {
-      if (isExpanded && expandedLifeEvents.work) return pick(expandedLifeEvents.work);
-      return "你花了一段时间从事与你背景相关的工作。游戏开始时额外获得2d6 gp。";
+      const baseWorks = [
+        "你花了一段时间从事与你背景相关的工作。游戏开始时额外获得2d6 gp。"
+      ];
+      const options = isExpanded && expandedLifeEvents.work ? [...baseWorks, ...expandedLifeEvents.work] : baseWorks;
+      return pick(options);
     }
     if (r <= 75) {
-      if (isExpanded && expandedLifeEvents.mentor) return pick(expandedLifeEvents.mentor);
-      return "你遇到了某位重要人物。使用补充表确定该角色的身份以及此人对你的看法。根据需要与DM商议更多细节，以使该角色融入你的背景故事。";
+      const baseMentors = [
+        "你遇到了某位重要人物。使用补充表确定该角色的身份以及此人对你的看法。根据需要与DM商议更多细节，以使该角色融入你的背景故事。"
+      ];
+      const options = isExpanded && expandedLifeEvents.mentor ? [...baseMentors, ...expandedLifeEvents.mentor] : baseMentors;
+      return pick(options);
     }
     if (r <= 80) {
-      if (isExpanded && expandedLifeEvents.adventure) return pick(expandedLifeEvents.adventure);
-      return pick(baseAdventures);
+      const options = isExpanded && expandedLifeEvents.adventure ? [...baseAdventures, ...expandedLifeEvents.adventure] : baseAdventures;
+      return pick(options);
     }
     if (r <= 85) {
-      if (isExpanded && expandedLifeEvents.supernatural) return pick(expandedLifeEvents.supernatural);
-      return pick(baseSupernatural);
+      const options = isExpanded && expandedLifeEvents.supernatural ? [...baseSupernatural, ...expandedLifeEvents.supernatural] : baseSupernatural;
+      return pick(options);
     }
     if (r <= 90) {
-      if (isExpanded && expandedLifeEvents.war) return pick(expandedLifeEvents.war);
-      return pick(baseWar);
+      const options = isExpanded && expandedLifeEvents.war ? [...baseWar, ...expandedLifeEvents.war] : baseWar;
+      return pick(options);
     }
     if (r <= 95) {
       const crime = pick(baseCrimes);
       const punishment = pick(basePunishments);
       const event = `你犯下或蒙冤被指控了一项罪行：${crime}。${punishment}`;
-      if (isExpanded && expandedLifeEvents.crime) return pick(expandedLifeEvents.crime);
-      return event;
+      const options = isExpanded && expandedLifeEvents.crime ? [event, ...expandedLifeEvents.crime] : [event];
+      return pick(options);
     }
     if (r <= 99) {
-      if (isExpanded && expandedLifeEvents.magic) return pick(expandedLifeEvents.magic);
-      return pick(baseMagic);
+      const options = isExpanded && expandedLifeEvents.magic ? [...baseMagic, ...expandedLifeEvents.magic] : baseMagic;
+      return pick(options);
     }
     // r == 100
-    if (isExpanded && expandedLifeEvents.bizarre) return pick(expandedLifeEvents.bizarre);
-    return pick(baseBizarre);
+    const options = isExpanded && expandedLifeEvents.bizarre ? [...baseBizarre, ...expandedLifeEvents.bizarre] : baseBizarre;
+    return pick(options);
   };
 
   let events: string[] = [];
@@ -781,9 +788,9 @@ export function generateXgeBackstory(ctx: XgeContext, options?: XgeOptions): str
 
   story += `如今你大约 ${ageVal} 岁。在这段岁月里，`;
   if (eventCount === 1) {
-    story += `你经历过这样一件事：${events[0]}。`;
+    story += `你经历过这样一件事：\n- ${events[0]}`;
   } else {
-    story += `你经历了几件重要的事。${events.join(" ")}`;
+    story += `你经历了几件重要的事情：\n` + events.map(e => `- ${e}`).join("\n");
   }
 
   return story;

@@ -11,12 +11,21 @@ import { Ability } from '../../types/dnd';
 import { getProficiencies, getProficiencyBonus, SKILL_NAMES, SKILL_ABILITIES } from '../../utils/proficiencies';
 
 export function ReviewStep() {
-  const { state } = useCharacter();
+  const { state, dispatch } = useCharacter();
   const cardRef = useRef<HTMLDivElement>(null);
-  const [portraitUrl, setPortraitUrl] = useState<string | null>(null);
-  const [fullBodyUrl, setFullBodyUrl] = useState<string | null>(null);
 
   const character = state.character;
+  const portraitUrl = character.portraitUrl || null;
+  const fullBodyUrl = character.fullBodyUrl || null;
+
+  const setPortraitUrl = (url: string | null) => {
+    dispatch({ type: 'UPDATE_BASIC_INFO', payload: { portraitUrl: url || '' } });
+  };
+
+  const setFullBodyUrl = (url: string | null) => {
+    dispatch({ type: 'UPDATE_BASIC_INFO', payload: { fullBodyUrl: url || '' } });
+  };
+
   const race = getRaceByIdAndSource(character.raceId, character.raceSource);
   const subrace = race?.subraces?.find(sr => sr.id === character.subraceId);
   const dndClass = classes.find(c => c.id === character.classId);
@@ -99,16 +108,18 @@ export function ReviewStep() {
          {/* Top Section */}
          <div className="flex gap-6 border-b-2 border-stone-800 pb-6 mb-6">
            {/* Avatar Area */}
-           <div className="w-32 h-32 border-2 border-dashed border-stone-400 bg-white flex items-center justify-center relative overflow-hidden shrink-0 group">
+           <div className="w-32 h-32 border-2 border-dashed border-amber-500 bg-amber-50/20 flex items-center justify-center relative overflow-hidden shrink-0 group p-1 z-10">
+
              {portraitUrl ? (
                <>
                  <img src={portraitUrl} alt="Portrait" className="w-full h-full object-cover" />
-                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                 <div className="absolute inset-0 bg-stone-900/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10 font-sans">
                    <ImageUploadWithCrop onCropComplete={setPortraitUrl} label="更换头像" aspect={1} />
                  </div>
                </>
              ) : (
-               <div className="absolute inset-0 flex items-center justify-center">
+               <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 p-2 text-center text-xs font-sans">
+                  
                   <ImageUploadWithCrop onCropComplete={setPortraitUrl} label="上传头像" aspect={1} />
                </div>
              )}

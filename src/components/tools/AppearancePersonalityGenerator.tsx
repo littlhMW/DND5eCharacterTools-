@@ -1,10 +1,42 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Sparkles, Copy, RefreshCw, User, ClipboardCheck, ArrowRight, ShieldAlert, VenetianMask, UserCheck, Dices } from 'lucide-react';
 import { useCharacter } from '../../context/CharacterContext';
 import { races } from '../../data/races';
 import { isSourceEnabled } from '../../utils/expansionHelper';
 
+// ===================== 全覆盖蒙面/神秘外观库（用于概率替代所有外观） =====================
+export const PURE_MASKED_APPEARANCES = [
+  "此人将自己全身上下包裹在厚重的灰黑色长袍与兜帽中，面部戴着一副毫无表情的金属面具，完全看不出原本的种族与样貌特征。",
+  "此人穿着宽大的隐匿斗篷，头戴深色兜帽，脸上蒙着半透的厚面罩，仅有一双锐利的眼睛在阴影中闪烁，无法辨认其真实容貌。",
+  "此人通体被漆黑的紧身披铠和宽大披风覆盖，脸部被神秘的魔法迷雾或缠绕的绷带完全遮挡，失去了所有的辨识特征。",
+  "此人戴着一个造型诡异的全包围式木质面具，身披缝合了大量布条的破旧斗篷，将躯体与面容严严实实地掩藏起来。",
+  "此人披着一件边缘严重磨损的深绿色大衣，佩戴着一副厚重的有色玻璃护目镜与高高拉起的围脖，只余一丝沉重的呼吸漏出。",
+
+  // 普通（占大比例）
+  "此人穿着一套接缝处满是锈迹的全身板甲，搭配一个带有窄缝视孔的全封闭式头盔，整个人如同一尊沉默的铁像。",
+  "此人身披磨旧的亚麻斗篷，脸上缠着好几圈泛黄的布条，只露出两个小孔供眼睛视物，显得既朴素又谨慎。",
+  "此人戴着圆顶铁盔和一副只留两条缝隙的皮革面罩，身罩一件宽大到能盖住所有装备的厚帆布罩衣。",
+  "此人用一条破旧的羊毛围巾从鼻梁一直裹到脖颈，外加一顶压得很低的毡帽，几乎只露出一小截额头。",
+  "此人穿着脏兮兮的链甲衫，兜帽拉得极低，脸上罩着一个用粗麻布缝制的简易头套，边缘全是线头。",
+  "此人全身裹在一件褪色的厚袍里，双手插在袖管中，脸上只露出一双眯缝的眼睛，其余部分被袍领和兜帽遮挡得严严实实。",
+  "此人披着一件沾满泥点的油布披风，头戴一顶边缘破损的宽檐帽，脸上蒙着一条脏兮兮的灰布面巾。",
+  "此人穿着一套看不出年代的生锈半身甲，面部被一个简单的平板金属面具覆盖，面具上只有两个洞用于呼吸。",
+  "此人身穿厚重皮衣，兜帽内侧缝了深色薄纱，放下来时正好遮住整张脸，只能隐约看到轮廓。",
+
+  // 不普通（少量）
+  "此人穿着一套由不同甲片拼凑的异国铠甲，头上戴着一个仿若鸟喙的长锥形金属头盔，完全不见面容。",
+  "此人浑身上下被一层层褪色的仪式绷带缠绕，连头部也不例外，只在嘴部位置留了一条细缝，看起来像一具行走的木乃伊。",
+  "此人披着用不知名兽皮缝制的大氅，面戴一副雕刻着抽象漩涡纹路的骨质面具，面具眼眶处镶嵌着两片深色水晶。",
+  "此人身着全套哑光黑色板甲，头盔面罩上开有十字形气孔，且焊死无法打开，仿佛从不愿以真面目示人。",
+
+  // 极少量有点魔法但能接受
+  "此人穿着一件看似普通的锁子甲，头部被一层若有若无的半透明暗色光幕笼罩，光幕下只能看到模糊的轮廓，像是低级幻术的效果。",
+  "此人戴着一顶全包覆式头盔，头盔表面刻满了细小的防护符文，符文偶尔会发出微弱的银光，但脸部特征完全不可见。"
+];
+
 // ===================== 共用外貌特征库（泛用，不受种族性别限制） =====================
+import { getAvailableRaces } from '../../utils/raceHelper';
+
 export const UNIVERSAL_APPEARANCE_FEATURES = [
   "总是戴着一副深色护目镜，遮住了大部分眉眼",
   "脸上蒙着一层薄薄的暗色面纱，只露出眼睛",
@@ -940,6 +972,150 @@ export const RACES_MAPPING: Record<string, { skin: string[]; hair: string[]; eye
 
 
 // ===================== 组件主体 =====================
+const cleanRoot = (name: string): string => {
+  if (!name) return "";
+  return name
+    .replace(/\s*[\(\uff08].*?[\)\uff09]\s*/g, '') // 去除括号内容如 (黑暗精灵) 或 （变体）
+    .replace(/(精灵|矮人|半身人|侏儒|血脉|变体|血统|裔|人|亚种)/g, '')
+    .trim();
+};
+
+export const getBestRaceAssetsKey = (raceName: string, subraceName?: string): string => {
+  const keys = Object.keys(RACES_MAPPING);
+
+  // 1. 尝试完全匹配
+  const fullName = subraceName ? `${raceName}：${subraceName}` : raceName;
+  if (RACES_MAPPING[fullName]) {
+    return fullName;
+  }
+
+  // 2. 如果提供了子种族，寻找具有相同子种族特质根词的条目
+  if (subraceName) {
+    const queryRoot = cleanRoot(subraceName);
+    if (queryRoot) {
+      // 优先在同名母种族的子分类中找
+      const sameFamilyKeys = keys.filter(k => k.startsWith(`${raceName}：`));
+      const exactSubMatchInFamily = sameFamilyKeys.find(k => {
+        const [, mappedSub] = k.split('：');
+        return cleanRoot(mappedSub) === queryRoot;
+      });
+      if (exactSubMatchInFamily) return exactSubMatchInFamily;
+
+      // 如果同名母种族中没找到，在所有子种族里找（可能母种族名字有细微差异）
+      const exactSubMatchGlobal = keys.find(k => {
+        if (!k.includes('：')) return false;
+        const [, mappedSub] = k.split('：');
+        return cleanRoot(mappedSub) === queryRoot;
+      });
+      if (exactSubMatchGlobal) return exactSubMatchGlobal;
+    }
+  }
+
+  // 3. 匹配主种族
+  // 3.1 查找有没有直接命名的主种族库条目（例如 "龙裔"、"提夫林"、"人类"、"半兽人"、"阿斯莫"、"斑猫人" 等）
+  const cleanRaceName = cleanRoot(raceName);
+  const mainRaceMatch = keys.find(k => {
+    if (k.includes('：')) return false;
+    return k === raceName || cleanRoot(k) === cleanRaceName;
+  });
+  if (mainRaceMatch) return mainRaceMatch;
+
+  // 3.2 查找符合该主种族前缀的任何第一个条目（如 "精灵：高等精灵" 作为 "精灵" 的退步备选）
+  const familyMatch = keys.find(k => k.startsWith(`${raceName}：`));
+  if (familyMatch) return familyMatch;
+
+  // 3.3 模糊主种族搜索，包含根词的主种族
+  const fuzzyFamilyMatch = keys.find(k => k.includes('：') && cleanRoot(k.split('：')[0]) === cleanRaceName);
+  if (fuzzyFamilyMatch) return fuzzyFamilyMatch;
+
+  // 4. 终极兜底：如果没有匹配的主种族，使用通用库 "人类"
+  return "人类";
+};
+
+export const getRaceAssets = (raceName: string, subraceName?: string) => {
+  const bestKey = getBestRaceAssetsKey(raceName, subraceName);
+  return RACES_MAPPING[bestKey] || RACES_MAPPING["人类"];
+};
+
+export function generateCoreAppearanceAndPersonality({
+  raceName,
+  subraceName,
+  lawChaos,
+  goodEvil,
+  gender,
+}: {
+  raceName: string;
+  subraceName?: string;
+  lawChaos: 'lawful' | 'neutral' | 'chaotic';
+  goodEvil: 'good' | 'neutral' | 'evil';
+  gender: 'male' | 'female' | 'none';
+}) {
+  const raceAssets = getRaceAssets(raceName, subraceName);
+  
+  const randSkin = raceAssets.skin[Math.floor(Math.random() * raceAssets.skin.length)];
+  const randHair = raceAssets.hair[Math.floor(Math.random() * raceAssets.hair.length)];
+  const randEye = raceAssets.eye[Math.floor(Math.random() * raceAssets.eye.length)];
+  const randFeature = raceAssets.features[Math.floor(Math.random() * raceAssets.features.length)];
+  
+  const hasUniFeature = Math.random() < 0.35; // 35% chance to have a unique specific feature
+  let uniFeatures = '';
+  if (hasUniFeature) {
+    const numUniFeatures = Math.random() < 0.4 ? 2 : 1;
+    const shuffledUni = [...UNIVERSAL_APPEARANCE_FEATURES].sort(() => Math.random() - 0.5);
+    uniFeatures = shuffledUni.slice(0, numUniFeatures).join('；') + '。';
+  }
+
+  const isPureMasked = Math.random() < 0.08; // 8% chance to be completely masked
+  
+  const pWord = gender === 'male' ? '他' : (gender === 'female' ? '她' : '其');
+  let appearance = '';
+  if (isPureMasked) {
+    appearance = PURE_MASKED_APPEARANCES[Math.floor(Math.random() * PURE_MASKED_APPEARANCES.length)];
+  } else {
+    appearance = `${pWord}拥有${randSkin}，${randHair}，${randEye}。${pWord}${randFeature}。${uniFeatures}`;
+  }
+
+  const lcObj = LAW_CHAOS_AXIS[lawChaos];
+  const geObj = GOOD_EVIL_AXIS[goodEvil];
+  
+  const randLawChaosBelief = lcObj.beliefs[Math.floor(Math.random() * lcObj.beliefs.length)];
+  const randGoodEvilBelief = geObj.beliefs[Math.floor(Math.random() * geObj.beliefs.length)];
+  const randLawChaosManner = lcObj.manners[Math.floor(Math.random() * lcObj.manners.length)];
+  const randGoodEvilManner = geObj.manners[Math.floor(Math.random() * geObj.manners.length)];
+  let traitStr = '';
+  if (Math.random() < 0.4) {
+    const randExtraTrait = EXTRA_PERSON_TRAITS[Math.floor(Math.random() * EXTRA_PERSON_TRAITS.length)];
+    traitStr = `此外，同伴们常能察觉，${pWord}${randExtraTrait}。`;
+  }
+
+  let quirkStr = '';
+  if (Math.random() < 0.4) {
+    const randExtraQuirk = EXTRA_QUIRKS[Math.floor(Math.random() * EXTRA_QUIRKS.length)];
+    quirkStr = `私下里，${pWord}也有一些小癖好，比如${randExtraQuirk}。`;
+  }
+
+  const combinedBelief = `${randLawChaosBelief}，同时${randGoodEvilBelief}`;
+  const combinedManner = `${randLawChaosManner}，且${randGoodEvilManner}`;
+
+  let combinedName = `${lcObj.name}${geObj.name}`;
+  if (lawChaos === 'neutral') combinedName = `中立${geObj.name}`;
+  if (goodEvil === 'neutral') combinedName = `${lcObj.name}中立`;
+  if (lawChaos === 'neutral' && goodEvil === 'neutral') combinedName = '绝对中立';
+
+  const personalityPart = `${pWord}表现出显著的「${combinedName}」倾向。日常作派倾向于${combinedManner}。${traitStr}`;
+  
+  const beliefPart = `${combinedBelief}。${quirkStr}`;
+  
+  const mergedPersonality = `${personalityPart}\n${beliefPart}`;
+
+  return {
+    appearance,
+    personality: mergedPersonality,
+    personalityPart,
+    beliefPart,
+  };
+}
+
 export function AppearancePersonalityGenerator({ onClose }: { onClose: () => void }) {
   const { state: charState, dispatch: charDispatch } = useCharacter();
   const [selectedRace, setSelectedRace] = useState<string>('人类');
@@ -952,18 +1128,16 @@ export function AppearancePersonalityGenerator({ onClose }: { onClose: () => voi
   const [justApplied, setJustApplied] = useState<boolean>(false);
   const [copiedApp, setCopiedApp] = useState<boolean>(false);
   const [copiedPers, setCopiedPers] = useState<boolean>(false);
+  const skipNextEffectRef = useRef<boolean>(false);
 
   // 1. 根据已开启的扩展自动提取可用的种族和子种族
   const activeRaceOptions = useMemo(() => {
     const list: Array<{ value: string; label: string; raceName: string; subraceName?: string }> = [];
     
-    races.forEach((r) => {
-      const raceEnabled = isSourceEnabled(r.source || 'phb', 'races');
-      if (!raceEnabled) return;
-      
-      const enabledSubraces = r.subraces?.filter(sr => 
-        isSourceEnabled(sr.source || r.source || 'phb', 'races')
-      ) || [];
+    const availableRaces = getAvailableRaces(charState.character.raceSource ? { [charState.character.raceId]: charState.character.raceSource } : {});
+    
+    availableRaces.forEach((r) => {
+      const enabledSubraces = r.subraces || [];
       
       if (enabledSubraces.length > 0) {
         enabledSubraces.forEach((sr) => {
@@ -1011,41 +1185,16 @@ export function AppearancePersonalityGenerator({ onClose }: { onClose: () => voi
     });
   }, []);
 
-  // 2. 种族-子种族自适应特征库提取逻辑：专门编写的子种族用子种族库，其他用种族库，没有种族库的种族采用人类通用库
+  // 2. 种族-子种族自适应特征库提取逻辑：专门编写的子种族用子种族库，其他用种族库，没有种族库的种族采用物理通用库
   const getRaceAssets = (selection: string) => {
-    // 2.1 尝试精确匹配（例如 "精灵：高等精灵"）
-    if (RACES_MAPPING[selection]) {
-      return RACES_MAPPING[selection];
-    }
-    
-    // 2.2 如果包含子种族分隔符，进行切分匹配
     if (selection.includes('：')) {
       const [raceName, subraceName] = selection.split('：');
-      
-      if (RACES_MAPPING[`${raceName}：${subraceName}`]) {
-        return RACES_MAPPING[`${raceName}：${subraceName}`];
-      }
-      
-      // 降级使用主种族库
-      if (RACES_MAPPING[raceName]) {
-        return RACES_MAPPING[raceName];
-      }
-      
-      // 尝试匹配该主种族下的任何一个已编写子种族库
-      const fallbackKey = Object.keys(RACES_MAPPING).find(k => k.startsWith(`${raceName}：`));
-      if (fallbackKey) {
-        return RACES_MAPPING[fallbackKey];
-      }
+      const bestKey = getBestRaceAssetsKey(raceName, subraceName);
+      return RACES_MAPPING[bestKey];
     } else {
-      // 2.3 无分隔符的主类，若无此主类的专属库，匹配该主种族的任何一个子类库
-      const fallbackKey = Object.keys(RACES_MAPPING).find(k => k.startsWith(`${selection}：`));
-      if (fallbackKey) {
-        return RACES_MAPPING[fallbackKey];
-      }
+      const bestKey = getBestRaceAssetsKey(selection);
+      return RACES_MAPPING[bestKey];
     }
-    
-    // 2.4 终极降级到 "人类" 做为通用外貌特征库
-    return RACES_MAPPING["人类"];
   };
 
   useEffect(() => {
@@ -1067,7 +1216,7 @@ export function AppearancePersonalityGenerator({ onClose }: { onClose: () => voi
           setSelectedRace(matchRace.name);
         }
       }
-      
+
       const alignStr = charState.character.alignment || "";
       if (alignStr.includes('L') || alignStr.includes('守序')) setLawChaos('lawful');
       else if (alignStr.includes('C') || alignStr.includes('混乱')) setLawChaos('chaotic');
@@ -1088,38 +1237,21 @@ export function AppearancePersonalityGenerator({ onClose }: { onClose: () => voi
     return `${combinedName} (${lcObj.code}${geObj.code})`;
   };
 
-  const handleGenerate = () => {
-    const raceAssets = getRaceAssets(selectedRace);
-    const randSkin = raceAssets.skin[Math.floor(Math.random() * raceAssets.skin.length)];
-    const randHair = raceAssets.hair[Math.floor(Math.random() * raceAssets.hair.length)];
-    const randEye = raceAssets.eye[Math.floor(Math.random() * raceAssets.eye.length)];
-    const randFeature = raceAssets.features[Math.floor(Math.random() * raceAssets.features.length)];
-    // 随机抽取1-2个共用外貌特征
-    const numUniFeatures = Math.random() < 0.4 ? 2 : 1;
-    const shuffledUni = [...UNIVERSAL_APPEARANCE_FEATURES].sort(() => Math.random() - 0.5);
-    const uniFeatures = shuffledUni.slice(0, numUniFeatures).join('；');
+  const handleGenerate = (
+    raceOverride?: string,
+    lcOverride?: 'lawful' | 'neutral' | 'chaotic',
+    geOverride?: 'good' | 'neutral' | 'evil',
+    genderOverride?: 'male' | 'female' | 'none'
+  ) => {
+    const res = generateCoreAppearanceAndPersonality({
+      raceName: raceOverride !== undefined ? raceOverride : selectedRace,
+      lawChaos: (lcOverride !== undefined ? lcOverride : lawChaos) as any,
+      goodEvil: (geOverride !== undefined ? geOverride : goodEvil) as any,
+      gender: genderOverride !== undefined ? genderOverride : selectedGender,
+    });
 
-    const pWord = selectedGender === 'male' ? '他' : (selectedGender === 'female' ? '她' : '其');
-    const assembledAppearance = `${pWord}拥有${randSkin}，留着一头${randHair}，长着一双${randEye}。${pWord}${randFeature}。此外，${uniFeatures}。`;
-
-    const lcObj = LAW_CHAOS_AXIS[lawChaos];
-    const geObj = GOOD_EVIL_AXIS[goodEvil];
-    const randExtraTrait = EXTRA_PERSON_TRAITS[Math.floor(Math.random() * EXTRA_PERSON_TRAITS.length)];
-    const randExtraQuirk = EXTRA_QUIRKS[Math.floor(Math.random() * EXTRA_QUIRKS.length)];
-    const randLawChaosBelief = lcObj.beliefs[Math.floor(Math.random() * lcObj.beliefs.length)];
-    const randGoodEvilBelief = geObj.beliefs[Math.floor(Math.random() * geObj.beliefs.length)];
-    const randLawChaosManner = lcObj.manners[Math.floor(Math.random() * lcObj.manners.length)];
-    const randGoodEvilManner = geObj.manners[Math.floor(Math.random() * geObj.manners.length)];
-    const combinedBelief = `${randLawChaosBelief}，同时${randGoodEvilBelief}`;
-    const combinedManner = `${randLawChaosManner}，且${randGoodEvilManner}`;
-    const assembledPersonality = `${pWord}${combinedBelief}。平日${combinedManner}。此外，${randExtraTrait}，且${randExtraQuirk}。`;
-
-    const simpleAlignName = getAlignmentLabel().split(' ')[0];
-    const assembledBackstory = `${pWord}的行事准则体现了「${simpleAlignName}」的特质。${pWord}${combinedBelief}。\n\n同伴们常能察觉：${randExtraTrait}。私下里，${pWord}也有一些小癖好，比如${randExtraQuirk}。`;
-
-    setGeneratedAppearance(assembledAppearance);
-    setGeneratedPersonality(assembledPersonality);
-    setGeneratedBackstory(assembledBackstory);
+    setGeneratedAppearance(res.appearance);
+    setGeneratedPersonality(res.personality);
     setJustApplied(false);
   };
 
@@ -1129,26 +1261,46 @@ export function AppearancePersonalityGenerator({ onClose }: { onClose: () => voi
     const randomRace = randomOpt.value;
     
     const lcKeys = ['lawful', 'neutral', 'chaotic'];
-    const randomLc = lcKeys[Math.floor(Math.random() * lcKeys.length)];
+    const randomLc = lcKeys[Math.floor(Math.random() * lcKeys.length)] as 'lawful' | 'neutral' | 'chaotic';
     
     const geKeys = ['good', 'neutral', 'evil'];
-    const randomGe = geKeys[Math.floor(Math.random() * geKeys.length)];
-    
+    const randomGe = geKeys[Math.floor(Math.random() * geKeys.length)] as 'good' | 'neutral' | 'evil';
+
     const genders: Array<'male' | 'female' | 'none'> = ['male', 'female', 'none'];
     const randomGender = genders[Math.floor(Math.random() * genders.length)];
 
+    // 1. Generate text immediately with the new randomized parameters
+    const res = generateCoreAppearanceAndPersonality({
+      raceName: randomRace,
+      lawChaos: randomLc,
+      goodEvil: randomGe,
+      gender: randomGender,
+    });
+
+    setGeneratedAppearance(res.appearance);
+    setGeneratedPersonality(res.personality);
+    setJustApplied(false);
+
+    // 2. Decide if states actually changed. If they changed, set skipNextEffectRef = true
+    const changed = randomRace !== selectedRace || randomLc !== lawChaos || randomGe !== goodEvil || randomGender !== selectedGender;
+    if (changed) {
+      skipNextEffectRef.current = true;
+    }
+
+    // 3. Update dropdown states
     setSelectedRace(randomRace);
     setLawChaos(randomLc);
     setGoodEvil(randomGe);
     setSelectedGender(randomGender);
-
-    // Set timeout to ensure states apply before triggering rerun in case selection happens to be identical
-    setTimeout(() => {
-      handleGenerate();
-    }, 10);
   };
 
-  useEffect(() => { handleGenerate(); }, [selectedRace, lawChaos, goodEvil, selectedGender]);
+  useEffect(() => {
+    if (skipNextEffectRef.current) {
+      skipNextEffectRef.current = false;
+      return;
+    }
+    handleGenerate();
+  }, [selectedRace, lawChaos, goodEvil, selectedGender]);
 
   const handleApplyToSheet = () => {
     if (!generatedAppearance || !generatedPersonality) return;
@@ -1156,9 +1308,7 @@ export function AppearancePersonalityGenerator({ onClose }: { onClose: () => voi
       type: 'UPDATE_BASIC_INFO',
       payload: {
         appearance: generatedAppearance,
-        personality: "", // Keep character sheet separate input field empty
-        alignment: getAlignmentLabel().split(' ')[0],
-        backstory: generatedBackstory // Storing the personality description beautiful text here
+        personality: generatedPersonality
       }
     });
     setJustApplied(true);
@@ -1221,14 +1371,9 @@ export function AppearancePersonalityGenerator({ onClose }: { onClose: () => voi
           </div>
         </div>
 
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50/50 rounded-lg text-xs border border-amber-100 text-stone-700 font-sans font-medium w-fit">
-          <span>当前融合阵营 :</span>
-          <span className="font-bold text-amber-900 bg-amber-100/60 px-2 py-0.5 rounded leading-none">{getAlignmentLabel()}</span>
-        </div>
-
         <div className="flex items-center gap-3">
           <button 
-            onClick={handleGenerate} 
+            onClick={() => handleGenerate()} 
             title="重新生成（基于当前已选种族与阵营等配置）" 
             className="w-10 h-10 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg transition-all cursor-pointer border border-stone-200/55 flex items-center justify-center active:scale-95"
           >
@@ -1256,7 +1401,7 @@ export function AppearancePersonalityGenerator({ onClose }: { onClose: () => voi
           <div className="bg-amber-500/10 border-l-4 border-l-amber-600 border border-amber-500/30 text-stone-900 dark:text-amber-100 text-xs px-4 py-3 rounded shadow-sm flex items-start gap-2.5 animate-in fade-in slide-in-from-top-1.5 duration-150 leading-relaxed">
             <span className="text-amber-600 text-[14px] select-none leading-none mt-0.5">✨</span>
             <div className="flex-1 font-sans font-medium">
-              🎲 已套用成功！外表描述已填入角色外观区，完整的性格信条、处事方式与小癖好已自动与阵营融合，化作史诗篇章永久写入您的「生平背景故事」中！
+              🎲 已套用成功！外貌描写已填入角色外观区，完整的性格、信条与小癖好已融入您的「性格特质」中！
             </div>
           </div>
         )}
@@ -1264,28 +1409,21 @@ export function AppearancePersonalityGenerator({ onClose }: { onClose: () => voi
         <div className="flex-1 overflow-y-auto space-y-4 pr-1 mt-1">
           <div className="border border-stone-200 rounded-xl bg-amber-50/10 p-5 relative">
             <div className="flex justify-between items-start mb-2 border-b border-stone-100 pb-1.5">
-              <span className="text-xs font-black font-serif text-amber-900 flex items-center gap-1"><span>🧬</span> {selectedRace} 外貌</span>
+              <span className="text-xs font-black font-serif text-amber-900 flex items-center gap-1"><span>🧬</span> {selectedRace} 外貌描述</span>
               <button onClick={() => copyToClipboard(generatedAppearance, 'app')} className="p-1 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded transition-all cursor-pointer border-none bg-transparent">
                 {copiedApp ? <span className="text-[10px] text-teal-600 font-sans font-bold">已复制!</span> : <Copy size={13} />}
               </button>
             </div>
-            <p className="text-xs text-stone-700 leading-relaxed font-sans font-medium">{generatedAppearance || "正在生成..."}</p>
+            <p className="text-xs text-stone-700 leading-relaxed font-sans font-medium whitespace-pre-wrap">{generatedAppearance || "正在生成..."}</p>
           </div>
           <div className="border border-stone-200 rounded-xl bg-amber-50/10 p-5 relative">
             <div className="flex justify-between items-start mb-2 border-b border-stone-100 pb-1.5">
-              <span className="text-xs font-black font-serif text-amber-900 flex items-center gap-1"><span>⚖️</span> {getAlignmentLabel()} 性格</span>
+              <span className="text-xs font-black font-serif text-amber-900 flex items-center gap-1"><span>⚖️</span> 性格特质、信条与习惯</span>
               <button onClick={() => copyToClipboard(generatedPersonality, 'pers')} className="p-1 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded transition-all cursor-pointer border-none bg-transparent">
                 {copiedPers ? <span className="text-[10px] text-teal-600 font-sans font-bold">已复制!</span> : <Copy size={13} />}
               </button>
             </div>
-            <p className="text-xs text-stone-700 leading-relaxed font-sans font-medium">{generatedPersonality || "正在生成..."}</p>
-          </div>
-          <div className="border border-stone-150 rounded-xl bg-stone-50 p-5">
-            <div className="flex justify-between items-center mb-2 border-b border-stone-200/60 pb-1.5">
-              <span className="text-xs font-bold text-stone-605 flex items-center gap-1">📖 生平草稿</span>
-              <span className="text-[10px] text-stone-400 italic">（应用时写入背景故事）</span>
-            </div>
-            <pre className="text-xs text-stone-600 font-sans whitespace-pre-wrap leading-relaxed">{generatedBackstory}</pre>
+            <p className="text-xs text-stone-700 leading-relaxed font-sans font-medium whitespace-pre-wrap">{generatedPersonality || "正在生成..."}</p>
           </div>
         </div>
         <div className="border-t border-stone-100 pt-3 flex justify-between items-center text-[10px] text-stone-405 font-sans leading-normal">

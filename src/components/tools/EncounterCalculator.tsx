@@ -51,7 +51,11 @@ const CR_XP: Record<string, number> = {
   "20": 25000
 };
 
-const CR_LIST = Object.keys(CR_XP);
+const CR_LIST = [
+  "0", "1/8", "1/4", "1/2", "1", "2", "3", "4", "5",
+  "6", "7", "8", "9", "10", "11", "12", "13", "14",
+  "15", "16", "17", "18", "19", "20"
+];
 
 const getMultiplier = (count: number) => {
   if (count === 1) return 1;
@@ -109,7 +113,7 @@ export function EncounterCalculator({ onClose }: EncounterCalculatorProps) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-950/45 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white border border-stone-200 rounded-lg max-w-6xl w-full max-h-[90vh] shadow-xl p-6 relative flex flex-col gap-4 animate-in zoom-in-95 duration-200 text-left font-sans">
+      <div className="bg-white border border-stone-200 rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto shadow-xl p-6 relative flex flex-col gap-4 animate-in zoom-in-95 duration-200 text-left font-sans">
         <button 
           onClick={onClose}
           className="absolute top-4 right-4 text-stone-400 hover:text-stone-600 text-sm p-1 cursor-pointer font-sans bg-transparent border-none z-10"

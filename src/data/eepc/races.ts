@@ -89,5 +89,38 @@ export const races: Race[] = [
         source: 'eepc'
       }
     ]
+  },
+  {
+    id: 'gnome',
+    name: '侏儒',
+    description: '',
+    abilityBonuses: [],
+    size: 'Small',
+    speed: 25,
+    vision: '',
+    languages: [],
+    traits: [],
+    spells: [],
+    source: 'eepc',
+    subraces: []
+  },
+  {
+    id: 'goliath',
+    name: '歌利亚',
+    description: '歌利亚高大、强壮，且离群索居，他们身上流淌着巨人的血脉。他们生活在山巅之上，在那里，风在狂啸，温度冻入骨髓，空气也无比稀薄。在这些恶劣的环境中，每一个歌利亚都必须竭尽所能地自给自足，以在族群中生存下去。',
+    abilityBonuses: [{ ability: 'STR', bonus: 2 }, { ability: 'CON', bonus: 1 }],
+    size: 'Medium',
+    speed: 30,
+    vision: '普通视觉',
+    languages: ['通用语', '巨人语'],
+    traits: [
+      { name: '天生运动员', description: '你熟练于运动技能。' },
+      { name: '石之耐性', description: '你可以通过专注自身以忽视重伤。当你受到伤害时，你可以使用你的反应以骰一颗1d12。将你的体质调整值加入骰出的数字，并将该伤害减少其总和的数值。在你使用此特性之后，直到完成一次短休或长休之前你都不能再使用它。' },
+      { name: '强健体格', description: '当决定你的负重以及你可以拖曳、推动、或提举的重量时，你将你的体型视作比原本大一级。' },
+      { name: '高山之子', description: '你对冷冻伤害有抗性。你还习惯于高海拔的环境，包括海拔高度20,000尺以上的环境，参见《地下城主指南》第五章的叙述。' }
+    ],
+    spells: [],
+    skillProficiencies: ['athletics'],
+    source: 'eepc'
   }
 ];

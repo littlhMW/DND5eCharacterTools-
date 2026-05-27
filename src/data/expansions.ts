@@ -29,7 +29,7 @@ export const EXPANSIONS: ExpansionBook[] = [
     name: '地下城主指南',
     shortName: 'DMG',
     description: '地下城主不可或缺的指导手册，提供战役设计与世界构建的变体工具。',
-    races: '精灵 (雅灵亚种)、阿斯莫 (本相)、侏儒 (地底侏儒亚种)、豺狼人、大地精、地精、狗头人、兽人、寇涛鱼人、骷髅、狂蛙人、人鱼、石盲蛮族、天狗、蜥蜴人、战蜥人',
+    races: '多为NPC专用种族，酌情开启。精灵 (雅灵亚种)、阿斯莫 (本相)、侏儒 (地底侏儒亚种)、豺狼人、大地精、地精、狗头人、兽人、寇涛鱼人、骷髅、狂蛙人、人鱼、石盲蛮族、天狗、蜥蜴人、战蜥人',
     classes: '牧师 (死亡领域)、圣骑士 (破誓者) 等特殊城主专属子职业扩展',
     backgrounds: '（未提供新增背景）',
     otherFeatures: '地下城与世界生成表、庞大的魔法物品库与神兵利器、变体属性规则。',
@@ -44,17 +44,6 @@ export const EXPANSIONS: ExpansionBook[] = [
     classes: '野蛮人 (风暴先驱/狂热者/先祖守卫)、吟游诗人 (低语/剑舞/迷惑学院)、牧师 (锻造/坟墓领域)、德鲁伊 (梦境/牧人结社)、战士 (魔射手/骑兵/武士)、武僧 (剑圣/日魂/醉拳宗)、圣骑士 (救赎/征服之誓)、游侠 (怪物杀手/境界行者/幽域追踪者)、游荡者 (策士/斥侯/风流剑客/审讯者)、术士 (暴风术法/神圣之魂/幽影魔法)、契术师 (天界宗主/咒剑士)、法师 (战争魔法) 等27个以上新子职',
     backgrounds: '「这是你的人生」极其详实的生平历史与事件背景生成表',
     otherFeatures: '大量通用新专长、海量实用各级法术。',
-    enabled: false
-  },
-  {
-    id: 'tce',
-    name: '塔莎的万象坩埚',
-    shortName: 'TCE',
-    description: '包含了对游戏规则的前沿变革，提供前所未有的自定义和战力扩展选项。',
-    races: '「自定血统」选项（允许不限外表，自由分配属性和任选起始专长）',
-    classes: '野蛮人 (狂野魔法/野兽道途)、吟游诗人 (创造/雄辩学院)、牧师 (和平/暮光/秩序领域)、德鲁伊 (孢子/星辰/野火结社)、战士 (符文骑士/灵能武士)、武僧 (命流宗/星我宗)、圣骑士 (荣耀/守望之誓)、游侠 (集群守卫/妖精漫游者)、游荡者 (鬼魅/魂刃)、术士 (畸变心智/时械之魂)、契术师 (巨灵宗主/深海意志)、法师 (剑咏传承/书士会) 以及独立职业奇械师 (炼金术师/炮兵师/装甲师/战匠)',
-    backgrounds: '个人赞助人、独立背景定制机制（自定职业技能与能力熟练）',
-    otherFeatures: '团契赞助人系统、魔法解谜与自然异象法则、超炫的魔法印记及契约。',
     enabled: false
   },
   {
@@ -218,7 +207,7 @@ export const EXPANSIONS: ExpansionBook[] = [
     description: 'DND历史上最经典的传奇吸血鬼古堡哥特战役。玩家将深入巴洛维亚，直面施特拉德王。',
     races: '（未提供新增种族）',
     classes: '（未提供新增子职业）',
-    backgrounds: '哥特式猎人（Haunted One，惨痛经历者）、迷雾难民背景',
+    backgrounds: '受诅者（Haunted One）、迷雾难民背景',
     otherFeatures: '龙卡卡牌神准占卜占星表、特殊心魔恐惧机制。',
     enabled: false
   },
@@ -231,6 +220,17 @@ export const EXPANSIONS: ExpansionBook[] = [
     classes: '（未提供新增子职业）',
     backgrounds: '考古学家、安斯罗普人类学家专属丛林背景',
     otherFeatures: '「死亡指引」规则、雨林极端野外求生探险机制、失落的蛇神殿与古机关设计。',
+    enabled: false
+  },
+  {
+    id: 'dndbeyond',
+    name: 'DNDBeyond 内容',
+    shortName: 'DNDB',
+    description: 'DNDBeyond平台特供的第三方自定义内容扩展。仅收录我感兴趣的内容。:P',
+    races: '（未提供新增种族）',
+    classes: '血猎者 (Blood Hunter)',
+    backgrounds: '（未提供新增背景）',
+    otherFeatures: '暂无',
     enabled: false
   }
 ];

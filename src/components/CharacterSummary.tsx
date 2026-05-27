@@ -42,18 +42,18 @@ export function CharacterSummary() {
   const profBonus = getProficiencyBonus(c.level);
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-white p-8 overflow-y-auto w-full font-serif relative">
+    <div className="flex-1 flex flex-col h-full bg-white p-4 sm:p-6 overflow-y-auto w-full font-serif relative">
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/rice-paper-2.png')] opacity-30 pointer-events-none mix-blend-multiply"></div>
       <div className="relative z-10 w-full flex-1 flex flex-col">
-      <div className="mb-6 border-b-2 border-amber-600/30 pb-4">
-        <h2 className="text-3xl font-serif text-amber-800 mb-3 drop-shadow-sm">{c.name || '未命名'}</h2>
-        <div className="text-stone-600 text-sm flex flex-wrap items-center gap-2 mt-1 font-sans">
+      <div className="mb-4 border-b-2 border-amber-600/30 pb-3">
+        <h2 className="text-2xl font-serif text-amber-800 mb-2 drop-shadow-sm">{c.name || '未命名'}</h2>
+        <div className="text-stone-600 text-xs flex flex-wrap items-center gap-2 mt-1 font-sans">
           <span className="font-bold bg-white border border-stone-300 shadow-sm px-2 py-1 rounded-md text-amber-800">
-            Level {c.level} <span className="ml-1 text-xs">{c.level}级</span>
+            Level {c.level} <span className="ml-1 text-[10px]">{c.level}级</span>
           </span>
           {race && (
             <span className="flex items-center group relative bg-stone-200/50 pl-2 pr-1 py-1 rounded-md text-stone-700">
-              <span>{subrace?.name || race.name}</span>
+              <span>{subrace?.name?.replace(' (本相)', '') || race.name}</span>
               <DictyTwisterLink type="race" name={race.name} source={race.source || 'phb'} />
             </span>
           )}
@@ -72,15 +72,15 @@ export function CharacterSummary() {
         </div>
       </div>
 
-      <div className="space-y-6">
-        <div className="flex gap-4">
-          <div className="bg-amber-100/50 border border-amber-200 rounded-lg p-2.5 flex-1 text-center shrink-0">
+      <div className="space-y-4">
+        <div className="flex gap-3">
+          <div className="bg-amber-100/50 border border-amber-200 rounded-md p-2 flex-1 text-center shrink-0">
             <div className="text-[10px] font-sans uppercase tracking-[0.15em] text-stone-500 mb-0.5">最大生命值 HP</div>
-            <div className="text-2xl font-serif text-amber-700 font-bold">{cls ? maxHp : '--'}</div>
+            <div className="text-xl font-serif text-amber-700 font-bold">{cls ? maxHp : '--'}</div>
           </div>
-          <div className="bg-stone-100 border border-stone-200 rounded-lg p-2.5 flex-1 text-center shrink-0">
+          <div className="bg-stone-100 border border-stone-200 rounded-md p-2 flex-1 text-center shrink-0">
             <div className="text-[10px] font-sans uppercase tracking-[0.15em] text-stone-500 mb-0.5">无甲防御 AC</div>
-            <div className="text-2xl font-serif text-stone-700 font-bold">{baseAc}</div>
+            <div className="text-xl font-serif text-stone-700 font-bold">{baseAc}</div>
           </div>
         </div>
 
@@ -109,13 +109,13 @@ export function CharacterSummary() {
               const abilitySkills = Object.entries(SKILL_ABILITIES).filter(([, a]) => a === ab).map(([s]) => s);
               
               return (
-                <div key={ab} className="bg-white border border-stone-200 rounded-md p-3 relative shadow-sm overflow-hidden flex flex-col">
-                  <div className="flex flex-col justify-center items-center mb-2">
-                    <div className="text-[10px] font-sans uppercase tracking-widest text-stone-500 mb-1">{ab}</div>
-                    <div className="text-2xl font-serif text-amber-600">{total}</div>
-                    <div className="text-[11px] font-medium font-sans text-stone-400 absolute top-2 right-2 bg-stone-50 px-1.5 py-0.5 rounded">{mod >= 0 ? '+' : ''}{mod}</div>
+                <div key={ab} className="bg-white border border-stone-200 rounded-md p-2 relative shadow-sm overflow-hidden flex flex-col">
+                  <div className="flex flex-col justify-center items-center mb-1">
+                    <div className="text-[9px] font-sans uppercase tracking-widest text-stone-500 mb-0.5">{ab}</div>
+                    <div className="text-xl font-serif text-amber-600">{total}</div>
+                    <div className="text-[10px] font-medium font-sans text-stone-400 absolute top-1 right-1 bg-stone-50 px-1 py-0.5 rounded">{mod >= 0 ? '+' : ''}{mod}</div>
                   </div>
-                  <div className="text-[10px] font-sans border-t border-stone-100 pt-2 flex flex-col gap-1">
+                  <div className="text-[10px] font-sans border-t border-stone-100 pt-1 flex flex-col gap-0.5">
                     <div className={`flex items-center gap-1 ${isSaveProficient ? 'text-amber-700 font-semibold' : 'text-stone-400'}`}>
                       <span className="w-3 text-center">{isSaveProficient ? '•' : '○'}</span>
                       <span className="flex-1">豁免</span>
@@ -143,8 +143,8 @@ export function CharacterSummary() {
 
         {/* Accumulated Traits */}
         <div>
-          <h3 className="text-sm font-sans uppercase tracking-[0.15em] text-stone-400 mb-3 border-b border-stone-200 pb-1">特性</h3>
-          <ul className="space-y-3">
+          <h3 className="text-sm font-sans uppercase tracking-[0.15em] text-stone-400 mb-2 border-b border-stone-200 pb-1">特性</h3>
+          <ul className="space-y-2">
             {race?.traits?.filter(t => !t.level || t.level <= c.level)
               .filter(t => {
                 if (subrace) {
@@ -154,23 +154,23 @@ export function CharacterSummary() {
                 return true;
               })
               .map(t => (
-              <li key={`race-${t.name}`} className="flex flex-col text-sm border-l-4 border-stone-300 pl-3">
-                <span className="font-semibold text-stone-800 text-base mb-0.5">{t.name}</span>
-                <span className="text-stone-500 leading-relaxed font-sans text-xs">{t.description}</span>
+              <li key={`race-${t.name}`} className="flex flex-col text-xs border-l-2 border-stone-300 pl-2">
+                <span className="font-semibold text-stone-800 text-sm mb-0.5">{t.name}</span>
+                <span className="text-stone-500 leading-relaxed font-sans">{t.description}</span>
                 {t.choices?.map(choice => renderChoiceSelection(choice, c.traitSelections))}
               </li>
             ))}
             {subrace?.traits?.filter(t => !t.level || t.level <= c.level).map(t => (
-              <li key={`subrace-${t.name}`} className="flex flex-col text-sm border-l-4 border-stone-300 pl-3">
-                <span className="font-semibold text-stone-800 text-base mb-0.5">{t.name}</span>
-                <span className="text-stone-500 leading-relaxed font-sans text-xs">{t.description}</span>
+              <li key={`subrace-${t.name}`} className="flex flex-col text-xs border-l-2 border-stone-300 pl-2">
+                <span className="font-semibold text-stone-800 text-sm mb-0.5">{t.name}</span>
+                <span className="text-stone-500 leading-relaxed font-sans">{t.description}</span>
                 {t.choices?.map(choice => renderChoiceSelection(choice, c.traitSelections))}
               </li>
             ))}
             {bg && (
-              <li className="flex flex-col text-sm border-l-4 border-stone-300 pl-3">
-                <span className="font-semibold text-stone-800 text-base mb-0.5">{bg.feature.name}</span>
-                <span className="text-stone-500 leading-relaxed font-sans text-xs">{bg.feature.description}</span>
+              <li className="flex flex-col text-xs border-l-2 border-stone-300 pl-2">
+                <span className="font-semibold text-stone-800 text-sm mb-0.5">{bg.feature.name}</span>
+                <span className="text-stone-500 leading-relaxed font-sans">{bg.feature.description}</span>
                 {bg.choices?.map(choice => renderChoiceSelection(choice, c.traitSelections))}
               </li>
             )}
@@ -178,12 +178,12 @@ export function CharacterSummary() {
               ...(cls?.traits || []).filter(t => t.level! <= c.level).map(t => ({ ...t, isSubclass: false })),
               ...(subclass ? subclass.traits.filter(t => t.level! <= c.level).map(t => ({ ...t, isSubclass: true })) : [])
             ].sort((a, b) => (a.level || 0) - (b.level || 0)).map((t, index) => (
-              <li key={`class-${t.name}-${t.level}-${index}`} className={`flex flex-col text-sm border-l-4 ${t.isSubclass ? 'border-amber-400' : 'border-amber-500'} pl-3`}>
-                <span className={`font-semibold ${t.isSubclass ? 'text-amber-700' : 'text-amber-600'} text-base mb-0.5`}>
+              <li key={`class-${t.name}-${t.level}-${index}`} className={`flex flex-col text-xs border-l-2 ${t.isSubclass ? 'border-amber-400' : 'border-amber-500'} pl-2`}>
+                <span className={`font-semibold ${t.isSubclass ? 'text-amber-700' : 'text-amber-600'} text-sm mb-0.5`}>
                   {t.name}
-                  {t.isSubclass && <span className="text-xs font-sans bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded ml-2 align-middle border border-amber-200/50">子职业</span>}
+                  {t.isSubclass && <span className="text-[10px] font-sans bg-amber-50 text-amber-600 px-1 py-0.5 rounded ml-1.5 align-middle border border-amber-200/50">子职业</span>}
                 </span>
-                <FormattedDescription text={getCleanDescription(t.name, t.description, c.traitSelections)} className="text-stone-500 leading-relaxed font-sans text-xs" />
+                <FormattedDescription text={getCleanDescription(t.name, t.description, c.traitSelections)} className="text-stone-500 leading-relaxed font-sans" />
                 {t.choices?.map(choice => renderChoiceSelection(choice, c.traitSelections))}
               </li>
             ))}
@@ -197,16 +197,16 @@ export function CharacterSummary() {
           const featsList = selectedFeats.map(fid => feats.find(f => f.id === fid)).filter(Boolean);
           if (featsList.length === 0) return null;
           return (
-            <div className="mt-6">
-              <h3 className="text-sm font-sans uppercase tracking-[0.15em] text-stone-400 mb-3 border-b border-stone-200 pb-1">专长</h3>
-              <ul className="space-y-3">
+            <div className="mt-4">
+              <h3 className="text-sm font-sans uppercase tracking-[0.15em] text-stone-400 mb-2 border-b border-stone-200 pb-1">专长</h3>
+              <ul className="space-y-2">
                 {featsList.map((f, i) => (
-                  <li key={`feat-${f?.id}-${i}`} className="flex flex-col text-sm border-l-4 border-stone-400 pl-3">
-                    <span className="font-semibold text-stone-800 text-base mb-0.5 flex items-center gap-2">
+                  <li key={`feat-${f?.id}-${i}`} className="flex flex-col text-xs border-l-2 border-stone-400 pl-2">
+                    <span className="font-semibold text-stone-800 text-sm mb-0.5 flex items-center gap-1.5">
                        {f?.name} 
                        <DictyTwisterLink type="feat" name={f?.name!} source={f?.source || 'phb'} />
                     </span>
-                    <span className="text-stone-500 leading-relaxed font-sans text-xs">{f?.description}</span>
+                    <span className="text-stone-500 leading-relaxed font-sans">{f?.description}</span>
                   </li>
                 ))}
               </ul>

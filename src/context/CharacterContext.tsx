@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { CharacterData, Ability } from '../types/dnd';
 import { classes } from '../data/classes';
+import { getLevelFromXp, getXpRequiredForLevel } from '../utils/xpLevel';
 
 type Action =
   | { type: 'SET_VIEW'; payload: 'landing' | 'wizard' | 'sheet' }
@@ -42,6 +43,9 @@ const initialState: State = {
     flaws: '',
     backstory: '',
     level: 3,
+    xp: 900,
+    portraitUrl: '',
+    fullBodyUrl: '',
     raceId: '',
     classId: '',
     backgroundId: '',
@@ -64,8 +68,14 @@ function reducer(state: State, action: Action): State {
       return { ...state, view: 'sheet', character: action.payload };
     case 'SET_CURRENT_STEP':
       return { ...state, currentStep: action.payload };
-    case 'UPDATE_BASIC_INFO':
-      return { ...state, character: { ...state.character, ...action.payload } };
+    case 'UPDATE_BASIC_INFO': {
+      const updated = { ...state.character, ...action.payload };
+      if (action.payload.xp !== undefined) {
+        // 如果改变了 xp，同步倒推等级 level
+        updated.level = getLevelFromXp(updated.xp ?? 0);
+      }
+      return { ...state, view: state.view, currentStep: state.currentStep, character: updated };
+    }
     case 'SET_RACE': {
       if (state.character.raceId !== action.payload.raceId || state.character.raceSource !== action.payload.raceSource) {
         const newTraits = { ...state.character.traitSelections };
@@ -153,17 +163,29 @@ function reducer(state: State, action: Action): State {
     case 'SET_LEVEL': {
       const cls = classes.find(c => c.id === state.character.classId);
       const isSubAvailable = cls && action.payload >= cls.subclassAvailableAtLevel;
+      const xpReq = getXpRequiredForLevel(action.payload);
       return { 
         ...state, 
         character: { 
           ...state.character, 
           level: action.payload,
+          xp: xpReq,
           subclassId: isSubAvailable ? state.character.subclassId : undefined
         } 
       };
     }
-    case 'LEVEL_UP':
-      return { ...state, character: { ...state.character, level: state.character.level + 1 } };
+    case 'LEVEL_UP': {
+      const nextLevel = Math.min(20, state.character.level + 1);
+      const nextXp = getXpRequiredForLevel(nextLevel);
+      return { 
+        ...state, 
+        character: { 
+          ...state.character, 
+          level: nextLevel,
+          xp: nextXp
+        } 
+      };
+    }
     default:
       return state;
   }

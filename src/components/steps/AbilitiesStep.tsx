@@ -192,7 +192,7 @@ export function AbilitiesStep() {
                              <span className="text-sm text-stone-600">公式:</span>
                              <div className="px-3 py-1.5 bg-stone-100 border border-stone-200 rounded-lg font-mono text-sm">4d6dl1</div>
                          </div>
-                         <button onClick={handleRoll} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
+                         <button onClick={handleRoll} className="px-4 py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition border-none cursor-pointer">
                              掷骰
                          </button>
                      </div>
@@ -342,7 +342,7 @@ export function AbilitiesStep() {
                                      </span>
                                  </td>
                                  <td className="py-3 px-3 text-center">
-                                     <span className="inline-block px-1.5 sm:px-3 py-0.5 sm:py-1 bg-blue-50 rounded-md font-mono text-blue-600 border border-blue-200 text-xs sm:text-sm">
+                                     <span className="inline-block px-1.5 sm:px-3 py-0.5 sm:py-1 bg-amber-50/50 rounded-md font-mono text-amber-700 border border-amber-200/50 text-xs sm:text-sm">
                                          {classBonus}
                                      </span>
                                  </td>
@@ -350,7 +350,7 @@ export function AbilitiesStep() {
                                      {!isAssigned && (mode === 'standard' || mode === 'roll') ? '-' : total}
                                  </td>
                                  <td className="py-3 px-3 text-center">
-                                     <span className={`inline-block px-1.5 sm:px-3 py-0.5 sm:py-1 font-mono font-bold rounded-lg border text-xs sm:text-sm ${mod >= 0 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-stone-55  text-stone-500 border-stone-200'}`}>
+                                     <span className={`inline-block px-1.5 sm:px-3 py-0.5 sm:py-1 font-mono font-bold rounded-lg border text-xs sm:text-sm ${mod >= 0 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-stone-100 text-stone-500 border-stone-200'}`}>
                                          {!isAssigned && (mode === 'standard' || mode === 'roll') ? '-' : modStr}
                                      </span>
                                  </td>

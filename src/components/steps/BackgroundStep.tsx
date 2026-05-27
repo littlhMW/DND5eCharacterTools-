@@ -7,42 +7,12 @@ import { TraitSelection } from '../shared/TraitSelection';
 import { Dices } from 'lucide-react';
 
 import { SKILL_NAMES } from '../../utils/proficiencies';
-import { getAIConfig } from '../../utils/aiHelper';
-import { generateXgeBackstory } from '../../utils/xgeLifeGenerator';
 
 export function BackgroundStep() {
   const { state, dispatch } = useCharacter();
-  const aiLocalConfig = getAIConfig();
   
   const selectedBackground = backgrounds.find(bg => bg.id === state.character.backgroundId);
   const availableBackgrounds = backgrounds.filter(bg => isSourceEnabled(bg.source || 'phb', 'backgrounds'));
-
-  const handleXgeGenerate = () => {
-    const useExpanded = localStorage.getItem('useExpandedXge') === 'true';
-    const useNonPhbSupport = localStorage.getItem('useNonPhbSupportXge') !== 'false';
-    const xgeText = generateXgeBackstory(
-      { backgroundId: state.character.backgroundId, classId: state.character.classId },
-      { useExpanded, useNonPhbSupport }
-    );
-    
-    const currentBackstory = state.character.backstory || '';
-    const match = currentBackstory.match(/(这是你的人生[:：]|【XGE 经历：这是你的人生】[:：]?)/);
-    
-    let newBackstory = '';
-    if (match && typeof match.index === 'number') {
-      const preText = currentBackstory.substring(0, match.index).trim();
-      newBackstory = preText ? `${preText}\n\n${xgeText}` : xgeText;
-    } else {
-      newBackstory = currentBackstory 
-        ? `${currentBackstory}\n\n${xgeText}`
-        : xgeText;
-    }
-      
-    dispatch({
-      type: 'UPDATE_BASIC_INFO',
-      payload: { backstory: newBackstory },
-    });
-  };
 
   const rollTrait = (field: 'personality' | 'ideals' | 'bonds' | 'flaws', options: string[]) => {
     if (options && options.length > 0) {
@@ -171,10 +141,25 @@ export function BackgroundStep() {
                         if (selectedBackground.specialty?.options && selectedBackground.specialty.options.length > 0) {
                           const randomIndex = Math.floor(Math.random() * selectedBackground.specialty.options.length);
                           const opt = selectedBackground.specialty.options[randomIndex];
-                          dispatch({ type: 'UPDATE_BASIC_INFO', payload: { specialty: opt } });
-                          if (!state.character.backstory) {
-                            dispatch({ type: 'UPDATE_BASIC_INFO', payload: { backstory: opt } });
+                          handleTraitChange('specialty', opt);
+                          
+                          const formattedOpt = `${selectedBackground.specialty.name}：${opt}`;
+                          const currentBs = state.character.backstory || '';
+                          const regex = new RegExp(`${selectedBackground.specialty.name}：.*(?:\n|$)`);
+                          let newBs = currentBs;
+                          if (regex.test(currentBs)) {
+                             newBs = currentBs.replace(regex, `${formattedOpt}\n`);
+                          } else {
+                             const xgeMatch = currentBs.match(/\n?\n?【XGE 经历：这是你的人生】/);
+                             if (xgeMatch && typeof xgeMatch.index === 'number') {
+                               const beforeXge = currentBs.substring(0, xgeMatch.index);
+                               const afterXge = currentBs.substring(xgeMatch.index);
+                               newBs = `${beforeXge}\n${formattedOpt}${afterXge}`;
+                             } else {
+                               newBs = currentBs ? `${currentBs}\n${formattedOpt}` : formattedOpt;
+                             }
                           }
+                          dispatch({ type: 'UPDATE_BASIC_INFO', payload: { backstory: newBs.trim() } });
                         }
                       }}
                       className="p-1.5 text-stone-400 hover:text-amber-600 hover:bg-amber-50 rounded-full transition-colors flex items-center text-xs font-sans gap-1 cursor-pointer border-none bg-transparent"
@@ -203,9 +188,24 @@ export function BackgroundStep() {
                         className="text-stone-600 text-sm font-sans flex items-start gap-2 cursor-pointer hover:text-amber-700 transition-colors p-1.5 rounded-lg hover:bg-white"
                         onClick={() => {
                           handleTraitChange('specialty', opt);
-                          if (!state.character.backstory) {
-                            dispatch({ type: 'UPDATE_BASIC_INFO', payload: { backstory: opt } });
+                          
+                          const formattedOpt = `${selectedBackground.specialty.name}：${opt}`;
+                          const currentBs = state.character.backstory || '';
+                          const regex = new RegExp(`${selectedBackground.specialty.name}：.*(?:\n|$)`);
+                          let newBs = currentBs;
+                          if (regex.test(currentBs)) {
+                             newBs = currentBs.replace(regex, `${formattedOpt}\n`);
+                          } else {
+                             const xgeMatch = currentBs.match(/\n?\n?【XGE 经历：这是你的人生】/);
+                             if (xgeMatch && typeof xgeMatch.index === 'number') {
+                               const beforeXge = currentBs.substring(0, xgeMatch.index);
+                               const afterXge = currentBs.substring(xgeMatch.index);
+                               newBs = `${beforeXge}\n${formattedOpt}${afterXge}`;
+                             } else {
+                               newBs = currentBs ? `${currentBs}\n${formattedOpt}` : formattedOpt;
+                             }
                           }
+                          dispatch({ type: 'UPDATE_BASIC_INFO', payload: { backstory: newBs.trim() } });
                         }}
                       >
                         <span className="text-amber-600/50 mt-0.5 font-mono text-xs">{index + 1}.</span>
@@ -223,7 +223,7 @@ export function BackgroundStep() {
               <h4 className="text-sm font-sans uppercase tracking-[0.15em] text-stone-400 mb-4">建议特征</h4>
               <div className="space-y-6">
                 {[
-                  { id: 'personality' as const, label: '性格特质', data: selectedBackground.suggestedCharacteristics.personalityTraits },
+                  { id: 'personality' as const, label: '特质', data: selectedBackground.suggestedCharacteristics.personalityTraits },
                   { id: 'ideals' as const, label: '理想', data: selectedBackground.suggestedCharacteristics.ideals },
                   { id: 'bonds' as const, label: '牵绊', data: selectedBackground.suggestedCharacteristics.bonds },
                   { id: 'flaws' as const, label: '缺点', data: selectedBackground.suggestedCharacteristics.flaws },
@@ -272,18 +272,12 @@ export function BackgroundStep() {
           <div className="pt-6 border-t border-stone-200 mt-6 font-sans text-left">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-sm font-sans uppercase tracking-[0.15em] text-stone-400">背景故事</h4>
-              <button
-                type="button"
-                onClick={handleXgeGenerate}
-                className="px-2.5 py-1 text-xs font-semibold text-amber-700 bg-amber-50 rounded border border-amber-200 hover:bg-amber-100/50 hover:border-amber-300 transition-all flex items-center gap-1 cursor-pointer active:scale-95 border-none"
-              >
-                生成生平经历
-              </button>
             </div>
+
             <textarea 
               value={state.character.backstory || ''}
               onChange={(e) => dispatch({ type: 'UPDATE_BASIC_INFO', payload: { backstory: e.target.value } })}
-              placeholder="在此处手动编写角色的背景故事，它们会在最终的角色卡中完整展现。若开启了生平配置，可点击上方按钮生成并追加精彩的人生轨迹经历。"
+              placeholder="在此处手动编写角色的背景故事，它们会在最终的角色卡中完整展现。"
               className="w-full bg-white border border-stone-200 rounded-xl p-4 text-stone-900 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors shadow-sm font-sans text-sm h-32 leading-relaxed"
             />
           </div>

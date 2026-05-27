@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Users, RefreshCw, User, Compass, HeartHandshake, Sparkles, Shuffle, UserPlus, Network, LayoutList, Axe, Music, HeartPulse, Leaf, Sword, HandMetal, Shield, Target, Flame, Eye, BookOpen, Wand2, Scissors } from 'lucide-react';
-import { generateRandomName, generateMotif } from '../../utils/nameGenerator';
+import { generateRandomName } from '../../utils/nameGenerator';
 import { generatePartyNameWithRules } from '../../utils/partyNameGenerator';
+import { generateTitle } from '../../utils/titleGenerator';
 import { races } from '../../data/races';
 import { classes } from '../../data/classes';
 import { isSourceEnabled } from '../../utils/expansionHelper';
@@ -10,16 +11,22 @@ import { getAIConfig, generatePartyBiography } from '../../utils/aiHelper';
 import { FormattedDescription } from '../shared/FormattedDescription';
 import { 
   UNIVERSAL_APPEARANCE_FEATURES, 
+  PURE_MASKED_APPEARANCES,
   EXTRA_PERSON_TRAITS, 
   EXTRA_QUIRKS, 
-  LAW_CHAOS_AXIS, 
-  GOOD_EVIL_AXIS, 
-  RACES_MAPPING 
+  RACES_MAPPING,
+  getBestRaceAssetsKey,
+  LAW_CHAOS_AXIS,
+  GOOD_EVIL_AXIS,
+  generateCoreAppearanceAndPersonality
 } from './AppearancePersonalityGenerator';
+import { getAvailableRaces } from '../../utils/raceHelper';
+import { backgrounds } from '../../data/backgrounds';
 
 interface PartyMember {
   id: string;
   name: string;
+  title?: string;
   race: string;
   className: string;
   alignment: string;
@@ -31,6 +38,7 @@ interface PartyMember {
     eyeColor: string;
     skinColor: string;
     feature: string;
+    isPureMasked?: boolean;
   };
   personality: {
     trait: string;
@@ -38,6 +46,13 @@ interface PartyMember {
   };
   selfPositioning: string;
   isCaptain?: boolean;
+  backgroundId?: string;
+  backgroundTraits?: {
+    personality: string;
+    ideals: string;
+    bonds: string;
+    flaws: string;
+  };
 }
 
 interface Relationship {
@@ -50,7 +65,6 @@ interface Relationship {
 interface Party {
   name: string;
   accronym: string;
-  motif: string;
   origin: string; // 队伍起因：怎么产生的
   goal: string;   // 目的
   members: PartyMember[];
@@ -58,6 +72,32 @@ interface Party {
 }
 
 const ALIGNMENTS = ["守序善良 (LG)", "中立善良 (NG)", "混乱善良 (CG)", "守序中立 (LN)", "绝对中立 (N)", "混乱中立 (CN)", "守序邪恶 (LE)", "中立邪恶 (NE)", "混乱邪恶 (CE)"];
+
+const ALIGNMENT_POSITIONINGS: Record<string, { leader: string[], member: string[] }> = {
+  "LG": { leader: ["绝对核心", "战术指挥", "精神支柱", "纪律的化身", "指引者", "破晓之光", "正义之剑"], member: ["道德指南针", "承伤铁壁", "秩序维护者", "沉默的后盾", "不倒的护卫", "虔诚的同修", "守夜人"] },
+  "NG": { leader: ["温和的领导者", "信赖的纽带", "平易近人的队长", "协调者", "大家的守护者", "明亮灯塔"], member: ["团队润滑剂", "后勤与支援", "和事佬", "无私的奉献者", "团队解毒剂", "春雨般的前哨", "温暖同心锁", "疗愈者"] },
+  "CG": { leader: ["队魂", "感性的带领者", "破釜沉舟者", "救世圣母", "自由的号角", "不羁之人"], member: ["奇兵与突击手", "气氛活跃者", "不羁的自由战士", "打破常规的奇才", "逆风孤鹜", "惊喜制造者", "游走的极光"] },
+  "LN": { leader: ["规划师", "最公正之人", "战术家", "判决天平", "精算主脑", "法则制定人"], member: ["无情的执行人", "后勤物控", "冷眼旁观的计数者", "规则的死忠", "法理记录员", "绝缘防壁", "冷彻理智端"] },
+  "N": { leader: ["中庸的掌舵人", "利益平衡者", "务实的带头人", "风标风向仪", "流动的中间线", "天平"], member: ["拿钱办事的打工仔", "静止的观测者", "补漏的万金油", "不偏不倚的旁观客", "游离幽灵", "干饭主力军", "日常摸鱼代表", "保底特工"] },
+  "CN": { leader: ["混乱中枢", "不可预料的暴风眼", "赌徒狂徒", "混沌预兆", "绝地舵手", "千面魔术师"], member: ["绝对的游侠", "随性的爆发者", "只顾自己的野马", "不稳定因素", "狂想曲乐手", "随时开溜的猫", "怪奇事件簿", "独行孤狼"] },
+  "LE": { leader: ["铁腕暴君", "黑暗大脑", "冷血独裁者", "暗夜君王", "绝情棋手", "执政官"], member: ["高效处刑人", "爪牙", "无情利刃", "精密的齿轮", "契约执行人", "暗影刺客", "冷酷结算者"] },
+  "NE": { leader: ["自封者", "阴暗的支配者", "首脑", "利益操盘手"], member: ["雇佣兵", "算计者", "收割者", "伏击者", "幕后耳目", "见风使舵者", "灵魂收割商"] },
+  "CE": { leader: ["恐惧的散播者", "魔王", "灾厄之主", "破坏者", "乱世的风暴眼"], member: ["嗜血的狂战", "纯粹的破坏狂", "随时失控的炸弹", "带来混乱的恶兽", "狂乱野兽", "末日播种人", "崩坏引线"] }
+};
+
+function getAlignKey(a: string) {
+  if (a.includes("LG") || a.includes("守序善良")) return "LG";
+  if (a.includes("NG") || a.includes("中立善良")) return "NG";
+  if (a.includes("CG") || a.includes("混乱善良")) return "CG";
+  if (a.includes("LN") || a.includes("守序中立")) return "LN";
+  if (a.includes("N") && !a.includes("L") && !a.includes("C") && a.includes("绝对中立")) return "N";
+  if (a.includes("N") && a.includes("绝对")) return "N";
+  if (a.includes("CN") || a.includes("混乱中立")) return "CN";
+  if (a.includes("LE") || a.includes("守序邪恶")) return "LE";
+  if (a.includes("NE") || a.includes("中立邪恶")) return "NE";
+  if (a.includes("CE") || a.includes("混乱邪恶")) return "CE";
+  return "N";
+}
 
 // Gender Options
 const GENDERS: Array<'male' | 'female' | 'none'> = ['male', 'female', 'none'];
@@ -121,7 +161,7 @@ const RELATION_TYPES = [
   { type: "嫉妒", A: ["对方拥有的一切都让自己感到刺痛。", "不明白为何命运如此不公。", "每当看到对方被称赞内心便一阵酸涩。", "暗想凭什么对方能如此幸运。", "偶尔会幻想对方失去那些东西的样子。"], B: ["曾在深夜幻想过取代对方的位置。", "极力掩饰心底那团阴暗的火焰。", "有时甚至希望对方遭遇一点挫败。", "但真看到对方摔倒了又觉得自己卑鄙。", "在厌恶这样的自己与无法停止的比较之间来回摇摆。"] },
   { type: "默契", A: ["战斗中只需要一个眼神就能配合无间。", "从未事先约定却总能在关键时刻想到一块。", "旁人常以为他们有读心术。", "一个人的话说到一半另一个就能接下去。", "对方刚抬手自己就知道要递什么。"], B: ["一句话只说前半对方便能接出后半。", "在混乱的战况中也能准确找到对方的位置。", "已经不需要商量行动就是最好的交流。", "沉默也不会被误解为冷淡。", "两个人之间有一种近乎自然的同步。"] },
   { type: "误解", A: ["一直以为对方对自己怀有敌意。", "把对方的好意当成了别有所图。", "某个关键事实始终被错误地理解着。", "其实从一开始就猜错了方向。", "两个人都在等对方先解释。"], B: ["每次试图解释反而让误会更深。", "双方都坚信自己看到的是真相。", "从未想过彼此可能都只看到了片面。", "一个无心的举动被当成蓄意的伤害。", "越是想澄清就越被当成掩饰。"] },
-  { type: "暖意", A: ["对方曾经在自己最冷的夜里递来一碗热汤。", "那件小事被记了很久很久。", "对方可能不记得却改变了自己的一整天。", "在最孤单的时候是对方无意间陪了自己一程。", "一句话就能驱散淤积了很久的阴霾。"], B: ["每次想起来都让胸口泛起一阵温热的涌动。", "从来没当面谢过却一直想找机会还那份情。", "对方的一个小举动就让自己记到现在。", "也许对方永远不会知道那份善意有多重。", "总觉得这人世里有对方的存在就还不算太坏。"] },
+  { type: "暧昧", A: ["对方曾经在自己最冷的夜里递来一碗热汤。", "那件小事被记了很久很久。", "对方可能不记得却改变了自己的一整天。", "在最孤单的时候是对方无意间陪了自己一程。", "一句话就能驱散淤积了很久的阴霾。"], B: ["每次想起来都让胸口泛起一阵温热的涌动。", "从来没当面谢过却一直想找机会还那份情。", "对方的一个小举动就让自己记到现在。", "也许对方永远不会知道那份善意有多重。", "总觉得这人世里有对方的存在就还不算太坏。"] },
   { type: "挂念", A: ["只要对方稍微离开视线就忍不住猜测是否平安。", "对方晚回来一刻便开始胡思乱想。", "路过对方常去的地方会下意识寻找那个身影。", "天凉了第一个念头是对方有没有添衣服。", "对方的事总是排在自己心事的头几位。"], B: ["就算很久没见也只是更想知道对方过得好不好。", "把对方送的小东西一直带在身边。", "哪怕对方毫不知情这份牵挂也从没断过。", "偶尔深夜醒来会想对方此刻在何方。", "不敢打扰却放不下。"] },
   { type: "牺牲", A: ["曾经为了对方的生机放弃了自己最想要的东西。", "那份选择从未后悔哪怕重来也会再做一次。", "没有声张也没有告诉任何人。", "对方到今天都不知道自己失去了什么。"], B: ["在谁都没察觉的情况下独自扛下了那一次代价。", "不能说也不愿说。", "只是希望对方不用面对那片阴影。", "如果再来一次还是会做同样的选择。"] },
   { type: "追随", A: ["从某一天起就觉得跟着对方准没错。", "不是盲从而是打心底认可对方的方向。", "对方走到哪里自己就愿意跟到哪里。", "不一定因为信仰什么只是信这个人。"], B: ["哪怕没有承诺也始终站在对方那一边。", "对方要去的远方自己也想去看看。", "不是依附而是心甘情愿。", "从来没说过但一直把自己当成对方的同路人。"] },
@@ -164,79 +204,111 @@ function generateMember(raceList: any[], classList: any[]): PartyMember {
   
   // Choose subrace if available, and decide displayName
   let displayName = race.name;
+  let selectedSubraceName: string | undefined = undefined;
   if (race.subraces && race.subraces.length > 0) {
-    const validSubraces = race.subraces.filter((sr: any) => isSourceEnabled(sr.source || race.source || 'phb', 'races'));
-    const subracesToChoose = validSubraces.length > 0 ? validSubraces : race.subraces;
+    const subracesToChoose = race.subraces;
     const selectedSubrace = subracesToChoose[Math.floor(Math.random() * subracesToChoose.length)];
     if (selectedSubrace.name.includes("本相")) {
       displayName = race.name;
     } else {
       displayName = selectedSubrace.name;
+      selectedSubraceName = selectedSubrace.name;
     }
   }
 
   const age = getRandomAge(displayName);
   
-  // Helper to match displayName to RACES_MAPPING keys
-  const matchRaceToMappingKey = (dName: string, baseName: string): string => {
-    const keys = Object.keys(RACES_MAPPING);
-    let match = keys.find(k => k === dName);
-    if (match) return match;
-    match = keys.find(k => k.includes(dName));
-    if (match) return match;
-    match = keys.find(k => k.includes(baseName));
-    if (match) return match;
-    return "人类";
-  };
-
-  const mappingKey = matchRaceToMappingKey(displayName, race.name);
+  const mappingKey = getBestRaceAssetsKey(race.name, selectedSubraceName);
   const raceAssets = RACES_MAPPING[mappingKey] || RACES_MAPPING["人类"];
 
   const skinColor = raceAssets.skin[Math.floor(Math.random() * raceAssets.skin.length)];
   const hairColor = raceAssets.hair[Math.floor(Math.random() * raceAssets.hair.length)];
   const eyeColor = raceAssets.eye[Math.floor(Math.random() * raceAssets.eye.length)];
-  const baseFeature = raceAssets.features[Math.floor(Math.random() * raceAssets.features.length)];
-  const randUniFeature = UNIVERSAL_APPEARANCE_FEATURES[Math.floor(Math.random() * UNIVERSAL_APPEARANCE_FEATURES.length)];
-  const feature = `${baseFeature}，同时${randUniFeature}`;
 
   // Parse alignment
   let lawChaos: 'lawful' | 'neutral' | 'chaotic' = 'neutral';
   let goodEvil: 'good' | 'neutral' | 'evil' = 'neutral';
   
-  if (alignment.includes('守序') || alignment.includes('LG') || alignment.includes('LN') || alignment.includes('LE')) {
-    lawChaos = 'lawful';
-  } else if (alignment.includes('混乱') || alignment.includes('CG') || alignment.includes('CN') || alignment.includes('CE')) {
-    lawChaos = 'chaotic';
+  if (alignment.includes('守序') || alignment.includes('LG') || alignment.includes('LN') || alignment.includes('LE')) lawChaos = 'lawful';
+  else if (alignment.includes('混乱') || alignment.includes('CG') || alignment.includes('CN') || alignment.includes('CE')) lawChaos = 'chaotic';
+  
+  if (alignment.includes('善良') || alignment.includes('LG') || alignment.includes('NG') || alignment.includes('CG')) goodEvil = 'good';
+  else if (alignment.includes('邪恶') || alignment.includes('LE') || alignment.includes('NE') || alignment.includes('CE')) goodEvil = 'evil';
+
+  // 1. Call appearance/personality generator
+  const res = generateCoreAppearanceAndPersonality({
+    raceName: race.name,
+    subraceName: selectedSubraceName,
+    lawChaos,
+    goodEvil,
+    gender: randGender,
+  });
+
+  // 2. Call character generator (smart attributes distribution & background choosing)
+  const validBackgrounds = backgrounds.filter(b => isSourceEnabled(b.source || 'phb', 'backgrounds'));
+  const availableBackgrounds = validBackgrounds.length > 0 ? validBackgrounds : backgrounds.filter(b => b.source === 'phb' || b.id === 'soldier');
+  const randomBg = availableBackgrounds[Math.floor(Math.random() * availableBackgrounds.length)];
+
+  const stdScores = [15, 14, 13, 12, 10, 8];
+  const abilities = { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 };
+
+  const primaryAbilities: string[] = cls.primaryAbility || [];
+  const castAbility: string = cls.spellcasting?.ability || '';
+  
+  const priorityList: string[] = [];
+  primaryAbilities.forEach(ab => {
+    if (!priorityList.includes(ab)) priorityList.push(ab);
+  });
+  if (castAbility && !priorityList.includes(castAbility)) {
+    priorityList.push(castAbility);
   }
+  if (!priorityList.includes('CON')) priorityList.push('CON');
+  if (!priorityList.includes('DEX')) priorityList.push('DEX');
   
-  if (alignment.includes('善良') || alignment.includes('LG') || alignment.includes('NG') || alignment.includes('CG')) {
-    goodEvil = 'good';
-  } else if (alignment.includes('邪恶') || alignment.includes('LE') || alignment.includes('NE') || alignment.includes('CE')) {
-    goodEvil = 'evil';
+  const ALL_STATS = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
+  ALL_STATS.forEach(stat => {
+    if (!priorityList.includes(stat)) {
+      priorityList.push(stat);
+    }
+  });
+
+  priorityList.forEach((stat, idx) => {
+    abilities[stat as keyof typeof abilities] = stdScores[idx];
+  });
+
+  // Pick background traits/details (not shown on UI, used only for saving cards)
+  let backgroundTraits = {
+    personality: '',
+    ideals: '',
+    bonds: '',
+    flaws: ''
+  };
+
+  if (randomBg.suggestedCharacteristics) {
+    const pTraits = randomBg.suggestedCharacteristics.personalityTraits || [];
+    const idls = randomBg.suggestedCharacteristics.ideals || [];
+    const bnds = randomBg.suggestedCharacteristics.bonds || [];
+    const flws = randomBg.suggestedCharacteristics.flaws || [];
+
+    if (pTraits.length > 0) backgroundTraits.personality = pTraits[Math.floor(Math.random() * pTraits.length)];
+    if (idls.length > 0) backgroundTraits.ideals = idls[Math.floor(Math.random() * idls.length)];
+    if (bnds.length > 0) backgroundTraits.bonds = bnds[Math.floor(Math.random() * bnds.length)];
+    if (flws.length > 0) backgroundTraits.flaws = flws[Math.floor(Math.random() * flws.length)];
   }
 
-  const lcObj = LAW_CHAOS_AXIS[lawChaos];
-  const geObj = GOOD_EVIL_AXIS[goodEvil];
-  
-  const randExtraTrait = EXTRA_PERSON_TRAITS[Math.floor(Math.random() * EXTRA_PERSON_TRAITS.length)];
-  const randExtraQuirk = EXTRA_QUIRKS[Math.floor(Math.random() * EXTRA_QUIRKS.length)];
-  const randLawChaosBelief = lcObj.beliefs[Math.floor(Math.random() * lcObj.beliefs.length)];
-  const randGoodEvilBelief = geObj.beliefs[Math.floor(Math.random() * geObj.beliefs.length)];
-  const randLawChaosManner = lcObj.manners[Math.floor(Math.random() * lcObj.manners.length)];
-  const randGoodEvilManner = geObj.manners[Math.floor(Math.random() * geObj.manners.length)];
-  
-  const combinedBelief = `${randLawChaosBelief}，同时${randGoodEvilBelief}`;
-  const combinedManner = `${randLawChaosManner}，且${randGoodEvilManner}`;
+  // Safe localized fallbacks
+  if (!backgroundTraits.personality) backgroundTraits.personality = "富有探索精神与自强不息的心志。";
+  if (!backgroundTraits.ideals) backgroundTraits.ideals = "追求卓越本能，以及对未知世界的向往。";
+  if (!backgroundTraits.bonds) backgroundTraits.bonds = "坚信冒险小队的誓死协作和共同进退。";
+  if (!backgroundTraits.flaws) backgroundTraits.flaws = "在金币与罕见的古代知识面前，有时显得过于狂热。";
 
-  const trait = `的核心信条为：${combinedBelief}。日常作派是${combinedManner}。此外，${randExtraTrait}`;
-  const quirk = `私下也有一些行为习惯：${randExtraQuirk}`;
-
-  // Stats standard array randomized
-  const std = [15, 14, 13, 12, 10, 8].sort(() => Math.random() - 0.5);
+  const titleEnabled = localStorage.getItem('partyTitleGenEnabled') === 'true';
+  const titleVal = titleEnabled ? generateTitle() : undefined;
   
   return {
     id: crypto.randomUUID ? crypto.randomUUID() : `mbr-${Math.random().toString(36).substring(2, 9)}`,
     name,
+    title: titleVal,
     race: displayName,
     className: cls.name,
     gender: randGender,
@@ -246,14 +318,24 @@ function generateMember(raceList: any[], classList: any[]): PartyMember {
       hairColor,
       eyeColor,
       skinColor,
-      feature
+      feature: res.appearance,
+      isPureMasked: true
     },
     personality: {
-      trait,
-      quirk
+      trait: res.personalityPart,
+      quirk: res.beliefPart
     },
     selfPositioning: "",
-    stats: { str: std[0], dex: std[1], con: std[2], int: std[3], wis: std[4], cha: std[5] }
+    stats: {
+      str: abilities.STR,
+      dex: abilities.DEX,
+      con: abilities.CON,
+      int: abilities.INT,
+      wis: abilities.WIS,
+      cha: abilities.CHA
+    },
+    backgroundId: randomBg.id,
+    backgroundTraits
   };
 }
 
@@ -325,7 +407,7 @@ const getRelColor = (type: string) => {
     "嫉妒": "#84cc16", // lime green
     "默契": "#4f46e5", // deep royal indigo
     "误解": "#7c2d12", // brownish/maroon-red
-    "暖意": "#fb7185", // radiant warm pastel rose
+    "暧昧": "#ffc0cb", // 
     "挂念": "#2563eb", // thoughtful deep sky blue
     "牺牲": "#be123c", // burgundy crimson
     "追随": "#8b5cf6", // spiritual violet purple
@@ -370,11 +452,49 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
   const createCharacterObject = (m: PartyMember, currentParty: Party) => {
     const pWord = m.gender === 'male' ? '他' : (m.gender === 'female' ? '她' : '其');
     
+    // 清洗阵营以防映射失败
+    const mapAlignmentToStandard = (align: string): string => {
+      if (!align) return '绝对中立';
+      if (align.includes('守序善良')) return '守序善良';
+      if (align.includes('中立善良')) return '中立善良';
+      if (align.includes('混乱善良')) return '混乱善良';
+      if (align.includes('守序中立')) return '守序中立';
+      if (align.includes('绝对中立')) return '绝对中立';
+      if (align.includes('混乱中立')) return '混乱中立';
+      if (align.includes('守序邪恶')) return '守序邪恶';
+      if (align.includes('中立邪恶')) return '中立邪恶';
+      if (align.includes('混乱邪恶')) return '混乱邪恶';
+      return '绝对中立';
+    };
+
     // Extract and format appearance beautifully
-    const assembledAppearance = `${pWord}拥有${m.appearance.skinColor}，留着一头${m.appearance.hairColor}，拥有${m.appearance.eyeColor}。在平时行动中，${pWord}${m.appearance.feature}。`;
+    const assembledAppearance = m.appearance.feature;
+
+    const myRelations = currentParty?.relationships?.filter(r => r.fromId === m.id) || [];
+    const otherRelations = currentParty?.relationships?.filter(r => r.toId === m.id) || [];
+    const getMemberName = (id: string) => currentParty?.members?.find(x => x.id === id)?.name || '小队队友';
+
+    const relationStories = myRelations.map(r => `  - 对【${getMemberName(r.toId)}】：${r.description}`).join('\n') || '  - 暂无特定的队内个人感情。';
+    const howOthersSeeMe = otherRelations.map(r => `  - 【${getMemberName(r.fromId)}】看待【${m.name}】：${r.description}`).join('\n') || '  - 暂无特定的队友互动态度。';
 
     // Extracted personality traits merged into backstory
-    const assembledBackstory = `【冒险传记 生平背景故事】\n(出身自战友小队「${currentParty?.name || '旅团'}」)\n\n【个人心智与性格特质】\n${pWord}${m.personality.trait}。此外，${pWord}${m.personality.quirk}。\n\n【在佣兵小队中的缘起起源】\n${currentParty?.origin || ''}\n\n【小队共同追寻的目标与悬赏】\n${currentParty?.goal || ''}`;
+    const assembledBackstory = `【外貌特征与行事作风】
+${m.appearance.feature}
+
+【个性风貌与言谈举止】
+${m.personality.trait}
+${pWord}${m.personality.quirk}
+
+【小队经历与历史纽带】
+- 出身自冒险小队：「${currentParty?.name || '旅团'}」
+- 佣兵小队契机：${currentParty?.origin || ''}
+- 小队探寻目标：${currentParty?.goal || ''}
+
+【队内社交关系】
+${relationStories}
+
+【队内互相评价】
+${howOthersSeeMe}`;
 
     // Attempt to match race and class to auto-configure builder options
     const matchedRace = races.find(r => r.name === m.race || (r.subraces && r.subraces.some(sr => sr.name === m.race)));
@@ -384,22 +504,24 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
     return {
       id: crypto.randomUUID ? crypto.randomUUID() : `mbr-${Math.random().toString(36).substring(2, 9)}`,
       name: m.name,
-      alignment: m.alignment,
+      title: m.title || '',
+      alignment: mapAlignmentToStandard(m.alignment),
       deity: '',
       age: m.age.toString(),
       appearance: assembledAppearance,
       specialty: '',
-      personality: '',
-      ideals: '',
-      bonds: '',
-      flaws: '',
+      personality: m.backgroundTraits?.personality || '',
+      ideals: m.backgroundTraits?.ideals || '',
+      bonds: m.backgroundTraits?.bonds || '',
+      flaws: m.backgroundTraits?.flaws || '',
       backstory: assembledBackstory,
       level: 3, // Group tier is standard 3
+      xp: 900,
       raceId: matchedRace ? matchedRace.id : 'human',
       subraceId: matchedSubrace ? matchedSubrace.id : undefined,
       raceSource: matchedRace ? (matchedRace.source || 'phb') : 'phb',
       classId: matchedCls ? matchedCls.id : 'fighter',
-      backgroundId: 'soldier', // Default soldier background for mercenaries
+      backgroundId: m.backgroundId || 'soldier',
       baseAbilities: { 
         STR: m.stats.str, 
         DEX: m.stats.dex, 
@@ -435,7 +557,7 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
         onSaveCharacter();
       }
 
-      setSuccessToast(`🎲 保存成功！3级队员「${m.name}」（${m.race} / ${m.className}）已安全存入您的已保存角色档案，在主页下方即可直接预设、加载或自定义微调！`);
+      setSuccessToast(`已保存 ${m.name} (${m.race} / ${m.className})，请前往角色库查看。`);
       setTimeout(() => {
         setSuccessToast(null);
       }, 5000);
@@ -460,7 +582,7 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
         onSaveCharacter();
       }
 
-      setSuccessToast(`🎲 保存成功！「${party.name}」全队4名成员已安全存入您的已保存角色档案！`);
+      setSuccessToast(`已保存「${party.name}」全部成员，请前往角色库查看。`);
       setTimeout(() => {
         setSuccessToast(null);
       }, 5000);
@@ -475,15 +597,7 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
     setIsGeneratingBiography(false);
 
     // Generate filtered arrays prioritizing enabled expansions/alternatives
-    const enabledRaces = races.map(r => {
-      const validAlts = r.alternatives?.filter(alt => isSourceEnabled(alt.source || 'phb', 'races'));
-      if (validAlts && validAlts.length > 0) {
-        const alt = validAlts[Math.floor(Math.random() * validAlts.length)];
-        return { ...alt, subraces: r.subraces };
-      }
-      if (isSourceEnabled(r.source || 'phb', 'races')) return r;
-      return null;
-    }).filter(Boolean);
+    const enabledRaces = getAvailableRaces();
 
     const enabledClasses = classes.filter(c => isSourceEnabled(c.source || 'phb', 'classes'));
 
@@ -503,32 +617,6 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
     const members: PartyMember[] = [];
     for (let i = 0; i < 4; i++) {
       members.push(generateMember(availableRaces, availableClasses));
-    }
-
-    const ALIGNMENT_POSITIONINGS: Record<string, { leader: string[], member: string[] }> = {
-      "LG": { leader: ["绝对核心", "战术指挥", "精神支柱", "纪律的化身"], member: ["道德指南针", "承伤铁壁", "秩序维护者", "沉默的后盾"] },
-      "NG": { leader: ["温和的领导者", "信赖的纽带", "平易近人的队长"], member: ["团队润滑剂", "后勤与支援", "和事佬", "无私的奉献者"] },
-      "CG": { leader: ["冲锋队魂", "感性的带领者", "破釜沉舟的发起人"], member: ["奇兵与突击手", "气氛活跃者", "不羁的自由战士", "打破常规的奇才"] },
-      "LN": { leader: ["冷酷的规划师", "契约的守护者", "铁腕战术家"], member: ["无情的执行人", "后勤物控", "冷眼旁观的计数者", "规则的死忠"] },
-      "N": { leader: ["中庸的掌舵人", "利益平衡者", "务实的带头人"], member: ["拿钱办事的打工仔", "静止的观测者", "补漏的万金油", "不偏不倚的旁观客"] },
-      "CN": { leader: ["混乱中枢", "不可预料的暴风眼", "疯狂赌徒"], member: ["绝对的游侠", "随性的爆发者", "只顾自己的野马", "不稳定因素"] },
-      "LE": { leader: ["铁腕暴君", "黑暗大脑", "冷血独裁者"], member: ["高效率处刑人", "幕后黑手的爪牙", "无情的利刃", "精密咬合的齿轮"] },
-      "NE": { leader: ["自私的自封者", "阴暗面的支配人"], member: ["随时抽身的雇佣兵", "唯利是图的算计者", "冷漠的收割者", "毒蛇般的伏击者"] },
-      "CE": { leader: ["恐惧的散播者", "疯群之首", "灾魇之主"], member: ["嗜血的狂战", "纯粹的破坏狂", "随时失控的炸弹", "带来混乱的恶兽"] }
-    };
-
-    function getAlignKey(a: string) {
-      if (a.includes("LG") || a.includes("守序善良")) return "LG";
-      if (a.includes("NG") || a.includes("中立善良")) return "NG";
-      if (a.includes("CG") || a.includes("混乱善良")) return "CG";
-      if (a.includes("LN") || a.includes("守序中立")) return "LN";
-      if (a.includes("N") && !a.includes("L") && !a.includes("C") && a.includes("绝对中立")) return "N";
-      if (a.includes("N") && a.includes("绝对")) return "N";
-      if (a.includes("CN") || a.includes("混乱中立")) return "CN";
-      if (a.includes("LE") || a.includes("守序邪恶")) return "LE";
-      if (a.includes("NE") || a.includes("中立邪恶")) return "NE";
-      if (a.includes("CE") || a.includes("混乱邪恶")) return "CE";
-      return "N";
     }
 
     const leaderIndex = Math.floor(Math.random() * 4);
@@ -551,7 +639,6 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
     setParty({
       name: pName,
       accronym: acronym,
-      motif: generateMotif(),
       origin,
       goal,
       members,
@@ -579,9 +666,23 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
 
   const shuffleRelationshipsOnly = () => {
     if (!party) return;
-    const newRels = generateRelationshipsForMembers(party.members);
+    
+    const updatedMembers = party.members.map((mbr) => {
+      const alignKey = getAlignKey(mbr.alignment);
+      const pool = ALIGNMENT_POSITIONINGS[alignKey] || ALIGNMENT_POSITIONINGS["N"];
+      const randPos = mbr.isCaptain
+        ? pool.leader[Math.floor(Math.random() * pool.leader.length)]
+        : pool.member[Math.floor(Math.random() * pool.member.length)];
+      return {
+        ...mbr,
+        selfPositioning: randPos
+      };
+    });
+
+    const newRels = generateRelationshipsForMembers(updatedMembers);
     setParty({
       ...party,
+      members: updatedMembers,
       relationships: newRels
     });
   };
@@ -618,7 +719,7 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
                 🧭 随机冒险队伍与关系网生成器
               </h2>
               <p className="text-xs text-stone-500 mt-1.5 leading-relaxed font-sans">
-                根据您<b>当前启用的扩充书版本</b>，一键组建充满故事与交叉爱恨的大陆佣兵团。
+                一键生成谜之小队关系。
               </p>
             </div>
           </div>
@@ -678,7 +779,6 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
                 }`}
               >
                 🔗 关系网
-                <span className="inline-block w-4 h-4 bg-amber-100 text-amber-800 text-[9px] rounded-full text-center leading-4 font-bold">New</span>
               </button>
             </div>
           )}
@@ -708,19 +808,13 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
                   </h3>
                   <div className="mt-3.5 space-y-3 text-xs font-sans leading-relaxed text-stone-700">
                     <div>
-                      <span className="font-bold text-stone-900 block mb-1">🛡️ 队伍团章 & 信守特征:</span>
-                      <p className="bg-white/80 border border-stone-200/50 p-2.5 rounded-lg text-stone-605">
-                        {party.motif}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="font-bold text-stone-900 block mb-1">⚔️ 小队是如何纠集产生的:</span>
+                      <span className="font-bold text-stone-900 block mb-1">⚔️ 为何成立:</span>
                       <p className="bg-white/80 border border-stone-200/50 p-2.5 rounded-lg text-stone-605">
                         {party.origin}
                       </p>
                     </div>
                     <div>
-                      <span className="font-bold text-stone-900 block mb-1">👑 终极探寻目标/行会悬赏:</span>
+                      <span className="font-bold text-stone-900 block mb-1">👑 终极目标:</span>
                       <p className="bg-white/80 border border-stone-200/50 p-2.5 rounded-lg text-stone-605">
                         {party.goal}
                       </p>
@@ -761,10 +855,10 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-150 pb-3 mb-4">
                     <div>
                       <h3 className="font-serif font-black text-lg text-stone-900 flex items-center gap-1.5">
-                        ✨ 团队传奇编年史小传
+                        ✨ 冒险故事
                       </h3>
                       <p className="text-[11px] text-stone-500 mt-0.5 leading-normal">
-                        根据当前分配的 4 名角色的外观、性格异癖以及错综复杂的关系网，由 AI 为本小队谱写的史诗物语。
+                        由 AI 根据角色特征与关系生成的小队冒险故事。
                       </p>
                     </div>
 
@@ -772,17 +866,17 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
                       <button
                         onClick={handleGenerateBiography}
                         disabled={isGeneratingBiography}
-                        className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-serif font-bold text-xs rounded-lg transition-all shadow-sm flex items-center gap-1.5 self-end"
+                        className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-serif font-bold text-xs rounded-lg transition-all shadow-sm flex items-center gap-1.5 self-end border-none cursor-pointer"
                       >
                         {isGeneratingBiography ? (
                           <>
                             <RefreshCw className="animate-spin" size={13} />
-                            正在谱写中...
+                            生成中...
                           </>
                         ) : (
                           <>
                             <Sparkles size={13} />
-                            生成小传
+                            生成冒险故事
                           </>
                         )}
                       </button>
@@ -796,15 +890,15 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
                         <span className="absolute inset-0 flex items-center justify-center text-xs animate-bounce">✍️</span>
                       </div>
                       <div className="space-y-1">
-                        <p className="text-sm font-serif font-bold text-stone-850">正在梳理诸子百态与人情羁绊...</p>
-                        <p className="text-[11.5px] text-stone-450">AI 正在根据 4 人的种族、职业、性情与爱恨情仇撰写专属纪实，请稍候。</p>
+                        <p className="text-sm font-serif font-bold text-stone-850">正在梳理角色信息...</p>
+                        <p className="text-[11.5px] text-stone-450">AI 正在根据队员背景与关系网生成冒险故事，请稍候。</p>
                       </div>
                     </div>
                   )}
 
                   {biographyError && (
                     <div className="p-4 bg-rose-50 border border-rose-200 rounded-lg text-stone-800 text-xs flex flex-col gap-2">
-                      <span className="font-bold flex items-center gap-1 text-rose-700">⚠️ 书写小传时遇到了错误</span>
+                      <span className="font-bold flex items-center gap-1 text-rose-700">⚠️ 冒险故事生成失败</span>
                       <p>{biographyError}</p>
                       <button
                         onClick={handleGenerateBiography}
@@ -822,14 +916,14 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
                       </div>
                       <div className="flex justify-between items-center pt-2">
                         <span className="text-[10px] text-stone-400 italic">
-                          * 觉得不满意？点击右侧按钮，让 AI 重新撰写一篇全新的编年史。
+                          * 觉得不满意？点击右侧按钮重新生成。
                         </span>
                         <button
                           onClick={handleGenerateBiography}
-                          className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded transition flex items-center gap-1.5"
+                          className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded transition flex items-center gap-1.5 border-none cursor-pointer"
                         >
                           <RefreshCw size={12} />
-                          重新生成小传
+                          重新生成
                         </button>
                       </div>
                     </div>
@@ -838,16 +932,16 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
                   {!isGeneratingBiography && !biographyError && !partyBiography && (
                     <div className="py-20 flex flex-col items-center justify-center text-stone-400 text-center select-none border border-dashed border-stone-200 rounded-lg bg-stone-50/50">
                       <Sparkles size={36} className="text-stone-300 mb-2.5" />
-                      <p className="text-xs font-serif font-bold text-stone-600">小传尚未生成</p>
+                      <p className="text-xs font-serif font-bold text-stone-600">冒险故事尚未生成</p>
                       <p className="text-[10.5px] text-stone-450 max-w-sm mt-1 leading-normal">
-                        已经准备好了小队名称、主题、每名成员的信息和关系链。点按下方『即刻谱写小传』，让 AI 为此团队量身定制一本文笔朴实动人的传说故事。
+                        已经准备好了小队内容。点按下方，让 AI 为该团队量身定制一段合适的冒险故事。
                       </p>
                       <button
                         onClick={handleGenerateBiography}
-                        className="mt-4 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-serif font-bold text-xs rounded-lg transition-all shadow-sm flex items-center gap-1.5"
+                        className="mt-4 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-serif font-bold text-xs rounded-lg transition-all shadow-sm flex items-center gap-1.5 border-none cursor-pointer"
                       >
                         <Sparkles size={12} />
-                        即刻谱写小传
+                        生成冒险故事
                       </button>
                     </div>
                   )}
@@ -875,6 +969,7 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
                           <h4 className="font-serif font-bold text-stone-900 text-sm flex items-center flex-wrap gap-2">
                             <span className="w-5 h-5 rounded-full bg-stone-100 inline-flex flex-shrink-0 items-center justify-center text-xs text-stone-600 font-sans font-semibold">{idx + 1}</span>
                             <span>{m.name}</span>
+                            {m.title && <span className="text-amber-700 text-xs italic font-medium shrink-0">“{m.title}”</span>}
                             {m.isCaptain && <span className="bg-amber-100 font-sans text-amber-800 text-[9px] px-1.5 py-0.5 rounded shadow-sm border border-amber-200 mt-0.5 truncate">👑 队长</span>}
                           </h4>
                           <div className="text-[10px] text-amber-800 font-semibold mt-0.5 flex items-center gap-1.5 font-sans">
@@ -924,11 +1019,12 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
                       {/* ASSEMBLED DESCRIPTION */}
                       <div className="p-3 bg-stone-50/70 border border-stone-200/40 rounded-lg text-[11px] text-stone-650 leading-relaxed font-sans space-y-2">
                         <p>
-                          {getPronoun(m.gender)}拥有{m.appearance.skinColor}，留着一头{m.appearance.hairColor}，拥有{m.appearance.eyeColor}。在平时行动中，{getPronoun(m.gender)}{m.appearance.feature}。
+                          {m.appearance.isPureMasked ? m.appearance.feature : `${getPronoun(m.gender)}拥有${m.appearance.skinColor}，${m.appearance.hairColor}，${m.appearance.eyeColor}。${getPronoun(m.gender)}${m.appearance.feature}。`}
                         </p>
-                        <p className="border-t border-stone-200/50 pt-2 text-stone-600 italic">
-                          💡 <b>人设定论与怪癖：</b>{getPronoun(m.gender)}{m.personality.trait}。此外，{getPronoun(m.gender)}{m.personality.quirk}。
-                        </p>
+                        <div className="border-t border-stone-200/50 pt-2 text-stone-600 space-y-1">
+                          <p>💡 <b>个性与作派：</b>{m.personality.trait}</p>
+                          <p>💡 <b>信条与习惯：</b>{m.personality.quirk}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1120,7 +1216,7 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
                     {/* Left Column: Observer Choice */}
                     <div className="md:col-span-4 flex flex-col gap-2">
                       <span className="text-[11px] font-bold text-stone-400 block uppercase tracking-wider mb-1">
-                        👉 第一人称观察者 / 谁的看法
+                        👉 谁的看法
                       </span>
                       {party.members.map((m) => {
                         const isSelected = selectedObserverId === m.id;
@@ -1136,7 +1232,7 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
                           >
                             <div>
                               <div className="text-xs font-bold font-serif">{m.name} {m.isCaptain && '👑'}</div>
-                              <div className={`text-[10px] mt-0.5 ${isSelected ? 'text-amber-100' : 'text-stone-505 font-semibold'}`}>
+                              <div className={`text-[10px] mt-0.5 ${isSelected ? 'text-amber-100' : 'text-stone-500 font-semibold'}`}>
                                 {m.race} · {m.className}
                               </div>
                             </div>
@@ -1149,7 +1245,7 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
                     {/* Right Column: Perspectives of the selected member on others */}
                     <div className="md:col-span-8 space-y-3">
                       <span className="text-[11px] font-bold text-stone-400 block uppercase tracking-wider mb-1">
-                        💭 {party.members.find(m => m.id === selectedObserverId)?.name} 对大家的心底评价
+                        💭 {party.members.find(m => m.id === selectedObserverId)?.name} 对大家的评价
                       </span>
 
                       {/* Self Positioning - Fixed at Top */}
@@ -1165,7 +1261,7 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
                             </div>
                             <p className="text-xs text-stone-605 leading-relaxed bg-white p-2.5 rounded-lg border border-stone-100">
                               <span className="font-bold text-amber-800">「 {observer.selfPositioning} 」</span>
-                              <span className="text-stone-500 ml-1">—— 这便是{observer.name}当下为自己树立的立场。</span>
+                              <span className="text-stone-500 ml-1">—— 这便是{observer.name}当下自认的立场。</span>
                             </p>
                           </div>
                         );
@@ -1224,8 +1320,8 @@ export function PartyGenerator({ onClose, onSaveCharacter }: PartyGeneratorProps
           <div className="text-center py-16 bg-stone-50/50 border border-dashed border-stone-200 rounded-xl text-stone-400 text-sm flex flex-col items-center justify-center gap-3">
             <Users size={40} className="text-stone-300" />
             <div>
-              <p className="font-semibold text-stone-600">在此处点击召集你的冒险家！</p>
-              <p className="text-xs text-stone-400 mt-1">系统将自动随机搭配出性格、生平、姓名和纠葛人际完备的4人旅团</p>
+              <p className="font-semibold text-stone-600">在此处点击召集冒险者</p>
+              <p className="text-xs text-stone-400 mt-1">自动随机搭配出性格、生平、姓名和复杂人际的4人小队</p>
             </div>
           </div>
         )}

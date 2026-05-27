@@ -250,7 +250,3 @@ export function generatePartyName(): string {
   return prefix + suffix;
 }
 
-export function generateMotif(): string {
-  const motifs = ["为寻找失落的古代遗物而集结", "因一场旅店斗殴意外成为被通缉的伙伴", "受同一个神秘雇主委派", "为了向黑龙复仇", "共同在角斗场中存活下来", "试图解除一场瘟疫诅咒", "护送一位流亡的幼年皇族"];
-  return motifs[Math.floor(Math.random() * motifs.length)];
-}

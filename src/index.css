@@ -82,6 +82,32 @@
   --app-amber-900: #001626;
 }
 
+[data-theme="cocgreen"] {
+  --app-stone-50: #030c08;   /* 无底深渊的绝对墨绿偏黑 */
+  --app-stone-100: #010604;  /* 极其深幽的黑绿太古底盘 */
+  --app-stone-200: #0e3524;  /* 深海海草边界线 */
+  --app-stone-300: #124d34;  /* 昏暗墨水隔栏 */
+  --app-stone-400: #186e4a;  
+  --app-stone-500: #8fdab5;  /* 幽灵般莹莹发光的深海浅绿文字，确保极高易读性 */
+  --app-stone-600: #fcdd93;  /* 温暖庄严的太古纸金字体，彻底舍弃刺目突兀的高光白文本 */
+  --app-stone-700: #ffeab5;  
+  --app-stone-800: #fff3d4;  /* 古卷灿黄 */
+  --app-stone-900: #fcdd93;  /* 绝不刺眼的古典法典金 */
+
+  --app-white: #081a12;      /* 粘稠厚重的深邃墨绿部件容器，绝不与纯黑底色混淆 */
+
+  --app-amber-50: #2a0f44;   /* 邪教深紫法纸背景 - 调亮后的瑰丽奥法深紫 */
+  --app-amber-100: #461e6c;  
+  --app-amber-200: #6b309f;  
+  --app-amber-300: #9446d3;  
+  --app-amber-400: #00ff88;  /* 耀眼克苏鲁荧光绿 */
+  --app-amber-500: #00ff88;  
+  --app-amber-600: #33ff9e;  
+  --app-amber-700: #70ffbd;  
+  --app-amber-800: #cbffe6;  
+  --app-amber-900: #fcdd93;
+}
+
 [data-theme="parchment"] {
   --app-stone-50: #fcf9f2;  
   --app-stone-100: #f4ece2; 
@@ -161,43 +187,42 @@
 }
 
 [data-theme="highforest"] {
-  --app-stone-50: #f4f6f4;  
-  --app-stone-100: #e6ebe6; 
-  --app-stone-200: #c2cfc2; 
-  --app-stone-300: #9fb39f; 
-  --app-stone-400: #789478;
-  --app-stone-500: #587358;
-  --app-stone-600: #3d523d; 
-  --app-stone-700: #2a3a2a;
-  --app-stone-800: #1c261c;
-  --app-stone-900: #0f160f; 
+  /* 精灵：瑞文戴尔的金绿白桦树 + 白色圣洁建筑温情谷底 (高雅、舒心且柔和的光明主题) */
+  --app-stone-50: #fafdfa;   /* 圣洁白理石底色 */
+  --app-stone-100: #f0f5f0;  /* 潺潺绿河谷的水汽薄蓝嫩绿 (网页大背景) */
+  --app-stone-200: #dfebd8;  /* 柔和的金绿树叶隔边 */
+  --app-stone-300: #c5dbba;  /* 白桦木灰梢 */
+  --app-stone-400: #a3c495;  
+  --app-stone-500: #779e68;  /* 温和典雅的森林软绿 */
+  --app-stone-600: #4a6b3e;  /* 极佳对比度、温厚好读的森林墨绿字 */
+  --app-stone-700: #314d27;  
+  --app-stone-800: #1d3314;  
+  --app-stone-900: #0f1f0a;  
 
-  --app-white: #fafbfa; 
+  --app-white: #ffffff;      /* 精灵温润玉石圣殿底板 */
 
-  --app-amber-50: #fdf5eb;
-  --app-amber-100: #ebdcb9;
-  --app-amber-200: #dfc58f;
-  --app-amber-300: #d2ac65;
-  --app-amber-400: #bf8b31;
-  --app-amber-500: #137748; 
-  --app-amber-600: #0b6038; 
-  --app-amber-700: #054828; 
-  --app-amber-800: #01311b;
-  --app-amber-900: #001a0d;
+  --app-amber-50: #fffbea;   /* 温暖金绿晨曦光泽 */
+  --app-amber-100: #fef3ca;  
+  --app-amber-200: #fde293;  
+  --app-amber-300: #e2c069;  
+  --app-amber-400: #c5a043;  
+  --app-amber-500: #a37d1a;  /* 精巧温和、不刺客不突兀的高雅古精灵秘金 */
+  --app-amber-600: #8a6713;  
+  --app-amber-700: #6d500b;  
+  --app-amber-800: #503904;  
+  --app-amber-900: #332301;
 }
-
-
 
 [data-theme="underdark"] {
   --app-stone-50: #1F1B2E;
   --app-stone-100: #2E2841;
   --app-stone-200: #3D3554;
   --app-stone-300: #4D4167;
-  --app-stone-400: #5C4E7A;
-  --app-stone-500: #6B5B8D;
-  --app-stone-600: #8D80AA;
-  --app-stone-700: #B0A5C6;
-  --app-stone-800: #D2C9E3;
+  --app-stone-400: #7E6F9E;  
+  --app-stone-500: #A497C6;  
+  --app-stone-600: #C0B5DE;  
+  --app-stone-700: #DCD4F2;
+  --app-stone-800: #ECE6FC;
   --app-stone-900: #F4EEFF;
 
   --app-white: #050505;
@@ -214,164 +239,168 @@
   --app-amber-900: #FDF4FF;
 }
 
-
 [data-theme="avernus"] {
-  --app-stone-50: #181111;
-  --app-stone-100: #261919;
-  --app-stone-200: #332121;
-  --app-stone-300: #412A28;
-  --app-stone-400: #4E3230;
-  --app-stone-500: #5C3A38;
-  --app-stone-600: #846765;
-  --app-stone-700: #AD9392;
-  --app-stone-800: #D5C0BF;
-  --app-stone-900: #FDECEC;
+  /* 提夫林：九域深红与魅惑奥术紫交织 (稍高亮度、不再极度死黑的暗系魔法底色) */
+  --app-stone-50: #2c1b24;   /* 略带奥术暗紫的浓重岩台底 */
+  --app-stone-100: #1e1219;  /* 魅魅极夜紫红，高雅而略带暗亮，告别纯黑死板 */
+  --app-stone-200: #4f2e3f;  /* 奥法高光边界线 */
+  --app-stone-300: #6b4055;  
+  --app-stone-400: #9c6d86;  
+  --app-stone-500: #cca9bc;  /* 柔和瑰丽的亮兰紫辅助正文，极致舒适 */
+  --app-stone-600: #e2cbd7;  
+  --app-stone-700: #f0e2ea;  
+  --app-stone-800: #f7f0f4;  
+  --app-stone-900: #ffffff;  /* 高端莹白 */
 
-  --app-white: #050505;
+  --app-white: #38232e;      /* 稍带魔紫红色深郁卡底，杜绝单调死板 */
 
-  --app-amber-50: #3D1308;
-  --app-amber-100: #5D1D0B;
-  --app-amber-200: #7C260D;
-  --app-amber-300: #9C3010;
-  --app-amber-400: #BB3912;
-  --app-amber-500: #DB4315;
-  --app-amber-600: #E45F38;
-  --app-amber-700: #ED7C5B;
-  --app-amber-800: #F6987E;
-  --app-amber-900: #FFB4A1;
+  --app-amber-50: #330a21;   /* 燃情炼狱幽谷 */
+  --app-amber-100: #4d0f32;  
+  --app-amber-200: #741049;  
+  --app-amber-300: #990847;  
+  --app-amber-400: #a21caf;  /* 带入亮点：魅紫色星辉 */
+  --app-amber-500: #ff3d71;  /* 主魔法红：饱满亮丽、色彩炽烈的炼狱鲜红 */
+  --app-amber-600: #ff5e97;  /* 调亮：高易读的高对比亮粉红/洋红标题，确保不再黑影一片 */
+  --app-amber-700: #d500f9;  /* 特异亮点：耀眼的奥法霓幻亮紫线 */
+  --app-amber-800: #f50057;  
+  --app-amber-900: #ff8a80;
 }
 
-
 [data-theme="astral"] {
-  --app-stone-50: #060D12;
-  --app-stone-100: #0F1E2B;
-  --app-stone-200: #1A2C3C;
-  --app-stone-300: #253B4D;
-  --app-stone-400: #2F495D;
-  --app-stone-500: #3A576E;
-  --app-stone-600: #657C8F;
-  --app-stone-700: #90A1AF;
-  --app-stone-800: #BBC6D0;
-  --app-stone-900: #E6EBF0;
+  /* 星界：太虚天盘与蓝紫星海碰撞 (优雅梦幻的瑰丽蓝紫色星空，远离干瘪的科幻冷色) */
+  --app-stone-50: #120e24;   /* 带有神秘星团色彩的深海蓝紫底 */
+  --app-stone-100: #0a0714;  /* 浩瀚星海的漆黑深邃蓝紫大背景 */
+  --app-stone-200: #2c2354;  /* 星尘微粒边界 */
+  --app-stone-300: #42367c;  
+  --app-stone-400: #6b5bbf;  
+  --app-stone-500: #9c8df2;  /* 极其浪漫、发光高可读的发光星屑浅紫 */
+  --app-stone-600: #b3a8f6;  
+  --app-stone-700: #ccc4fa;  
+  --app-stone-800: #e6e0fd;  
+  --app-stone-900: #f7f5ff;  
 
-  --app-white: #050505;
+  --app-white: #1b1635;      /* 幽蓝偏星夜紫的星际物质中性卡底，不再生硬 */
 
-  --app-amber-50: #0F2F4A;
-  --app-amber-100: #143E61;
-  --app-amber-200: #194C78;
-  --app-amber-300: #1D5B8F;
-  --app-amber-400: #2269A6;
-  --app-amber-500: #2B87D3;
-  --app-amber-600: #33A4FF;
-  --app-amber-700: #69BDFF;
-  --app-amber-800: #A0D7FF;
-  --app-amber-900: #D6F0FF;
+  --app-amber-50: #1c0d3a;   /* 紫气星环底 */
+  --app-amber-100: #281354;  
+  --app-amber-200: #371875;  
+  --app-amber-300: #5c2ba6;  
+  --app-amber-400: #aa40e6;  /* 荧光太虚紫 */
+  --app-amber-500: #bf5bfa;  /* 璀璨星河金焰璀亮极紫，极致华美不群 */
+  --app-amber-600: #db8dfd;  
+  --app-amber-700: #33a4ff;  /* 星海深处跃动的晶莹亮蓝，交相辉映 */
+  --app-amber-800: #8ed7ff;  
+  --app-amber-900: #d6f0ff;
 }
 
 [data-theme="shadowfell"] {
-  --app-stone-50: #0A0A0A;
-  --app-stone-100: #181818;
-  --app-stone-200: #272727;
-  --app-stone-300: #353535;
-  --app-stone-400: #444444;
-  --app-stone-500: #525252;
-  --app-stone-600: #7B7B7B;
-  --app-stone-700: #A4A4A4;
-  --app-stone-800: #CCCCCC;
-  --app-stone-900: #F5F5F5;
+  /* 堕影冥界：安静迷雾中的清晰倒影 (大幅拉开灰白与边界距离，解决模块混同问题) */
+  --app-stone-50: #f8f8fa;   /* 极清亮的乳白晨雾亮色，用作亮卡片前景与步骤高光 */
+  --app-stone-100: #dcdce6;  /* 大幅加深阴影底色：整页更显沉静冷冽，形成鲜明板块落差 */
+  --app-stone-200: #b3b3cb;  /* 强化灰木边界刻线，使各部件边缘利落分明 */
+  --app-stone-300: #9a9ab5;  
+  --app-stone-400: #7d7d9d;  
+  --app-stone-500: #5c5c7d;  
+  --app-stone-600: #3a3a52;  /* 犹如墓碑碑刻般、坚固超高清晰度的深碳夜文 */
+  --app-stone-700: #232333;  
+  --app-stone-800: #141420;  
+  --app-stone-900: #0a0a12;  
 
-  --app-white: #050505;
+  --app-white: #efeff5;      /* 漂浮晨雾卡面中色，既柔和优雅，又与底盘dcdce6产生绝美反差 */
 
-  --app-amber-50: #18181B;
-  --app-amber-100: #333338;
-  --app-amber-200: #4F4F54;
-  --app-amber-300: #6A6A71;
-  --app-amber-400: #86868D;
-  --app-amber-500: #A1A1AA;
-  --app-amber-600: #B9B9BF;
-  --app-amber-700: #D0D0D5;
-  --app-amber-800: #E8E8EA;
-  --app-amber-900: #FFFFFF;
+  --app-amber-50: #f3f3f7;   
+  --app-amber-100: #e2e2eb;  
+  --app-amber-200: #cbcbd8;  
+  --app-amber-300: #aaaabe;  
+  --app-amber-400: #8c8ca5;  
+  --app-amber-500: #6f6f87;  /* 堕影孤影灰：极致沉思，幽幽淡紫中性灰，极高雅 */
+  --app-amber-600: #55556d;  
+  --app-amber-700: #3d3d52;  
+  --app-amber-800: #272738;  
+  --app-amber-900: #13131f;  
+
+  --app-primary: var(--app-amber-500);
 }
 
-
 [data-theme="dragonborn"] {
-  --app-stone-50: #FCF3EE;
-  --app-stone-100: #F2E4DC;
-  --app-stone-200: #DECCC2;
-  --app-stone-300: #CBB4A8;
-  --app-stone-400: #B79C8D;
-  --app-stone-500: #A38473;
-  --app-stone-600: #876A5A;
-  --app-stone-700: #6B5041;
-  --app-stone-800: #4F3528;
-  --app-stone-900: #331B0F;
+  /* 龙裔：纯正火山浓郁油画风 (纯熟浑厚、有重量感、如大块红土岩浆抹涂在画布。明度严控40%~70%) */
+  --app-stone-50: #5a100f;   /* 绝对沉稳的岩层红土深色 */
+  --app-stone-100: #3c0a0a;  /* 地壳龙渊极度浓郁、带有重量感的暗褐红背景 (绝对非浅灰白) */
+  --app-stone-200: #741918;  /* 余烬裂缝线 */
+  --app-stone-300: #942726;  
+  --app-stone-400: #b33d3c;  
+  --app-stone-500: #fbbfbf;  /* 极大保证了深底阅读体验的高反差温润浅黏土色 text */
+  --app-stone-600: #fddada;  
+  --app-stone-700: #ffeded;  
+  --app-stone-800: #ffffff;  
+  --app-stone-900: #ffffff;  
 
-  --app-white: #FFFFFF;
+  --app-white: #4a0f0e;      /* 灼热沉重的红黏土质岩层中度底板，完全不发白，牢固定海 */
 
-  --app-amber-50: #FFEBED;
-  --app-amber-100: #F9C7C9;
-  --app-amber-200: #F3A4A5;
-  --app-amber-300: #EC8080;
-  --app-amber-400: #E65C5C;
-  --app-amber-500: #D74343;
-  --app-amber-600: #C72A2A;
-  --app-amber-700: #9D1F1F;
-  --app-amber-800: #741313;
-  --app-amber-900: #4A0808;
+  --app-amber-50: #ffebd8;   /* 炽热龙息耀眼明黄，刺破深暗岩土 */
+  --app-amber-100: #fed7aa;  
+  --app-amber-200: #fdb180;  
+  --app-amber-300: #f67a3a;  
+  --app-amber-400: #e65100;  
+  --app-amber-500: #ff4444;  /* 红龙吐息：油彩铺面、炽热亮丽的极高对比火山焰红 */
+  --app-amber-600: #ff6b6b;  /* 调亮：烈焰余烬亮火，令各种Step标签在极深暗底上完美瞩目 */
+  --app-amber-700: #ff9800;  /* 火山岩喷发时的液态炽金闪耀，充作画龙点睛 */
+  --app-amber-800: #ffb74d;  /* 调亮后的高反差金沙橙红 */
+  --app-amber-900: #ffe082;
 }
 
 [data-theme="candlekeep"] {
-  --app-stone-50: #FCFAF5;
-  --app-stone-100: #F0EBE3;
-  --app-stone-200: #E3DDD1;
-  --app-stone-300: #D7CEBE;
-  --app-stone-400: #CAC0AC;
-  --app-stone-500: #BEB19A;
-  --app-stone-600: #9A8E7A;
-  --app-stone-700: #766C5A;
-  --app-stone-800: #51493A;
-  --app-stone-900: #2D261A;
+  /* 烛堡：舒雅春意、清爽透彻的护眼繁花之森 (森林暖茶色底与落叶繁花阔野，远离发霉与灰冷) */
+  --app-stone-50: #fcfdfa;   /* 清雅暖色清晨露珠纸面 */
+  --app-stone-100: #edf0e2;  /* 温暖恬静的偏黄浅石灰色，极致明净护眼 */
+  --app-stone-200: #dae2cb;  /* 黄绿偏暖石绿隔离线 */
+  --app-stone-300: #c1cca3;  
+  --app-stone-400: #9da87a;  
+  --app-stone-500: #7b8655;  /* 黄绿色暖苔绿 */
+  --app-stone-600: #515931;  /* 茶绿叶绿，高清晰度可读文字 */
+  --app-stone-700: #3a401f;  
+  --app-stone-800: #242911;  
+  --app-stone-900: #101405;  
 
-  --app-white: #FFFFFF;
+  --app-white: #ffffff;      /* 清新淡色纸质卡面，宛如新出炉手抄本 */
 
-  --app-amber-50: #FFEDD6;
-  --app-amber-100: #FAD9AF;
-  --app-amber-200: #F5C588;
-  --app-amber-300: #EFB262;
-  --app-amber-400: #EA9E3B;
-  --app-amber-500: #E58A14;
-  --app-amber-600: #C2740F;
-  --app-amber-700: #9F5E0A;
-  --app-amber-800: #7C4805;
-  --app-amber-900: #593200;
+  --app-amber-50: #fff5f6;   /* 极浅粉樱晖 */
+  --app-amber-100: #ffe8eb;  /* 璀璨春樱嫩粉 */
+  --app-amber-200: #ffccd5;  /* 樱草暖花粉 */
+  --app-amber-300: #ff99ab;  /* 娇嫩绯桃粉 */
+  --app-amber-400: #ff6685;  /* 桃花暖芳粉 */
+  --app-amber-500: #ff3c63;  /* 烛堡明温粉：极其鲜亮迷人的亮丽蔷薇粉，画龙点睛 */
+  --app-amber-600: #e61a43;  /* 亮丽深蔷薇粉 */
+  --app-amber-700: #c20c31;  
+  --app-amber-800: #9a001f;  
+  --app-amber-900: #6d0012;
 }
 
-
 [data-theme="swordcoast"] {
-  --app-stone-50: #F4FAFA;
-  --app-stone-100: #E6F0F2;
-  --app-stone-200: #CADBE0;
-  --app-stone-300: #AFC6CD;
-  --app-stone-400: #93B1BB;
-  --app-stone-500: #779CA8;
-  --app-stone-600: #5F818C;
-  --app-stone-700: #486670;
-  --app-stone-800: #304B54;
-  --app-stone-900: #183038;
+  /* 剑湾：蓝墨古卷 (极其沉着古典的老旧航海图纸墨水感，告别轻浮与通透) */
+  --app-stone-50: #fbf7ee;   /* 历经风吹日晒、褪色焦黄的复古海图底色 */
+  --app-stone-100: #f1ebd5;  /* 浓浓人文质感、焦灼泛黄的古老羊皮纸图层卷轴大背景 */
+  --app-stone-200: #dacfba;  /* 纸缘干焦红褐线 */
+  --app-stone-300: #baa891;  
+  --app-stone-400: #9c876e;  
+  --app-stone-500: #284c59;  /* 干燥古墨水蓝 */
+  --app-stone-600: #15333f;  /* 浓烈厚重、带有一丝海底铁锈感的羊皮蓝墨水，可读性万分绝佳 */
+  --app-stone-700: #0c232d;  
+  --app-stone-800: #05151c;  
+  --app-stone-900: #020b0e;  
 
-  --app-white: #FFFFFF;
+  --app-white: #faf4e3;      /* 完美的暖黄色海图主体卡面，古典厚重，质感拔群 */
 
-  --app-amber-50: #E1F5F7;
-  --app-amber-100: #C8EAEF;
-  --app-amber-200: #AEDFE7;
-  --app-amber-300: #95D3DE;
-  --app-amber-400: #7BC8D6;
-  --app-amber-500: #62B5C6;
-  --app-amber-600: #49A2B5;
-  --app-amber-700: #388394;
-  --app-amber-800: #276573;
-  --app-amber-900: #164652;
+  --app-amber-50: #e3f5f5;   /* 低饱和海盐绿 */
+  --app-amber-100: #c6e9ea;  
+  --app-amber-200: #a5dade;  
+  --app-amber-300: #82ccd3;  
+  --app-amber-400: #5cb5bf;  
+  --app-amber-500: #257e8a;  /* 海图指针：泛着淡淡岁月蓝绿荧光的典雅海湾色，富有探索风貌 */
+  --app-amber-600: #1a626c;  
+  --app-amber-700: #10464d;  
+  --app-amber-800: #092c31;  
+  --app-amber-900: #031518;
 }
 
 [data-theme="gnome"] {
@@ -401,59 +430,292 @@
 }
 
 [data-theme="dwarf"] {
-  --app-stone-50: #F5F3F0;
-  --app-stone-100: #E4E0DC;
-  --app-stone-200: #D2CDC8;
-  --app-stone-300: #C1BAB3;
-  --app-stone-400: #AFA79F;
-  --app-stone-500: #9E948B;
-  --app-stone-600: #827972;
-  --app-stone-700: #665F58;
-  --app-stone-800: #4A443F;
-  --app-stone-900: #2E2925;
+  /* 矮人：巨石熔炉 (纯粹属于地底矮人的重金属与黑石，剔除一切不和谐突兀白) */
+  --app-stone-50: #463b32;   /* 地下坚固粗砺的花岗岩岩台底色 */
+  --app-stone-100: #2b231d;  /* 坚厚无光的矿渣煤碳玄武大背景，重色压阵 (拒绝白底) */
+  --app-stone-200: #5a4d41;  /* 锻打铁砧线 */
+  --app-stone-300: #756456;  
+  --app-stone-400: #8f7c6d;  
+  --app-stone-500: #cbbcb0;  /* 泥金矿斑，用于高反差、极利于阅读的矿尘白文文本 */
+  --app-stone-600: #e6ded8;  
+  --app-stone-700: #f3efeb;  
+  --app-stone-800: #faf9f7;  
+  --app-stone-900: #ffffff;  
 
-  --app-white: #FFFFFF;
+  --app-white: #3d3229;      /* 灰褐玄武岩泥砖底板，浑厚无华，替代一切原发白和突兀纯白，黑沉质感 */
 
-  --app-amber-50: #FCEACC;
-  --app-amber-100: #F5D3A4;
-  --app-amber-200: #EEBC7D;
-  --app-amber-300: #E7A555;
-  --app-amber-400: #E08E2E;
-  --app-amber-500: #D97706;
-  --app-amber-600: #BA6506;
-  --app-amber-700: #9B5205;
-  --app-amber-800: #7B4005;
-  --app-amber-900: #5C2D04;
+  --app-amber-50: #451c05;   /* 焦红岩浆气浪 */
+  --app-amber-100: #642807;  
+  --app-amber-200: #8b380d;  
+  --app-amber-300: #b54911;  
+  --app-amber-400: #e35a16;  
+  --app-amber-500: #d35400;  /* 熊熊火舌：烧红古铜巨斧，亮丽威赫的粗砺纯正熔炉橙红，极其耀眼 */
+  --app-amber-600: #e67e22;  
+  --app-amber-700: #f39c12;  /* 赤金熔沙点缀 */
+  --app-amber-800: #8c2602;  
+  --app-amber-900: #551500;
 }
-
 
 [data-theme="waterdeep"] {
-  --app-stone-50: #F8F9FA;
-  --app-stone-100: #E8EAED;
-  --app-stone-200: #D7DBE0;
-  --app-stone-300: #C7CDD2;
-  --app-stone-400: #B6BEC5;
-  --app-stone-500: #A6AFB8;
-  --app-stone-600: #828B96;
-  --app-stone-700: #5D6873;
-  --app-stone-800: #394451;
-  --app-stone-900: #14202E;
+  /* 深水城：浓郁油彩画风的蓝金王冕 (明度高度坚守40%-70%黄金区间，犹如皇家中世纪油画直接抹匀，无任何苍白感，大背景坚决不发白) */
+  --app-stone-50: #0d1e4e;   /* 皇家近海港口深蔚蓝底屏 */
+  --app-stone-100: #071031;  /* 碧波万顷、无垠深邃的海之港大背景 (绝非浅白 or 苍白) */
+  --app-stone-200: #12245b;  /* 海浪褶皱边界线 */
+  --app-stone-300: #1a347b;  
+  --app-stone-400: #25469b;  
+  --app-stone-500: #bfd4fd;  /* 为极其夺目的白银浪沫青文本，大底护眼对比强烈 */
+  --app-stone-600: #dbe7ff;  
+  --app-stone-700: #eef3ff;  
+  --app-stone-800: #ffffff;  
+  --app-stone-900: #ffffff;  
 
-  --app-white: #FFFFFF;
+  --app-white: #0e1f52;      /* 厚重、深沉、犹如直接切出的抹漆皇家深蔚蓝容器，极沉重浓郁，没有分外扎眼白 */
 
-  --app-amber-50: #E1EFFF;
-  --app-amber-100: #BBD3FB;
-  --app-amber-200: #96B7F7;
-  --app-amber-300: #709BF3;
-  --app-amber-400: #4B7FEF;
-  --app-amber-500: #2563EB;
-  --app-amber-600: #1F54CB;
-  --app-amber-700: #1945AB;
-  --app-amber-800: #13368B;
-  --app-amber-900: #0D276B;
+  --app-amber-50: #29210a;   /* 皇殿穹顶暗金 */
+  --app-amber-100: #4d3c0f;  
+  --app-amber-200: #7b5e12;  
+  --app-amber-300: #a98018;  
+  --app-amber-400: #d1a11e;  
+  --app-amber-500: #df8d03;  /* 纯正厚重的黄金皇带，有亮丽而深沉的黄铜重量感，极致浓郁 */
+  --app-amber-600: #f5a623;  
+  --app-amber-700: #ffc107;  
+  --app-amber-800: #ffca28;  /* 调亮：高对比皇家盛宴明金 */
+  --app-amber-900: #ffe082;  /* 闪耀金沙 */
 }
 
+[data-theme="golddragon"] {
+  --app-stone-50: #fdfaf0;
+  --app-stone-100: #fdf5e0;
+  --app-stone-200: #fae4a7;
+  --app-stone-300: #f4cf6a;
+  --app-stone-400: #eeb536;
+  --app-stone-500: #e29c1d;
+  --app-stone-600: #c57b14;
+  --app-stone-700: #a45a13;
+  --app-stone-800: #864614;
+  --app-stone-900: #462208;
 
+  --app-white: #ffffff;
+
+  --app-amber-50: #fff9e6;
+  --app-amber-100: #ffefc2;
+  --app-amber-200: #ffe090;
+  --app-amber-300: #ffce5c;
+  --app-amber-400: #ffbd2c;
+  --app-amber-500: #faa307;
+  --app-amber-600: #e88700;
+  --app-amber-700: #c26700;
+  --app-amber-800: #9c4c00;
+  --app-amber-900: #743400;
+}
+
+[data-theme="halfling"] {
+  --app-stone-50: #f8f9f5;
+  --app-stone-100: #eef2e7;
+  --app-stone-200: #d7e0c9;
+  --app-stone-300: #bccba5;
+  --app-stone-400: #a1b480;
+  --app-stone-500: #8ba063;
+  --app-stone-600: #6b7f49;
+  --app-stone-700: #516137;
+  --app-stone-800: #3f4c2c;
+  --app-stone-900: #212915;
+
+  --app-white: #fcfdf9;
+
+  --app-amber-50: #fef7ec;
+  --app-amber-100: #fde8cd;
+  --app-amber-200: #fbd09b;
+  --app-amber-300: #f8b162;
+  --app-amber-400: #f48e31;
+  --app-amber-500: #ec6d10;
+  --app-amber-600: #dd540d;
+  --app-amber-700: #b93f0f;
+  --app-amber-800: #933113;
+  --app-amber-900: #762812;
+}
+
+[data-theme="orc"] {
+  --app-stone-50: #f6f8f5;
+  --app-stone-100: #e7ece5;
+  --app-stone-200: #ccd8ca;
+  --app-stone-300: #aabda7;
+  --app-stone-400: #879f83;
+  --app-stone-500: #6a8266;
+  --app-stone-600: #52674f;
+  --app-stone-700: #425340;
+  --app-stone-800: #364434;
+  --app-stone-900: #1b241a;
+
+  --app-white: #fcfdfc;
+
+  --app-amber-50: #fdf5f5;
+  --app-amber-100: #fae7e6;
+  --app-amber-200: #f3cdd0;
+  --app-amber-300: #ebaaaf;
+  --app-amber-400: #e17e86;
+  --app-amber-500: #d44d57;
+  --app-amber-600: #be333a;
+  --app-amber-700: #9e262c;
+  --app-amber-800: #822227;
+  --app-amber-900: #6d2024;
+}
+
+[data-theme="underdark_shroom"] {
+  --app-stone-50: #f4f2f8;
+  --app-stone-100: #e7e3f0;
+  --app-stone-200: #cfc7e0;
+  --app-stone-300: #b0a4cc;
+  --app-stone-400: #9482b6;
+  --app-stone-500: #7c66a0;
+  --app-stone-600: #635083;
+  --app-stone-700: #50406b;
+  --app-stone-800: #413557;
+  --app-stone-900: #29203a;
+
+  --app-white: #faf9fc;
+
+  --app-amber-50: #fcf4ff;
+  --app-amber-100: #f6e2fe;
+  --app-amber-200: #efc4fd;
+  --app-amber-300: #e599fb;
+  --app-amber-400: #d762f8;
+  --app-amber-500: #c32ef0;
+  --app-amber-600: #aa16d8;
+  --app-amber-700: #8a10ae;
+  --app-amber-800: #741190;
+  --app-amber-900: #5e1173;
+}
+
+[data-theme="icewind"] {
+  --app-stone-50: #f6f8fb;
+  --app-stone-100: #e8ecf3;
+  --app-stone-200: #d0d9e5;
+  --app-stone-300: #aebfd1;
+  --app-stone-400: #8ba2b9;
+  --app-stone-500: #6f86a0;
+  --app-stone-600: #586c83;
+  --app-stone-700: #48576c;
+  --app-stone-800: #3d4a5c;
+  --app-stone-900: #202733;
+
+  --app-white: #fcfdfd;
+
+  --app-amber-50: #f3f8f4;
+  --app-amber-100: #e1efe4;
+  --app-amber-200: #c2ddc9;
+  --app-amber-300: #9dc3a8;
+  --app-amber-400: #76a484;
+  --app-amber-500: #568866;
+  --app-amber-600: #416c4f;
+  --app-amber-700: #355640;
+  --app-amber-800: #2d4534;
+  --app-amber-900: #25392d;
+}
+
+[data-theme="sigil"] {
+  --app-stone-50: #f5f5f5;
+  --app-stone-100: #e5e5e5;
+  --app-stone-200: #d4d4d4;
+  --app-stone-300: #a3a3a3;
+  --app-stone-400: #737373;
+  --app-stone-500: #525252;
+  --app-stone-600: #404040;
+  --app-stone-700: #262626;
+  --app-stone-800: #171717;
+  --app-stone-900: #0a0a0a;
+
+  --app-white: #fbfbfb;
+
+  --app-amber-50: #fbf8f0;
+  --app-amber-100: #f5ead6;
+  --app-amber-200: #eed5a9;
+  --app-amber-300: #e4bc75;
+  --app-amber-400: #db9e43;
+  --app-amber-500: #d2831c;
+  --app-amber-600: #bb6514;
+  --app-amber-700: #9b4b12;
+  --app-amber-800: #803d15;
+  --app-amber-900: #683214;
+}
+
+[data-theme="baldursgate"] {
+  --app-stone-50: #161821;
+  --app-stone-100: #1f2230;
+  --app-stone-200: #2e3348;
+  --app-stone-300: #414763;
+  --app-stone-400: #5e6687;
+  --app-stone-500: #7e87ab;
+  --app-stone-600: #a2abcc;
+  --app-stone-700: #c2c9e0;
+  --app-stone-800: #dde1f0;
+  --app-stone-900: #f2f4fa;
+
+  --app-white: #10121a;
+
+  --app-amber-50: #301f14;
+  --app-amber-100: #4a2d1a;
+  --app-amber-200: #6b3e21;
+  --app-amber-300: #9c582c;
+  --app-amber-400: #cd7739;
+  --app-amber-500: #f29a50;
+  --app-amber-600: #fabd82;
+  --app-amber-700: #fcdab5;
+  --app-amber-800: #fcece0;
+  --app-amber-900: #fdf5f0;
+}
+
+[data-theme="neverwinter"] {
+  --app-stone-50: #141b21;
+  --app-stone-100: #1c2731;
+  --app-stone-200: #293a4a;
+  --app-stone-300: #3a5068;
+  --app-stone-400: #537190;
+  --app-stone-500: #7395b8;
+  --app-stone-600: #9cb8d4;
+  --app-stone-700: #c1d5ea;
+  --app-stone-800: #e1eaf5;
+  --app-stone-900: #f4f7fb;
+
+  --app-white: #0d1216;
+
+  --app-amber-50: #172a3a;
+  --app-amber-100: #22435e;
+  --app-amber-200: #32648c;
+  --app-amber-300: #478dc2;
+  --app-amber-400: #68afe0;
+  --app-amber-500: #94cbf0;
+  --app-amber-600: #bbdef8;
+  --app-amber-700: #d6eafb;
+  --app-amber-800: #eaf4fd;
+  --app-amber-900: #f6fafe;
+}
+
+[data-theme="mistyvale"] {
+  --app-stone-50: #191817;
+  --app-stone-100: #262421;
+  --app-stone-200: #3b3732;
+  --app-stone-300: #544f47;
+  --app-stone-400: #746d61;
+  --app-stone-500: #928b7e;
+  --app-stone-600: #b1aa9c;
+  --app-stone-700: #cec8bd;
+  --app-stone-800: #e6e2db;
+  --app-stone-900: #f5f3f0;
+
+  --app-white: #11100f;
+
+  --app-amber-50: #101c15;
+  --app-amber-100: #173024;
+  --app-amber-200: #214d38;
+  --app-amber-300: #317252;
+  --app-amber-400: #459a70;
+  --app-amber-500: #5dc391;
+  --app-amber-600: #88d9b0;
+  --app-amber-700: #b0e8ca;
+  --app-amber-800: #d4f4e3;
+  --app-amber-900: #edfbf4;
+}
 
 body {
   background-color: var(--color-stone-100);

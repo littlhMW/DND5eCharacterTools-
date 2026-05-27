@@ -166,6 +166,8 @@ export interface Feat {
 export interface CharacterData {
   id?: string;
   name: string;
+  title?: string;
+  xp?: number;
   alignment: string;
   deity: string;
   age: string;
@@ -176,6 +178,8 @@ export interface CharacterData {
   bonds: string;
   flaws: string;
   backstory?: string;
+  portraitUrl?: string;
+  fullBodyUrl?: string;
   
   level: number;
   raceId: string;

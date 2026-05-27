@@ -6,12 +6,15 @@ import { backgrounds } from '../../data/backgrounds';
 import { getAIConfig, generateBackstoryAndAppearance } from '../../utils/aiHelper';
 import { generateXgeBackstory } from '../../utils/xgeLifeGenerator';
 import { generateRandomName, isRandomNameEnabled } from '../../utils/nameGenerator';
-import { Sparkles, Dices, Scroll } from 'lucide-react';
+import { generateCoreAppearanceAndPersonality } from '../tools/AppearancePersonalityGenerator';
+import { generateTitle } from '../../utils/titleGenerator';
+import { Sparkles, Dices, Scroll, Copy, Check } from 'lucide-react';
 
 const INPUT_FIELDS = [
   { id: 'name', label: '角色名称' },
   { id: 'alignment', label: '阵营' },
   { id: 'age', label: '年龄' },
+  { id: 'title', label: '专属称号' },
   { id: 'appearance', label: '外貌描写' },
   { id: 'personality', label: '性格特质' },
   { id: 'ideals', label: '理想' },
@@ -25,7 +28,12 @@ export function DetailsStep() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [randomTraitsText, setRandomTraitsText] = useState('');
+  const [copySuccess, setCopySuccess] = useState(false);
   
+  const titleEnabled = localStorage.getItem('showTitleOnSheet') !== 'false';
+  const fieldsToRender = titleEnabled ? INPUT_FIELDS : INPUT_FIELDS.filter(f => f.id !== 'title');
+
   const aiLocalConfig = getAIConfig();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -33,8 +41,8 @@ export function DetailsStep() {
   };
 
   const handleXgeGenerate = () => {
-    const useExpanded = localStorage.getItem('xgeUseExpandedInDetails') === 'true';
-    const useNonPhbSupport = localStorage.getItem('xgeUseNonPhbInDetails') !== 'false';
+    const useExpanded = localStorage.getItem('useExpandedXge') === 'true';
+    const useNonPhbSupport = localStorage.getItem('useNonPhbSupportXge') !== 'false';
     
     // Parse character details like age and ability modifiers
     const ageVal = state.character.age ? parseInt(state.character.age, 10) : undefined;
@@ -92,6 +100,51 @@ export function DetailsStep() {
     dispatch({
       type: 'UPDATE_BASIC_INFO',
       payload: { backstory: newBackstory },
+    });
+  };
+
+  const handleRandomizeAppearance = () => {
+    const race = getRaceByIdAndSource(state.character.raceId, state.character.raceSource);
+    const subrace = race?.subraces?.find(s => s.id === state.character.subraceId);
+    const randomGender = Math.random() < 0.45 ? 'male' : (Math.random() < 0.9 ? 'female' : 'none');
+    
+    const res = generateCoreAppearanceAndPersonality({
+      raceName: race?.name || '人类',
+      subraceName: subrace?.name,
+      lawChaos: 'neutral',
+      goodEvil: 'neutral',
+      gender: randomGender,
+    });
+    
+    dispatch({
+      type: 'UPDATE_BASIC_INFO',
+      payload: { appearance: res.appearance },
+    });
+  };
+
+  const handleRandomizePersonality = () => {
+    const race = getRaceByIdAndSource(state.character.raceId, state.character.raceSource);
+    const subrace = race?.subraces?.find(s => s.id === state.character.subraceId);
+    const randomLc = ['lawful', 'neutral', 'chaotic'][Math.floor(Math.random() * 3)] as any;
+    const randomGe = ['good', 'neutral', 'evil'][Math.floor(Math.random() * 3)] as any;
+    const randomGender = Math.random() < 0.45 ? 'male' : (Math.random() < 0.9 ? 'female' : 'none');
+    
+    const res = generateCoreAppearanceAndPersonality({
+      raceName: race?.name || '人类',
+      subraceName: subrace?.name,
+      lawChaos: randomLc,
+      goodEvil: randomGe,
+      gender: randomGender,
+    });
+    
+    setRandomTraitsText(res.personality);
+    setCopySuccess(false);
+  };
+
+  const handleCopyTraits = () => {
+    navigator.clipboard.writeText(randomTraitsText).then(() => {
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
     });
   };
 
@@ -186,29 +239,63 @@ export function DetailsStep() {
         )}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {INPUT_FIELDS.map(field => (
+        {fieldsToRender.map(field => (
           <div key={field.id} className={['personality', 'ideals', 'bonds', 'flaws', 'appearance', 'backstory'].includes(field.id) ? 'md:col-span-2' : ''}>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between h-8 mb-2">
               <label className="block text-sm font-semibold text-stone-700 font-sans">{field.label}</label>
-              {field.id === 'name' && isRandomNameEnabled() && (
+               {field.id === 'name' && (isRandomNameEnabled() || localStorage.getItem('nameGenEnabledInTools') !== 'false') && (
                 <button
                   type="button"
                   onClick={() => dispatch({ type: 'UPDATE_BASIC_INFO', payload: { name: generateRandomName(state.character.raceId) } })}
-                  className="px-2.5 py-1 text-xs font-semibold text-amber-700 bg-amber-50 rounded border border-amber-200 hover:bg-amber-100/50 hover:border-amber-300 transition-all flex items-center gap-1 cursor-pointer active:scale-95"
-                  title="随机生成姓名"
+                  className="p-1.5 text-amber-700 bg-amber-50 rounded border border-amber-200 hover:bg-amber-100/50 hover:border-amber-300 transition-all flex items-center justify-center cursor-pointer active:scale-95"
+                  title="随机起名"
                 >
-                  <Dices size={14} /> 随机起名
+                  <Dices size={16} />
                 </button>
               )}
-              {field.id === 'backstory' && localStorage.getItem('xgeEnabledInDetails') === 'true' && (
+              {field.id === 'title' && (localStorage.getItem('titleGenEnabledInDetails') !== 'false') && (
                 <button
                   type="button"
-                  onClick={handleXgeGenerate}
+                  onClick={() => dispatch({ type: 'UPDATE_BASIC_INFO', payload: { title: generateTitle() } })}
                   className="p-1.5 text-amber-700 bg-amber-50 rounded border border-amber-200 hover:bg-amber-100/50 hover:border-amber-300 transition-all flex items-center justify-center cursor-pointer active:scale-95"
-                  title="使用XGE人生经历生成"
+                  title="随机生成专属称号"
                 >
-                  <Scroll size={14} />
+                  <Dices size={16} />
                 </button>
+              )}
+              {field.id === 'appearance' && localStorage.getItem('appGenEnabledInDetails') !== 'false' && (
+                <button
+                  type="button"
+                  onClick={handleRandomizeAppearance}
+                  className="p-1.5 text-amber-700 bg-amber-50 rounded border border-amber-200 hover:bg-amber-100/50 hover:border-amber-300 transition-all flex items-center justify-center cursor-pointer active:scale-95"
+                  title="随机生成外貌"
+                >
+                  <Dices size={16} />
+                </button>
+              )}
+              {field.id === 'backstory' && (
+                <div className="flex gap-2">
+                  {localStorage.getItem('xgeEnabledInDetails') === 'true' && (
+                    <button
+                      type="button"
+                      onClick={handleXgeGenerate}
+                      className="p-1.5 text-amber-700 bg-amber-50 rounded border border-amber-200 hover:bg-amber-100/50 hover:border-amber-300 transition-all flex items-center justify-center cursor-pointer active:scale-95"
+                      title="生成XGE生平经历"
+                    >
+                      <Scroll size={16} />
+                    </button>
+                  )}
+                  {localStorage.getItem('traitGenEnabledInDetails') !== 'false' && (
+                    <button
+                      type="button"
+                      onClick={handleRandomizePersonality}
+                      className="p-1.5 text-amber-700 bg-amber-50 rounded border border-amber-200 hover:bg-amber-100/50 hover:border-amber-300 transition-all flex items-center justify-center cursor-pointer active:scale-95"
+                      title="随机生成性格特质"
+                    >
+                      <Dices size={16} />
+                    </button>
+                  )}
+                </div>
               )}
             </div>
             {['personality', 'ideals', 'bonds', 'flaws', 'appearance'].includes(field.id) ? (
@@ -221,14 +308,35 @@ export function DetailsStep() {
                 className="w-full bg-white border border-stone-200 rounded-md p-4 text-stone-900 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors shadow-sm resize-none font-sans text-sm"
               />
             ) : field.id === 'backstory' ? (
-              <textarea
-                name={field.id}
-                value={(state.character as any)[field.id] || ''}
-                onChange={handleChange}
-                rows={6}
-                placeholder={`讲述你的角色背景故事...`}
-                className="w-full bg-white border border-stone-200 rounded-md p-4 text-stone-900 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors shadow-sm resize-none font-sans text-sm"
-              />
+              <div className="flex flex-col gap-3">
+                {randomTraitsText && (
+                  <div className="bg-amber-50/50 border border-amber-200 rounded-xl p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="flex justify-between items-start mb-2 group">
+                      <span className="text-xs font-bold text-amber-700 uppercase tracking-wider flex items-center gap-1.5"><Dices className="w-3.5 h-3.5" /> 随机特质生成结果</span>
+                      <button 
+                        onClick={handleCopyTraits}
+                        className="flex items-center gap-1 text-amber-600 hover:text-amber-800 bg-transparent border-none cursor-pointer transition-colors"
+                      >
+                        {copySuccess ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                        <span className="text-xs">{copySuccess ? '已复制' : '复制'}</span>
+                      </button>
+                    </div>
+                    <textarea 
+                      readOnly 
+                      value={randomTraitsText} 
+                      className="w-full bg-transparent border-none p-0 text-stone-700 text-sm h-28 leading-relaxed resize-none outline-none font-sans" 
+                    />
+                  </div>
+                )}
+                <textarea
+                  name={field.id}
+                  value={(state.character as any)[field.id] || ''}
+                  onChange={handleChange}
+                  rows={6}
+                  placeholder={`讲述你的角色背景故事...`}
+                  className="w-full bg-white border border-stone-200 rounded-md p-4 text-stone-900 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors shadow-sm resize-none font-sans text-sm"
+                />
+              </div>
             ) : field.id === 'alignment' ? (
               <select
                 name={field.id}

@@ -12,13 +12,33 @@ import { EquipmentText } from './shared/EquipmentText';
 import { FormattedDescription } from './shared/FormattedDescription';
 import { getProficiencies, getProficiencyBonus, SKILL_NAMES, SKILL_ABILITIES } from '../utils/proficiencies';
 import { getCleanDescription } from '../utils/customRollTraits';
+import { getLevelFromXp, getTierOfPlay, XP_LEVEL_TABLE, getXpRequiredForLevel } from '../utils/xpLevel';
+import { generateTitle } from '../utils/titleGenerator';
 
-const TABS = ['概览', '职业特性', '专长', '法术', '状态与装备', '背景与细节'];
+const TABS = ['概览', '法术', '状态与装备', '背景与细节'];
 
 export function CharacterSheet() {
   const { state, dispatch } = useCharacter();
   const [activeTab, setActiveTab] = useState(TABS[0]);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  
+  const showTitleOnSheet = localStorage.getItem('showTitleOnSheet') !== 'false';
+  const showXpOnSheet = localStorage.getItem('showXpOnSheet') !== 'false';
+
+  const [isEditingXp, setIsEditingXp] = useState(false);
+  const [tempXpValue, setTempXpValue] = useState<number | undefined>(undefined);
+  const [xpAddAmount, setXpAddAmount] = useState<number>(0);
+
+  const saveAndCloseXpEdit = (valToSave?: number) => {
+    const finalVal = valToSave !== undefined ? valToSave : tempXpValue;
+    if (finalVal !== undefined) {
+      const newXp = Math.min(355000, Math.max(0, finalVal));
+      const nextLevel = getLevelFromXp(newXp);
+      dispatch({ type: 'UPDATE_BASIC_INFO', payload: { xp: newXp, level: nextLevel } });
+    }
+    setIsEditingXp(false);
+    setTempXpValue(undefined);
+  };
 
   const c = state.character;
   const race = getRaceByIdAndSource(c.raceId, c.raceSource);
@@ -177,6 +197,141 @@ const knownIds = useMemo(() => {
               </div>
             </div>
             
+            {/* 游戏层级与经验晋升表 (Tiers of Play) */}
+            {showXpOnSheet && (
+              <div className="bg-white rounded-xl border-2 border-stone-300 p-5 shadow-sm space-y-3 font-sans">
+                <div className="border-b border-stone-250 pb-2">
+                  <h4 className="text-xs sm:text-sm font-serif font-bold text-stone-900">
+                    游戏层级与晋升 ({getTierOfPlay(c.level).tier})
+                  </h4>
+                </div>
+                <p className="text-[11px] text-stone-650 leading-relaxed font-normal">
+                  {getTierOfPlay(c.level).description}
+                </p>
+                
+                <div className="border-t border-stone-200 pt-3 space-y-3 text-xs">
+                  <div className="flex justify-between items-center gap-2">
+                    <span className="text-[11px] text-stone-500 font-semibold">经验值 (当前 / 下一级):</span>
+                    <div className="flex items-center gap-1 font-mono">
+                      {isEditingXp ? (
+                        <input
+                          type="number"
+                          min="0"
+                          value={tempXpValue !== undefined ? tempXpValue : (c.xp ?? 0)}
+                          onChange={(e) => {
+                            setTempXpValue(parseInt(e.target.value) || 0);
+                          }}
+                          onBlur={() => saveAndCloseXpEdit()}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              saveAndCloseXpEdit();
+                            } else if (e.key === 'Escape') {
+                              setIsEditingXp(false);
+                            }
+                          }}
+                          autoFocus
+                          className="w-20 bg-stone-50 border border-stone-300 rounded px-1.5 py-0.5 text-center font-bold text-stone-850 focus:outline-none focus:border-amber-653 focus:ring-1 focus:ring-amber-600 transition-colors"
+                        />
+                      ) : (
+                        <span
+                          onClick={() => {
+                            setTempXpValue(c.xp ?? 0);
+                            setIsEditingXp(true);
+                          }}
+                          className="cursor-pointer font-bold text-stone-850 hover:text-amber-700 underline decoration-dashed decoration-amber-500 underline-offset-4 px-1.5 py-0.5 rounded hover:bg-stone-50 transition-colors"
+                          title="点击编辑当前经验值"
+                        >
+                          {c.xp ?? 0}
+                        </span>
+                      )}
+                      <span className="text-stone-400">/</span>
+                      <span className="text-stone-800 font-bold text-[11px]">
+                        {c.level < 20 ? (XP_LEVEL_TABLE.find(m => m.level === c.level + 1)?.xpRequired ?? 355000) : 355000}
+                      </span>
+                      <span className="text-stone-400 font-sans text-[10px]">XP</span>
+                    </div>
+                  </div>
+                  {c.level < 20 ? (
+                    (() => {
+                      const currentMilestone = XP_LEVEL_TABLE.find(m => m.level === c.level);
+                      const nextMilestone = XP_LEVEL_TABLE.find(m => m.level === c.level + 1);
+                      if (!nextMilestone || !currentMilestone) return null;
+                      const diff = nextMilestone.xpRequired - currentMilestone.xpRequired;
+                      const currentOffset = (c.xp ?? 0) - currentMilestone.xpRequired;
+                      const percent = Math.min(100, Math.max(0, (currentOffset / diff) * 100));
+                      return (
+                        <div>
+                          <div className="w-full bg-stone-100 h-2 rounded-full overflow-hidden border border-stone-200">
+                            <div className="bg-amber-600 h-full transition-all duration-300" style={{ width: `${percent}%` }}></div>
+                          </div>
+                          <div className="flex justify-between text-[9px] mt-1 w-full font-mono text-stone-500">
+                            <span>Lv.{c.level} ({currentMilestone.xpRequired} XP)</span>
+                            <span className="text-stone-605 font-medium font-sans">还需 {Math.max(0, nextMilestone.xpRequired - (c.xp ?? 0))} XP 升级到 Lv.{c.level + 1}</span>
+                            <span>Lv.{c.level + 1} ({nextMilestone.xpRequired} XP)</span>
+                          </div>
+                        </div>
+                      );
+                    })()
+                  ) : (
+                    <div className="text-center text-stone-750 font-bold text-[11px] py-1 bg-stone-50 rounded border border-stone-205 font-serif">
+                      已达到最高等级 20。此角色已进入经典传奇事迹与不朽神话阶位。
+                    </div>
+                  )}
+
+                  {/* 经验值调整工具区 */}
+                  <div className="pt-3 border-t border-stone-150 space-y-2.5">
+                    <div className="text-[10px] text-stone-500 font-semibold tracking-wider uppercase">
+                      经验快速增减 (XP Adjustment):
+                    </div>
+                    
+                    {/* 常用增加经验按钮 */}
+                    <div className="flex flex-wrap gap-1.5 font-sans">
+                      {[100, 500, 1000, 2000, 5000].map((amount) => (
+                        <button
+                          key={amount}
+                          onClick={() => {
+                            const newXp = Math.min(355000, Math.max(0, (c.xp ?? 0) + amount));
+                            const nextLevel = getLevelFromXp(newXp);
+                            dispatch({ type: 'UPDATE_BASIC_INFO', payload: { xp: newXp, level: nextLevel } });
+                          }}
+                          className="px-2.5 py-1 text-[11px] font-semibold text-stone-700 bg-stone-50 hover:bg-amber-100/70 hover:text-amber-800 border border-stone-300 rounded shadow-xs hover:border-amber-400 active:scale-95 transition-all cursor-pointer"
+                        >
+                          +{amount}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* 手动追加自定义数值 */}
+                    <div className="flex items-center gap-1.5 mt-1.5 font-sans">
+                      <div className="relative flex items-center shadow-xs rounded border border-stone-300 bg-stone-50/50 focus-within:border-amber-600 focus-within:ring-1 focus-within:ring-amber-600 transition-all">
+                        <span className="pl-2.5 pr-1 text-stone-400 font-bold text-xs select-none">+</span>
+                        <input
+                          type="number"
+                          placeholder="数值"
+                          value={xpAddAmount === 0 ? '' : xpAddAmount}
+                          onChange={(e) => setXpAddAmount(Math.max(0, parseInt(e.target.value) || 0))}
+                          className="w-20 py-1 pr-2 bg-transparent text-xs font-semibold focus:outline-none placeholder-stone-400 font-mono"
+                        />
+                      </div>
+                      <button
+                        onClick={() => {
+                          if (xpAddAmount > 0) {
+                            const newXp = Math.min(355000, Math.max(0, (c.xp ?? 0) + xpAddAmount));
+                            const nextLevel = getLevelFromXp(newXp);
+                            dispatch({ type: 'UPDATE_BASIC_INFO', payload: { xp: newXp, level: nextLevel } });
+                            setXpAddAmount(0); // Clear input
+                          }
+                        }}
+                        className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs rounded transition-colors shadow-xs active:scale-95 cursor-pointer"
+                      >
+                        增加经验
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            )}
           </div>
           <div className="space-y-6">
             <div className="bg-white rounded-xl border-2 border-stone-300 p-6 shadow-sm h-full">
@@ -369,16 +524,42 @@ if (cls.id === 'wizard') {
       
       <div className="max-w-7xl mx-auto bg-white border-[3px] border-double border-stone-300 rounded-xl shadow-2xl overflow-hidden pb-4 ring-1 ring-stone-900/10 relative z-10">
         {/* Header */}
-        <div className="px-8 md:px-12 py-12 flex flex-col md:flex-row justify-between items-end bg-gradient-to-br from-[#faf8f5] to-[#f4eee6] relative overflow-hidden border-b-2 border-stone-200">
+        <div className="px-6 md:px-10 py-8 md:py-10 flex flex-col md:flex-row justify-between items-end bg-stone-100 relative overflow-hidden border-b-2 border-stone-200">
           <div className="absolute top-0 right-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/handmade-paper.png')] opacity-40 mix-blend-multiply pointer-events-none" />
-          <div className="absolute -top-32 -right-32 w-96 h-96 bg-amber-700/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-32 -right-32 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="relative z-10 w-full mb-6 md:mb-0 md:mr-6">
-            <h1 className="text-5xl md:text-6xl font-serif text-stone-900 font-bold mb-4 drop-shadow-sm tracking-tight">{c.name || '未命名角色'}</h1>
-            <div className="text-stone-700 flex gap-3 text-sm font-medium flex-wrap font-sans">
-              <span className="bg-white/80 px-4 py-1.5 rounded-md whitespace-nowrap border border-stone-300 shadow-sm shadow-stone-200/50">等级 <b className="text-amber-800">{c.level}</b></span>
-              <span className="bg-white/80 px-4 py-1.5 rounded-md whitespace-nowrap border border-stone-300 shadow-sm shadow-stone-200/50">{subrace?.name || race?.name || '未知种族'}</span>
-              <span className="bg-white/80 px-4 py-1.5 rounded-md whitespace-nowrap border border-stone-300 shadow-sm shadow-stone-200/50">{subclass?.name || cls?.name || '无职业'}</span>
-              <span className="bg-white/80 px-4 py-1.5 rounded-md whitespace-nowrap border border-stone-300 shadow-sm shadow-stone-200/50">{bg?.name || '未知背景'}</span>
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-5 mb-2.5">
+              {c.portraitUrl && (
+                <div className="relative p-1 bg-amber-50/50 border-2 border-amber-800 rounded-lg shadow shrink-0">
+                  <img
+                    src={c.portraitUrl}
+                    alt={c.name}
+                    referrerPolicy="no-referrer"
+                    className="w-32 h-32 md:w-40 md:h-40 rounded object-cover border border-amber-800/20"
+                  />
+                  {/* Decorative corners for fantasy feel */}
+                  <div className="absolute top-1 left-1 w-2.5 h-2.5 border-t-2 border-l-2 border-amber-800" />
+                  <div className="absolute top-1 right-1 w-2.5 h-2.5 border-t-2 border-r-2 border-amber-800" />
+                  <div className="absolute bottom-1 left-1 w-2.5 h-2.5 border-b-2 border-l-2 border-amber-800" />
+                  <div className="absolute bottom-1 right-1 w-2.5 h-2.5 border-b-2 border-r-2 border-amber-800" />
+                </div>
+              )}
+              <div className="flex flex-col text-center md:text-left justify-center">
+                {showTitleOnSheet && c.title && (
+                  <p className="text-base md:text-lg text-amber-700 font-serif italic mb-1.5 font-bold tracking-wide">
+                    “ {c.title} ”
+                  </p>
+                )}
+                <h1 className="text-4xl md:text-5xl font-serif text-stone-900 font-bold drop-shadow-sm tracking-tight">{c.name || '未命名角色'}</h1>
+              </div>
+            </div>
+            
+            <div className="text-stone-700 flex gap-2 text-xs font-semibold flex-wrap font-sans mt-3.5 items-center">
+              <span className="bg-white/80 px-3 py-1 rounded-md whitespace-nowrap border border-stone-300 shadow-sm shadow-stone-200/50">等级 <b className="text-amber-800">{c.level}</b></span>
+              <span className="bg-white/80 px-3 py-1 rounded-md whitespace-nowrap border border-stone-300 shadow-sm shadow-stone-200/50">熟练加值 <b className="text-amber-800">+{profBonus}</b></span>
+              <span className="bg-white/80 px-3 py-1 rounded-md whitespace-nowrap border border-stone-300 shadow-sm shadow-stone-200/50">{subrace?.name?.replace(' (本相)', '') || race?.name || '未知种族'}</span>
+              <span className="bg-white/80 px-3 py-1 rounded-md whitespace-nowrap border border-stone-300 shadow-sm shadow-stone-200/50">{subclass?.name || cls?.name || '无职业'}</span>
+              <span className="bg-white/80 px-3 py-1 rounded-md whitespace-nowrap border border-stone-300 shadow-sm shadow-stone-200/50">{bg?.name || '未知背景'}</span>
             </div>
           </div>
           <div className="mt-8 md:mt-0 flex gap-2 sm:gap-3 flex-wrap items-center justify-start md:justify-end relative z-10 w-full md:w-auto shrink-0">
@@ -403,7 +584,11 @@ if (cls.id === 'wizard') {
             }} className="px-5 py-2.5 bg-stone-100/80 text-stone-700 border border-stone-300 rounded-md hover:bg-white transition font-sans font-medium shadow-sm active:scale-95 text-sm md:text-base">{saveSuccess ? '已保存 ✓' : '保存角色'}</button>
             <button onClick={() => dispatch({ type: 'SET_VIEW', payload: 'landing' })} className="px-5 py-2.5 bg-stone-100/80 text-stone-700 border border-stone-300 rounded-md hover:bg-white transition font-sans font-medium shadow-sm active:scale-95 text-sm md:text-base">返回主页</button>
             <button onClick={() => dispatch({ type: 'SET_VIEW', payload: 'wizard' })} className="px-5 py-2.5 bg-stone-100/80 text-stone-700 border border-stone-300 rounded-md hover:bg-white transition font-sans font-medium shadow-sm active:scale-95 text-sm md:text-base">重新编辑</button>
-            <button onClick={() => dispatch({ type: 'LEVEL_UP' })} className="px-6 py-2.5 bg-gradient-to-r from-amber-700 to-amber-800 text-amber-50 border border-amber-900 rounded-md hover:from-amber-600 hover:to-amber-700 transition font-sans font-bold shadow-md hover:shadow-lg shadow-amber-900/20 active:scale-95 text-sm md:text-base">提升等级</button>
+            <button onClick={() => {
+              const nextLevel = Math.min(20, c.level + 1);
+              const nextXp = getXpRequiredForLevel(nextLevel);
+              dispatch({ type: 'UPDATE_BASIC_INFO', payload: { level: nextLevel, xp: nextXp } });
+            }} className="px-6 py-2.5 bg-gradient-to-r from-amber-700 to-amber-800 text-amber-50 border border-amber-900 rounded-md hover:from-amber-600 hover:to-amber-700 transition font-sans font-bold shadow-md hover:shadow-lg shadow-amber-900/20 active:scale-95 text-sm md:text-base">提升等级</button>
           </div>
         </div>
 
@@ -422,143 +607,10 @@ if (cls.id === 'wizard') {
         </div>
 
         {/* Content */}
-        <div className="p-4 md:p-10 bg-white min-h-[65vh] relative text-stone-800">
+        <div className="p-4 md:p-6 bg-white min-h-[65vh] relative text-stone-800">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/rice-paper-2.png')] opacity-20 pointer-events-none mix-blend-multiply"></div>
           <div className="relative z-10">
           {activeTab === '概览' && renderMainTab()}
-          {activeTab === '职业特性' && (() => {
-            return (
-            <div className="space-y-6 animate-in fade-in grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="bg-stone-50 rounded-xl border-2 border-stone-300 shadow-sm p-8 h-fit">
-                <h3 className="text-2xl font-serif text-amber-800 mb-6 border-b-2 border-stone-300 pb-3 font-bold tracking-tight">职业特性</h3>
-                <ul className="space-y-6">
-                  {[
-                    ...(cls?.traits || []).filter(t => t.level! <= c.level).map(t => ({ ...t, isSubclass: false })),
-                    ...(subclass ? subclass.traits.filter(t => t.level! <= c.level).map(t => ({ ...t, isSubclass: true })) : [])
-                  ].sort((a, b) => (a.level || 0) - (b.level || 0)).map((t, index) => (
-                    <li key={`${t.name}-${t.level}-${index}`} className="relative pl-4 before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-stone-300">
-                      <strong className="text-stone-900 block mb-1 font-serif text-lg">{t.name} <span className="text-[10px] text-stone-500 bg-stone-200 px-2 py-0.5 rounded-full ml-2 uppercase tracking-widest font-bold">LV {t.level}</span></strong>
-                      <FormattedDescription text={getCleanDescription(t.name, t.description, c.traitSelections)} className="text-sm font-sans text-stone-700 leading-relaxed block" />
-                      {t.choices && t.choices.map(choice => {
-                        const ids = c.traitSelections[choice.id] || [];
-                        if (ids.length === 0) return null;
-                        
-                        let displayNames = [];
-                        if (choice.dynamic === 'asi') {
-                           const featIds = ids.filter(id => id.startsWith('feat-')).map(id => id.substring(5));
-                           const asiIds = ids.filter(id => id.startsWith('asi-')).map(id => id.substring(4));
-                           if (featIds.length > 0) {
-                             displayNames = featIds.map(fid => feats.find(f => f.id === fid)?.name || fid);
-                           } else {
-                             const counts: Record<string, number> = {};
-                             asiIds.forEach(id => { counts[id] = (counts[id] || 0) + 1; });
-                             const abNames: Record<string, string> = { STR: '力量', DEX: '敏捷', CON: '体质', INT: '智力', WIS: '感知', CHA: '魅力' };
-                             displayNames = Object.entries(counts).map(([ab, count]) => `${abNames[ab] || ab} +${count}`);
-                           }
-                        } else {
-                          displayNames = ids.map(id => {
-                            const option = choice.options?.find(o => o.id === id);
-                            if (option) return option.name;
-                            
-                            const spell = spellData.find(s => s.id === id);
-                            if (spell) return spell.name;
-
-                            const feat = feats.find(f => f.id === id);
-                            if (feat) return feat.name;
-
-                            return id;
-                          });
-                        }
-
-                        return <div key={choice.id} className="mt-2 text-sm font-sans bg-white border border-stone-200 p-3 rounded-lg shadow-sm"><span className="font-semibold text-stone-700">{choice.name}:</span> <span className="text-amber-800 font-medium">{displayNames.join(', ')}</span></div>;
-                      })}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="bg-stone-50 rounded-xl border-2 border-stone-300 shadow-sm p-8 h-fit">
-                <h3 className="text-2xl font-serif text-amber-800 mb-6 border-b-2 border-stone-300 pb-3 font-bold tracking-tight">种族与背景特性</h3>
-                <ul className="space-y-6">
-                  {race?.traits
-                    .filter(t => {
-                      // 只有未配置level，或者level <= 当前等级时才显示
-                      if (t.level !== undefined && t.level > c.level) return false;
-                      if (subrace) {
-                        if (race.id === 'half-elf' && t.name === '多才多艺') return false;
-                        if (race.id === 'tiefling' && t.name === '炼狱传承') return false;
-                      }
-                      return true;
-                    })
-                    .map((t, i) => (
-                      <li key={`race-${t.name}-${i}`} className="relative pl-4 before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-stone-300">
-                        <strong className="text-stone-900 block mb-1 font-serif text-lg">
-                          {t.name}
-                          {t.level !== undefined && t.level > 0 && <span className="text-[10px] text-stone-500 bg-stone-200 px-2 py-0.5 rounded-full ml-2 uppercase tracking-widest font-bold">LV {t.level}</span>}
-                        </strong>
-                        <FormattedDescription text={t.description} className="text-sm font-sans text-stone-700 leading-relaxed block" />
-                      </li>
-                    ))}
-                  {subrace?.traits
-                    .filter(t => t.level === undefined || t.level <= c.level)
-                    .map((t, i) => (
-                    <li key={`subrace-${t.name}-${i}`} className="relative pl-4 before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-stone-300">
-                      <strong className="text-stone-900 block mb-1 font-serif text-lg">
-                        {t.name}
-                        {t.level !== undefined && t.level > 0 && <span className="text-[10px] text-stone-500 bg-stone-200 px-2 py-0.5 rounded-full ml-2 uppercase tracking-widest font-bold">LV {t.level}</span>}
-                      </strong>
-                      <FormattedDescription text={t.description} className="text-sm font-sans text-stone-700 leading-relaxed block" />
-                    </li>
-                  ))}
-                  {bg && (
-                    <li className="relative pl-4 before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-stone-400">
-                      <strong className="text-stone-900 block mb-1 font-serif text-lg">{bg.feature.name} <span className="text-[10px] bg-stone-200 text-stone-600 px-2 py-0.5 rounded-full ml-2 tracking-widest uppercase font-bold">背景</span></strong>
-                      <FormattedDescription text={bg.feature.description} className="text-sm font-sans text-stone-700 leading-relaxed block" />
-                    </li>
-                  )}
-                </ul>
-              </div>
-            </div>
-            );
-          })()}
-          {activeTab === '专长' && (() => {
-            const chosenFeatIds = new Set<string>();
-            Object.values(c.traitSelections).forEach(ids => {
-              if (Array.isArray(ids)) {
-                ids.forEach(id => {
-                   if (id.startsWith('feat-')) chosenFeatIds.add(id.substring(5));
-                   else if (feats.some(f => f.id === id)) chosenFeatIds.add(id);
-                });
-              }
-            });
-            const chosenFeats = Array.from(chosenFeatIds).map(id => feats.find(f => f.id === id)).filter(Boolean);
-
-            if (chosenFeats.length === 0) {
-              return (
-                <div className="flex flex-col items-center justify-center p-12 bg-white rounded-xl border-2 border-stone-300 border-dashed opacity-70">
-                  <span className="text-4xl mb-4">📜</span>
-                  <h3 className="text-xl font-serif text-stone-600 mb-2">尚未获得任何专长</h3>
-                  <p className="text-stone-500 font-sans text-sm text-center">你的角色在此等级尚未选择专长，或者选择了属性提升（ASI）。</p>
-                </div>
-              );
-            }
-
-            return (
-              <div className="space-y-6 animate-in fade-in max-w-4xl mx-auto">
-                <h3 className="text-3xl font-serif text-amber-800 mb-8 border-b-2 border-stone-300 pb-4 font-bold tracking-tight text-center">已获得专长</h3>
-                <div className="grid grid-cols-1 gap-6">
-                  {chosenFeats.map((f, i) => (
-                    <div key={`feat-${f!.id}-${i}`} className="bg-white p-6 rounded-xl border-2 border-stone-200 shadow-sm relative overflow-hidden group hover:border-amber-300 transition-colors">
-                      <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none transform -rotate-12 translate-x-4">
-                        <span className="text-8xl font-serif">⚡</span>
-                      </div>
-                      <strong className="text-amber-900 block mb-3 font-serif text-2xl drop-shadow-sm">{f!.name}</strong>
-                      <FormattedDescription text={f!.description} className="text-base font-sans text-stone-700 leading-relaxed prose prose-stone" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
           {activeTab === '法术' && renderSpells()}
           {activeTab === '状态与装备' && (
             <div className="space-y-8 max-w-5xl animate-in fade-in">
@@ -645,39 +697,88 @@ if (cls.id === 'wizard') {
             </div>
           )}
           {activeTab === '背景与细节' && (
-            <div className="space-y-8 max-w-3xl animate-in fade-in">
-              <div className="bg-white p-8 rounded-lg border border-stone-200 shadow-sm">
-                <h3 className="text-xl font-serif text-stone-900 mb-6 border-b border-stone-100 pb-3">基本细节</h3>
-                <div className="grid grid-cols-2 gap-6">
-                  <div><div className="text-sm text-stone-500 mb-1">阵营</div><div className="font-serif text-lg font-semibold">{c.alignment || '-'}</div></div>
-                  <div><div className="text-sm text-stone-500 mb-1">年龄</div><div className="font-serif text-lg font-semibold">{c.age || '-'}</div></div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl animate-in fade-in">
+              {/* 左单栏: 细节 + 全身立绘 */}
+              <div className="lg:col-span-1 space-y-6">
+                <div className="bg-white p-6 rounded-xl border-2 border-stone-300 shadow-sm">
+                  <h3 className="text-lg font-serif text-stone-900 mb-4 border-b border-stone-200 pb-2">基本细节</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-xs text-stone-500 mb-0.5">阵营</div>
+                      <div className="font-serif text-sm font-semibold">{c.alignment || '-'}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-stone-500 mb-0.5">年龄</div>
+                      <div className="font-serif text-sm font-semibold">{c.age || '-'}</div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="bg-white p-8 rounded-lg border border-stone-200 shadow-sm">
-                <h3 className="text-xl font-serif text-stone-900 mb-6 border-b border-stone-100 pb-3">背景故事</h3>
-                <div className="space-y-6">
-                  {c.backstory && (
-                    <div className="prose prose-stone text-stone-700 max-w-none whitespace-pre-wrap">
-                      {c.backstory}
+
+                <div className="bg-white p-6 rounded-xl border-2 border-stone-300 shadow-sm flex flex-col items-center">
+                  <h3 className="text-lg font-serif text-stone-900 mb-4 border-b border-stone-200 pb-2 w-full text-left">人物全身立绘</h3>
+                  {c.fullBodyUrl ? (
+                    <div className="w-full relative rounded-lg overflow-hidden border border-stone-200 shadow-inner bg-stone-50 flex justify-center items-center p-2">
+                      <img
+                        src={c.fullBodyUrl}
+                        alt={`${c.name} 全身立绘`}
+                        referrerPolicy="no-referrer"
+                        className="max-h-[480px] object-contain rounded-md transition-shadow hover:shadow-md"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-full h-80 rounded-lg border border-dashed border-stone-300 bg-stone-50 flex flex-col items-center justify-center p-4 text-center">
+                      <span className="text-xs text-stone-500 font-sans leading-relaxed">暂无全身立绘</span>
+                      <span className="text-[10px] text-stone-400 font-sans mt-1">您可在创建角色的底端步骤中上传立绘噢</span>
                     </div>
                   )}
-                  {(!c.backstory && !c.specialty) && <p className="text-stone-500 italic">未填写背景故事。</p>}
-                  {c.specialty && (
-                    <div className="mt-4">
-                      <div className="text-sm text-amber-600 font-semibold mb-2">{bg?.specialty?.name || '特色'}</div>
-                      <p className="text-stone-700 bg-stone-50 px-5 py-4 rounded-md border">{c.specialty}</p>
-                    </div>
-                  )}
                 </div>
               </div>
-              <div className="bg-white p-8 rounded-lg border border-stone-200 shadow-sm">
-                <h3 className="text-xl font-serif text-stone-900 mb-6 border-b border-stone-100 pb-3">性格与特质</h3>
-                <div className="space-y-6">
-                  <div><div className="text-sm text-amber-600 font-semibold mb-2">性格特质</div><p className="text-stone-700 bg-stone-50 px-5 py-4 rounded-md border">{c.personality || '未填写'}</p></div>
-                  <div><div className="text-sm text-amber-600 font-semibold mb-2">理想</div><p className="text-stone-700 bg-stone-50 px-5 py-4 rounded-md border">{c.ideals || '未填写'}</p></div>
-                  <div><div className="text-sm text-amber-600 font-semibold mb-2">牵绊</div><p className="text-stone-700 bg-stone-50 px-5 py-4 rounded-md border">{c.bonds || '未填写'}</p></div>
-                  <div><div className="text-sm text-amber-600 font-semibold mb-2">缺点</div><p className="text-stone-700 bg-stone-50 px-5 py-4 rounded-md border">{c.flaws || '未填写'}</p></div>
-                  <div><div className="text-sm text-amber-600 font-semibold mb-2">外貌</div><p className="text-stone-700 bg-stone-50 px-5 py-4 rounded-md border">{c.appearance || '未填写'}</p></div>
+
+              {/* 右双栏: 背景故事, 性格特质 */}
+              <div className="col-span-1 lg:col-span-2 space-y-6">
+                <div className="bg-white p-6 rounded-xl border-2 border-stone-300 shadow-sm">
+                  <h3 className="text-lg font-serif text-stone-900 mb-4 border-b border-stone-200 pb-2">背景故事</h3>
+                  <div className="space-y-4">
+                    {c.backstory ? (
+                      <div className="prose prose-stone text-stone-700 max-w-none whitespace-pre-wrap text-sm leading-relaxed font-sans">
+                        {c.backstory}
+                      </div>
+                    ) : (
+                      <p className="text-stone-500 italic text-sm">未填写背景故事。</p>
+                    )}
+                    {c.specialty && (
+                      <div className="mt-4 pt-4 border-t border-stone-100">
+                        <div className="text-xs text-amber-600 font-semibold mb-1.5">{bg?.specialty?.name || '背景特色'}</div>
+                        <p className="text-stone-700 bg-stone-50 px-4 py-3 rounded-lg border border-stone-200 text-sm font-sans">{c.specialty}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-xl border-2 border-stone-300 shadow-sm">
+                  <h3 className="text-lg font-serif text-stone-900 mb-4 border-b border-stone-200 pb-2">性格与特质</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 bg-stone-50 rounded-lg border border-stone-200">
+                      <div className="text-xs font-bold text-amber-800 mb-1">性格特质</div>
+                      <p className="text-stone-700 text-sm leading-relaxed font-sans">{c.personality || '未填写'}</p>
+                    </div>
+                    <div className="p-4 bg-stone-50 rounded-lg border border-stone-200">
+                      <div className="text-xs font-bold text-amber-800 mb-1">理想</div>
+                      <p className="text-stone-700 text-sm leading-relaxed font-sans">{c.ideals || '未填写'}</p>
+                    </div>
+                    <div className="p-4 bg-stone-50 rounded-lg border border-stone-200">
+                      <div className="text-xs font-bold text-amber-800 mb-1">牵绊</div>
+                      <p className="text-stone-700 text-sm leading-relaxed font-sans">{c.bonds || '未填写'}</p>
+                    </div>
+                    <div className="p-4 bg-stone-50 rounded-lg border border-stone-200">
+                      <div className="text-xs font-bold text-amber-800 mb-1">缺点</div>
+                      <p className="text-stone-700 text-sm leading-relaxed font-sans">{c.flaws || '未填写'}</p>
+                    </div>
+                    <div className="p-4 bg-stone-50 rounded-lg border border-stone-200 md:col-span-2">
+                      <div className="text-xs font-bold text-amber-800 mb-1">外貌描写</div>
+                      <p className="text-stone-700 text-sm leading-relaxed font-sans">{c.appearance || '未填写'}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
