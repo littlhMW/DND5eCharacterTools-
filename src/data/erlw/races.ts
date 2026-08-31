@@ -50,7 +50,8 @@ export const races: Race[] = [
         id: 'mark-of-storm',
         name: '暴风龙纹半精灵',
         description: '暴风龙纹半精灵携带有控制气候与蔚蓝风暴力量的龙纹。他们抗性卓越，在波涛汹涌的海轮或空艇中能凭借超凡直觉驾驭风向，是用狂风神术御行万里的风雨之子。',
-        abilityBonuses: [{ ability: 'DEX', bonus: 1 }],
+        replaceBaseAsi: true,
+        abilityBonuses: [{ ability: 'CHA', bonus: 2 }, { ability: 'DEX', bonus: 1 }],
         traits: [
           { name: '驭风者直觉', description: '当你进行体操检定或使用领航工具时附加 1d4。' },
           { name: '暴风之祝福', description: '你对闪电伤害有抗性。' },
@@ -67,8 +68,21 @@ export const races: Race[] = [
         id: 'mark-of-detection',
         name: '侦测龙纹半精灵',
         description: '侦测龙纹半精灵携带有看破迷雾与勘破隐秘力量的龙纹。他们天生具有敏锐的推理直觉，能一眼识破藏匿于暗影中的魔能，是帝国中最杰出的密探与调查大师。',
+        replaceBaseAsi: true,
         abilityBonuses: [{ ability: 'WIS', bonus: 2 }],
         traits: [
+          {
+            name: '属性提升', 
+            description: '除了感知提升 2 点，另外一项你所选择的不同属性增加 1。',
+            choices: [
+              {
+                id: 'mark-of-detection-asi',
+                name: '选择一项属性提升 (+1)',
+                chooseNumber: 1,
+                dynamic: 'asi'
+              }
+            ]
+          },
           { name: '推理直觉', description: '当你进行调查或洞悉检定可加 1d4。' },
           { name: '魔法侦测：侦测法术', description: '能够施展一次侦测魔法和一次侦测毒素或疾病，在长休后恢复。', level: 1 },
           { name: '魔法侦测：识破隐形', description: '从3级起可施展一次识破隐形，在长休后恢复。', level: 3 }
@@ -146,6 +160,7 @@ export const races: Race[] = [
         id: 'mark-of-finding',
         name: '探索龙纹半兽人',
         description: '探索龙纹半兽人携带能洞察猎物踪迹、辨明世间方位的追踪之龙纹。他们继承了荒野之子的直觉感知，擅使猎人印记追踪百里，是寻龙点穴、追索逃犯的最强猎犬。',
+        replaceBaseAsi: true,
         abilityBonuses: [{ ability: 'WIS', bonus: 2 }, { ability: 'CON', bonus: 1 }],
         traits: [
           { name: '猎人直觉', description: '进行察觉或生存检定时加 1d4。' },
@@ -208,8 +223,10 @@ export const races: Race[] = [
         id: 'mark-of-handling',
         name: '畜牧龙纹人类',
         description: '畜牧龙纹人类拥有与野生野兽和巨型魔法生物进行心灵链接的特异龙纹。他们极易赢得生灵信任，可轻易驯化智力低下怪兽，是荒野畜牧和自然生态的坚固桥梁。',
+        replaceBaseAsi: true,
         abilityBonuses: [{ ability: 'WIS', bonus: 2 }],
         traits: [
+          { name: '属性提升', description: '除了感知提升 2 点，另外一项你所选择的不同属性增加 1。', choices: [ { id: 'mark-of-handling-asi', name: '选择一项属性提升 (+1)', chooseNumber: 1, dynamic: 'asi' } ] },
           { name: '野性直觉', description: '进行驯兽或自然检定时加 1d4。' },
           { name: '原始链接', description: '可施展化兽为友和动物交谈术。' },
           { name: '它们不过是大了点', description: '你的化兽为友等能对智力3以下怪兽生效。' }
@@ -224,8 +241,10 @@ export const races: Race[] = [
         id: 'mark-of-making',
         name: '创造龙纹人类',
         description: '创造龙纹人类携带有操控万物结构、点石成金的制造之龙纹。他们是天生的工匠大师与附魔学者，能单手附魔兵刃，用修复术维持精密机关，是工业帝国的魔能枢纽。',
+        replaceBaseAsi: true,
         abilityBonuses: [{ ability: 'INT', bonus: 2 }],
         traits: [
+          { name: '属性提升', description: '除了智力提升 2 点，另外一项你所选择的不同属性增加 1。', choices: [ { id: 'mark-of-making-asi', name: '选择一项属性提升 (+1)', chooseNumber: 1, dynamic: 'asi' } ] },
           { name: '工匠直觉', description: '进行奥秘或工匠工具检定时加 1d4。' },
           { name: '匠师天赋', description: '选择一种工匠工具，获得其熟练。' },
           { name: '魔力制造：修复术', description: '习得修复术戏法。', level: 0 },
@@ -240,7 +259,8 @@ export const races: Race[] = [
       {
         id: 'mark-of-sentinel',
         name: '守护龙纹人类',
-        description: '守护龙纹人类攜带着坚不可摧之叹息之墙的守卫龙纹。他们直觉感官极其锐利，关键时刻能挺身而出、替换替友承受重创，是用肉躯与护盾捍卫誓言的钢铁人墙。',
+        description: '守护龙纹人类携带着坚不可摧之叹息之墙的守卫龙纹。他们直觉感官极其锐利，关键时刻能挺身而出、替换替友承受重创，是用肉躯与护盾捍卫誓言的钢铁人墙。',
+        replaceBaseAsi: true,
         abilityBonuses: [{ ability: 'CON', bonus: 2 }, { ability: 'WIS', bonus: 1 }],
         traits: [
           { name: '哨兵直觉', description: '进行洞悉或察觉检定时加 1d4。' },
@@ -254,8 +274,10 @@ export const races: Race[] = [
         id: 'mark-of-passage',
         name: '通行龙纹人类',
         description: '通行龙纹人类携带着能操纵空间折叠、运动无阻的移动之龙纹。他们移速如飞，能于战场上踏碎虚空，自如施展迷踪步，是冲锋陷阵、纵横无阻的战地信使。',
+        replaceBaseAsi: true,
         abilityBonuses: [{ ability: 'DEX', bonus: 2 }],
         traits: [
+          { name: '属性提升', description: '除了敏捷提升 2 点，另外一项你所选择的不同属性增加 1。', choices: [ { id: 'mark-of-passage-asi', name: '选择一项属性提升 (+1)', chooseNumber: 1, dynamic: 'asi' } ] },
           { name: '邮差之速', description: '基础步行速度为35尺。' },
           { name: '运动直觉', description: '体操或陆运载具检定加 1d4。' },
           { name: '魔法通道', description: '可施展迷踪步。' }
@@ -336,13 +358,7 @@ export const races: Race[] = [
             id: 'changeling-asi',
             name: '选择一项其他属性提升 1 点 (除魅力)',
             chooseNumber: 1,
-            options: [
-              { id: 'asi-STR', name: '力量 +1' },
-              { id: 'asi-DEX', name: '敏捷 +1' },
-              { id: 'asi-CON', name: '体质 +1' },
-              { id: 'asi-INT', name: '智力 +1' },
-              { id: 'asi-WIS', name: '感知 +1' }
-            ]
+            dynamic: 'asi'
           }
         ]
       },
@@ -471,8 +487,8 @@ export const races: Race[] = [
   },
   {
     id: 'warforged',
-    name: '机关人',
-    description: '机关人是专为“终末战争”战斗所需而制造的类人构造体。他们由活化纤维、精钢等有机和无机物混合制成，能够感受情感和痛楚。生来为武器的他们，如今必须去寻找战争之外的目标和意义。',
+    name: '战俑',
+    description: '战俑是专为“终末战争”战斗所需而制造的类人构造体。他们由活化纤维、精钢等有机和无机物混合制成，能够感受情感和痛楚。生来为武器的他们，如今必须去寻找战争之外的目标和意义。',
     abilityBonuses: [{ ability: 'CON', bonus: 2 }],
     size: 'Medium',
     speed: 30,
@@ -487,17 +503,11 @@ export const races: Race[] = [
             id: 'warforged-asi',
             name: '选择一项其他属性提升 1 点 (除体质)',
             chooseNumber: 1,
-            options: [
-              { id: 'asi-STR', name: '力量 +1' },
-              { id: 'asi-DEX', name: '敏捷 +1' },
-              { id: 'asi-INT', name: '智力 +1' },
-              { id: 'asi-WIS', name: '感知 +1' },
-              { id: 'asi-CHA', name: '魅力 +1' }
-            ]
+            dynamic: 'asi'
           }
         ]
       },
-      { name: '免疫衰老', description: '你免疫一切魔法造成的衰老效果。机关人的最大寿命仍然是个谜，他们不会因衰老而出现任何退化迹象。' },
+      { name: '免疫衰老', description: '你免疫一切魔法造成的衰老效果。战俑的最大寿命仍然是个谜，他们不会因衰老而出现任何退化迹象。' },
       { name: '构装韧性', description: '你被创造出来时就被赋予了非凡的韧性：你在避免陷入中毒状态的豁免检定中具有优势，且对毒素伤害具有抗性。你不需要进食、饮水或呼吸。你免疫疾病。你不需要睡眠，且魔法无法让你陷入沉睡。' },
       { name: '哨兵休眠', description: '当你进行长休时，你必须至少花费 6 小时保持在不活跃的静止状态来代替睡眠。你在这期间看起来像彻底死寂瘫痪，但这并不会让你陷入昏迷，你能像平常一样运用你的视觉和听觉。' },
       { name: '复合护甲', description: '你身体内置有防护层，你的护甲等级获得 +1 加值。你只能穿戴自己已获得熟练的护甲；要将盾牌以外的可用护甲穿上，你必须花费 1 小时将其与你的身体结合；脱下也同样需要 1 小时。这穿脱的 1 小时计算入休息时间内。只要你还活着，结合在你身上的护甲就不能违背你的意愿被取下。' },
@@ -510,12 +520,6 @@ export const races: Race[] = [
             name: '选择一项技能',
             chooseNumber: 1,
             dynamic: 'skill'
-          },
-          {
-            id: 'warforged-tool',
-            name: '选择一项工具',
-            chooseNumber: 1,
-            dynamic: 'tool'
           }
         ]
       },

@@ -35,7 +35,7 @@ export const PURE_MASKED_APPEARANCES = [
 ];
 
 // ===================== 共用外貌特征库（泛用，不受种族性别限制） =====================
-import { getAvailableRaces } from '../../utils/raceHelper';
+import { getAvailableRaces } from '../../utils/dataHelper';
 
 export const UNIVERSAL_APPEARANCE_FEATURES = [
   "总是戴着一副深色护目镜，遮住了大部分眉眼",

@@ -42,18 +42,32 @@ export function OriginStep() {
 
   // 生成属性加值文本
   const getAbilityBonusText = (race: any) => {
-    if (!race || !race.abilityBonuses?.length) return '';
-    const abilityMap: Record<string, string> = {
-      'STR': '力量',
-      'DEX': '敏捷',
-      'CON': '体质',
-      'INT': '智力',
-      'WIS': '感知',
-      'CHA': '魅力'
-    };
-    return race.abilityBonuses
-      .map((b: any) => `${abilityMap[b.ability] || b.ability} +${b.bonus}`)
-      .join('，');
+    if (!race) return '';
+    let text = '';
+    if (race.abilityBonuses?.length) {
+      const abilityMap: Record<string, string> = {
+        'STR': '力量', 'DEX': '敏捷', 'CON': '体质',
+        'INT': '智力', 'WIS': '感知', 'CHA': '魅力'
+      };
+      text = race.abilityBonuses
+        .map((b: any) => `${abilityMap[b.ability] || b.ability} +${b.bonus}`)
+        .join('，');
+    }
+    
+    // Check for dynamic ASI traits
+    const hasDynamicAsi = race.traits?.some((t: any) => 
+      t.choices?.some((c: any) => c.dynamic === 'asi')
+    );
+    
+    if (hasDynamicAsi) {
+      if (text) {
+        text += '，以及自选属性提升';
+      } else {
+        text = '自选属性提升';
+      }
+    }
+    
+    return text || '无';
   };
 
   return (
@@ -90,9 +104,9 @@ export function OriginStep() {
                 {race.source && <DictyTwisterLink type="race" name={race.name} source={race.source} />}
               </div>
               <p className="text-stone-600 mt-2 text-xs leading-relaxed font-sans">{race.description}</p>
-              {race.abilityBonuses?.length > 0 && (
+              {getAbilityBonusText(race) !== '无' && (
                 <p className="text-[10px] text-stone-500 mt-2 font-sans">
-                  属性加值：{race.id === 'human' && state.character.subraceId === 'human-variant' ? '(已被变体替换)' : getAbilityBonusText(race)}
+                  属性加值：{(state.character.raceId === race.id && selectedSubrace?.replaceBaseAsi) ? '(已被变体替换)' : getAbilityBonusText(race)}
                 </p>
               )}
             </div>
@@ -123,8 +137,11 @@ export function OriginStep() {
                   {subrace.source && <DictyTwisterLink type="race" name={`${selectedRace.name} (${subrace.name.replace(selectedRace.name, '').trim()})`} source={subrace.source} />}
                 </div>
                 <p className="text-stone-600 mt-2 text-xs leading-relaxed font-sans">{subrace.description}</p>
-                {subrace.abilityBonuses?.length > 0 && (
-                  <p className="text-[10px] text-stone-500 mt-2 font-sans">额外属性：{getAbilityBonusText(subrace)}</p>
+                {getAbilityBonusText(subrace) !== '无' && (
+                  <p className="text-[10px] text-stone-500 mt-2 font-sans">
+                    {subrace.replaceBaseAsi ? '属性加值：' : '额外属性：'}
+                    {getAbilityBonusText(subrace)}
+                  </p>
                 )}
               </div>
             ))}

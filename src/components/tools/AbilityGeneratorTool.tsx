@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Ability, Race, DndClass } from '../../types/dnd';
-import { races } from '../../data/races';
-import { classes } from '../../data/classes';
 import { isSourceEnabled } from '../../utils/expansionHelper';
-import { getAvailableRaces } from '../../utils/raceHelper';
+import { getAvailableRaces, getAvailableClasses } from '../../utils/dataHelper';
 import { Dices, ListChecks, Coins, PenTool, RefreshCw, Star, Info } from 'lucide-react';
 
 const ABILITIES: { id: Ability; label: string; name: string; desc: string }[] = [
@@ -38,7 +36,7 @@ export function AbilityGeneratorTool({ onClose }: AbilityGeneratorToolProps) {
   // Filtered lists of races and classes based on active expansions
   const enabledRaces = getAvailableRaces();
 
-  const enabledClasses = classes.filter(c => isSourceEnabled(c.source || 'phb', 'classes'));
+  const enabledClasses = getAvailableClasses();
 
   // Selected Race details
   const activeRace = enabledRaces.find(r => r.id === selectedRaceId);

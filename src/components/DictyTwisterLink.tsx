@@ -1,8 +1,8 @@
 /**
- * Wiki 外部链接组件与规范说明
+ * 5etools 外部链接组件与规范说明
  * 
  * 格式要求和规范：
- * 1. 当文本中需要出现指向具体规则、职业、物品、法术的外部Wiki链接时，应该使用统一的超链接系统。
+ * 1. 当文本中需要出现指向具体规则、职业、物品、法术的外部链接时，应该使用统一的超链接系统。
  * 2. 如果你在描述文本 (如 JSON 的 description 字段) 中直接嵌入链接，请使用 Markdown 格式：
  *    例如：`[工匠工具](https://5e.dickytwister.org/items.html#工匠工具_phb)`
  *    带有子分类状态的链接：`[狂野魔法浪涌表](https://5e.dickytwister.org/classes.html#术士_phb,state:sub-wild-magic-phb=b1)`
@@ -105,7 +105,7 @@ export function CustomSpellInput({ choiceId, maxCount = 2, title = "自定义法
         </span>
       </div>
       <div className="text-xs text-stone-500 mb-3 flex items-center">
-        你可以在这里手动填写或记录法术。参考Wiki法术列表:
+        你可以在这里手动填写或记录法术。参考官方法术列表:
         <DictyTwisterLink type="rule" name="spells.html" source="" label="法术总表" />
       </div>
       

@@ -25,8 +25,8 @@ export function CharacterSummary() {
   // 根据法术 ID 获取名称的辅助函数
   const getSpellName = (id: string) => allSpells.find(s => s.id === id)?.name || id;
 
-  const conMod = Math.floor((c.baseAbilities.CON + ((race?.id === 'human' && subrace?.id === 'human-variant') ? 0 : (race?.abilityBonuses?.find(b => b.ability === 'CON')?.bonus || 0)) + (subrace?.abilityBonuses?.find(b => b.ability === 'CON')?.bonus || 0) - 10) / 2);
-  const dexMod = Math.floor((c.baseAbilities.DEX + ((race?.id === 'human' && subrace?.id === 'human-variant') ? 0 : (race?.abilityBonuses?.find(b => b.ability === 'DEX')?.bonus || 0)) + (subrace?.abilityBonuses?.find(b => b.ability === 'DEX')?.bonus || 0) - 10) / 2);
+  const conMod = Math.floor((c.baseAbilities.CON + ((subrace?.replaceBaseAsi) ? 0 : (race?.abilityBonuses?.find(b => b.ability === 'CON')?.bonus || 0)) + (subrace?.abilityBonuses?.find(b => b.ability === 'CON')?.bonus || 0) - 10) / 2);
+  const dexMod = Math.floor((c.baseAbilities.DEX + ((subrace?.replaceBaseAsi) ? 0 : (race?.abilityBonuses?.find(b => b.ability === 'DEX')?.bonus || 0)) + (subrace?.abilityBonuses?.find(b => b.ability === 'DEX')?.bonus || 0) - 10) / 2);
   
   const hpPerLevelBonus = c.subraceId === 'hill-dwarf' ? 1 : 0;
   const hitDie = cls?.hitDie || 8;
@@ -91,7 +91,7 @@ export function CharacterSummary() {
             {(['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'] as Ability[]).map((ab) => {
               const val = c.baseAbilities[ab] || 10;
               const baseVal = val;
-              const bonus = (race?.id === 'human' && subrace?.id === 'human-variant') ? 0 : (race?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0);
+              const bonus = (subrace?.replaceBaseAsi) ? 0 : (race?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0);
               const subBonus = subrace?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0;
               const asiBonus = Object.values(c.traitSelections).flat().filter(id => id === `asi-${ab}`).length;
               
@@ -169,9 +169,24 @@ export function CharacterSummary() {
             ))}
             {bg && (
               <li className="flex flex-col text-xs border-l-2 border-stone-300 pl-2">
-                <span className="font-semibold text-stone-800 text-sm mb-0.5">{bg.feature.name}</span>
-                <span className="text-stone-500 leading-relaxed font-sans">{bg.feature.description}</span>
+                <span className="font-semibold text-stone-800 text-sm mb-0.5">{bg.name}背景</span>
+                {bg.skillProficiencies.length > 0 && (
+                  <div className="text-xs font-sans text-stone-600 mt-1">
+                    <span className="font-semibold">技能熟练项: </span>
+                    <span>{bg.skillProficiencies.map(s => SKILL_NAMES[s as keyof typeof SKILL_NAMES] || s).join('、')}</span>
+                  </div>
+                )}
+                {bg.toolProficiencies.length > 0 && (
+                  <div className="text-xs font-sans text-stone-600 mt-0.5">
+                    <span className="font-semibold">工具熟练项: </span>
+                    <span>{bg.toolProficiencies.join('、')}</span>
+                  </div>
+                )}
                 {bg.choices?.map(choice => renderChoiceSelection(choice, c.traitSelections))}
+                <div className="mt-2 border-t border-stone-200/60 pt-1.5">
+                  <span className="font-semibold text-stone-800 text-xs mb-0.5 block">{bg.feature.name}</span>
+                  <span className="block text-stone-500 leading-relaxed font-sans">{bg.feature.description}</span>
+                </div>
               </li>
             )}
             {[

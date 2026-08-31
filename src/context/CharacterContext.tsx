@@ -8,7 +8,7 @@ type Action =
   | { type: 'SET_CURRENT_STEP'; payload: number }
   | { type: 'UPDATE_BASIC_INFO'; payload: Partial<CharacterData> }
   | { type: 'SET_RACE'; payload: { raceId: string; subraceId?: string; raceSource?: string } }
-  | { type: 'SET_CLASS'; payload: { classId: string; subclassId?: string } }
+  | { type: 'SET_CLASS'; payload: { classId: string; subclassId?: string; classSource?: string } }
   | { type: 'SET_SUBCLASS'; payload: string }
   | { type: 'SET_BACKGROUND'; payload: string }
   | { type: 'SET_ABILITIES'; payload: Record<Ability, number> }
@@ -48,6 +48,7 @@ const initialState: State = {
     fullBodyUrl: '',
     raceId: '',
     classId: '',
+    classSource: '',
     backgroundId: '',
     baseAbilities: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
     skillSelections: [],
@@ -89,7 +90,7 @@ function reducer(state: State, action: Action): State {
       return { ...state, character: { ...state.character, raceId: action.payload.raceId, raceSource: action.payload.raceSource, subraceId: action.payload.subraceId } };
     }
     case 'SET_CLASS': {
-      if (state.character.classId !== action.payload.classId) {
+      if (state.character.classId !== action.payload.classId || state.character.classSource !== action.payload.classSource) {
         const newTraits = { ...state.character.traitSelections };
         if (state.character.classId) {
           Object.keys(newTraits).forEach(k => {
@@ -101,9 +102,9 @@ function reducer(state: State, action: Action): State {
         delete newTraits['spells-step-prepared'];
         delete newTraits['spells-step-unrestricted'];
         delete newTraits['spells-step-restricted'];
-        return { ...state, character: { ...state.character, classId: action.payload.classId, subclassId: action.payload.subclassId, traitSelections: newTraits } };
+        return { ...state, character: { ...state.character, classId: action.payload.classId, classSource: action.payload.classSource, subclassId: action.payload.subclassId, traitSelections: newTraits } };
       }
-      return { ...state, character: { ...state.character, classId: action.payload.classId, subclassId: action.payload.subclassId } };
+      return { ...state, character: { ...state.character, classId: action.payload.classId, classSource: action.payload.classSource, subclassId: action.payload.subclassId } };
     }
     case 'SET_SUBCLASS': {
       if (state.character.subclassId !== action.payload) {

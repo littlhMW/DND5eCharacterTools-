@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { generateXgeBackstory } from '../../utils/xgeLifeGenerator';
+import { getAvailableClasses, getAvailableBackgrounds } from '../../utils/dataHelper';
 
 interface XgeModalProps {
   open: boolean;
@@ -14,8 +15,10 @@ interface XgeModalProps {
   setXgePreviewAge: React.Dispatch<React.SetStateAction<string | number>>;
   xgePreviewChaMod: string | number;
   setXgePreviewChaMod: React.Dispatch<React.SetStateAction<string | number>>;
-  classes: any[];
-  backgrounds: any[];
+  useExpandedXge: boolean;
+  setUseExpandedXge: (val: boolean) => void;
+  useNonPhbSupportXge: boolean;
+  setUseNonPhbSupportXge: (val: boolean) => void;
 }
 
 export function XgeModal({
@@ -31,9 +34,20 @@ export function XgeModal({
   setXgePreviewAge,
   xgePreviewChaMod,
   setXgePreviewChaMod,
-  classes,
-  backgrounds
+  useExpandedXge,
+  setUseExpandedXge,
+  useNonPhbSupportXge,
+  setUseNonPhbSupportXge
 }: XgeModalProps) {
+  const [classes, setClasses] = useState<any[]>([]);
+  const [backgrounds, setBackgrounds] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      setClasses(getAvailableClasses());
+      setBackgrounds(getAvailableBackgrounds());
+    }
+  }, [open]);
   if (!open) return null;
 
   return (
@@ -57,14 +71,16 @@ export function XgeModal({
         </div>
 
         <div className="space-y-4">
-          <div className="flex flex-col gap-2 bg-amber-50/50 p-2 rounded border border-amber-200">
+          <div className="flex flex-col gap-2 bg-amber-50/50 p-2 rounded border border-amber-200 text-left">
             <div className="flex items-start gap-2">
               <input 
                 type="checkbox"
                 id="xgeNonPhbSupportToggle"
-                checked={localStorage.getItem('useNonPhbSupportXge') !== 'false'}
+                checked={useNonPhbSupportXge}
                 onChange={(e) => {
-                  localStorage.setItem('useNonPhbSupportXge', String(e.target.checked));
+                  const checked = e.target.checked;
+                  localStorage.setItem('useNonPhbSupportXge', String(checked));
+                  setUseNonPhbSupportXge(checked);
                   setXgePreviewText(xgePreviewText + ' ');
                   setTimeout(() => setXgePreviewText((prev) => prev.trim()), 0);
                 }}
@@ -81,9 +97,11 @@ export function XgeModal({
               <input 
                 type="checkbox"
                 id="xgeExpandedToggle"
-                checked={localStorage.getItem('useExpandedXge') === 'true'}
+                checked={useExpandedXge}
                 onChange={(e) => {
-                  localStorage.setItem('useExpandedXge', String(e.target.checked));
+                  const checked = e.target.checked;
+                  localStorage.setItem('useExpandedXge', String(checked));
+                  setUseExpandedXge(checked);
                   setXgePreviewText(xgePreviewText + ' ');
                   setTimeout(() => setXgePreviewText((prev) => prev.trim()), 0);
                 }}
@@ -92,14 +110,14 @@ export function XgeModal({
               <label htmlFor="xgeExpandedToggle" className="text-xs font-semibold text-amber-900 cursor-pointer flex-1">
                 启用个人故事扩展（非官方内容）
                 <span className="block text-[10px] text-amber-700/80 font-normal mt-0.5">
-                  解锁数倍于原版的自制随机背景、奇遇、命运波澜。
+                  解锁数倍于原版的自制随机 background、奇遇、命运波澜。
                 </span>
               </label>
             </div>
           </div>
 
           <div className="flex gap-4">
-            <div className="flex-1">
+            <div className="flex-1 text-left">
               <label className="block text-xs font-semibold text-stone-700 mb-1.5">
                 选择职业：
               </label>
@@ -109,7 +127,7 @@ export function XgeModal({
                 className="w-full text-xs bg-white border border-stone-200 rounded px-2.5 py-1.5 focus:border-amber-500 focus:outline-none cursor-pointer h-[34px]"
               >
                 <option value="">(空缺则随机)</option>
-                {localStorage.getItem('useNonPhbSupportXge') !== 'false' 
+                {useNonPhbSupportXge 
                   ? classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)
                   : [
                       {id: 'barbarian', name: '野蛮人'},
@@ -138,7 +156,7 @@ export function XgeModal({
                 className="w-full text-xs bg-white border border-stone-200 rounded px-2.5 py-1.5 focus:border-amber-500 focus:outline-none cursor-pointer h-[34px]"
               >
                 <option value="">(空缺则随机)</option>
-                {localStorage.getItem('useNonPhbSupportXge') !== 'false' 
+                {useNonPhbSupportXge 
                   ? backgrounds.map(b => <option key={b.id} value={b.id}>{b.name}</option>)
                   : [
                       {id: 'acolyte', name: '侍祭'},
@@ -193,8 +211,8 @@ export function XgeModal({
             </span>
             <button
               onClick={() => {
-                const useExpanded = localStorage.getItem('useExpandedXge') === 'true';
-                const useNonPhbSupport = localStorage.getItem('useNonPhbSupportXge') !== 'false';
+                const useExpanded = useExpandedXge;
+                const useNonPhbSupport = useNonPhbSupportXge;
                 const ctx = { 
                   backgroundId: xgePreviewBg, 
                   classId: xgePreviewClass,

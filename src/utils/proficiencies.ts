@@ -41,7 +41,7 @@ export const SKILL_NAMES: Record<string, string> = {
 export function getAbilityTotal(c: Character, race?: Race, subrace?: Subrace, ab?: Ability) {
   if (!ab) return 10;
   const base = c.baseAbilities[ab] || 10;
-  const raceBonus = (race?.id === 'human' && subrace?.id === 'human-variant') ? 0 : (race?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0);
+  const raceBonus = (subrace?.replaceBaseAsi) ? 0 : (race?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0);
   const subraceBonus = subrace?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0;
   return base + raceBonus + subraceBonus;
 }

@@ -84,12 +84,6 @@ export const races: Race[] = [
             { id: 'performance', name: '表演' },
             { id: 'sleightOfHand', name: '巧手' }
           ]
-        },
-        {
-          id: 'vedalken-tool',
-          name: '选择一样工具 (记录下工具名)',
-          chooseNumber: 1,
-          dynamic: 'tool'
         }
       ] },
       { name: '部分两栖', description: '在水下呼吸长达1小时。' }

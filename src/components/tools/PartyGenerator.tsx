@@ -3,9 +3,7 @@ import { Users, RefreshCw, User, Compass, HeartHandshake, Sparkles, Shuffle, Use
 import { generateRandomName } from '../../utils/nameGenerator';
 import { generatePartyNameWithRules } from '../../utils/partyNameGenerator';
 import { generateTitle } from '../../utils/titleGenerator';
-import { races } from '../../data/races';
-import { classes } from '../../data/classes';
-import { isSourceEnabled } from '../../utils/expansionHelper';
+import { getAvailableRaces, getAvailableClasses, getAvailableBackgrounds } from '../../utils/dataHelper';
 import { useCharacter } from '../../context/CharacterContext';
 import { getAIConfig, generatePartyBiography } from '../../utils/aiHelper';
 import { FormattedDescription } from '../shared/FormattedDescription';
@@ -20,8 +18,6 @@ import {
   GOOD_EVIL_AXIS,
   generateCoreAppearanceAndPersonality
 } from './AppearancePersonalityGenerator';
-import { getAvailableRaces } from '../../utils/raceHelper';
-import { backgrounds } from '../../data/backgrounds';
 
 interface PartyMember {
   id: string;
@@ -245,8 +241,8 @@ function generateMember(raceList: any[], classList: any[]): PartyMember {
   });
 
   // 2. Call character generator (smart attributes distribution & background choosing)
-  const validBackgrounds = backgrounds.filter(b => isSourceEnabled(b.source || 'phb', 'backgrounds'));
-  const availableBackgrounds = validBackgrounds.length > 0 ? validBackgrounds : backgrounds.filter(b => b.source === 'phb' || b.id === 'soldier');
+  const validBackgrounds = getAvailableBackgrounds();
+  const availableBackgrounds = validBackgrounds.length > 0 ? validBackgrounds : getAvailableBackgrounds();
   const randomBg = availableBackgrounds[Math.floor(Math.random() * availableBackgrounds.length)];
 
   const stdScores = [15, 14, 13, 12, 10, 8];
@@ -497,9 +493,9 @@ ${relationStories}
 ${howOthersSeeMe}`;
 
     // Attempt to match race and class to auto-configure builder options
-    const matchedRace = races.find(r => r.name === m.race || (r.subraces && r.subraces.some(sr => sr.name === m.race)));
+    const matchedRace = getAvailableRaces().find(r => r.name === m.race || (r.subraces && r.subraces.some(sr => sr.name === m.race)));
     const matchedSubrace = matchedRace?.subraces?.find(sr => sr.name === m.race);
-    const matchedCls = classes.find(c => c.name === m.className);
+    const matchedCls = getAvailableClasses().find(c => c.name === m.className);
 
     return {
       id: crypto.randomUUID ? crypto.randomUUID() : `mbr-${Math.random().toString(36).substring(2, 9)}`,
@@ -597,13 +593,8 @@ ${howOthersSeeMe}`;
     setIsGeneratingBiography(false);
 
     // Generate filtered arrays prioritizing enabled expansions/alternatives
-    const enabledRaces = getAvailableRaces();
-
-    const enabledClasses = classes.filter(c => isSourceEnabled(c.source || 'phb', 'classes'));
-
-    // Fallbacks if lists become empty due to all expansions disabled
-    const availableRaces = enabledRaces.length > 0 ? enabledRaces : races.filter(r => r.source === 'phb' || r.id === 'human');
-    const availableClasses = enabledClasses.length > 0 ? enabledClasses : classes.filter(c => c.source === 'phb' || c.id === 'fighter');
+    const availableRaces = getAvailableRaces();
+    const availableClasses = getAvailableClasses();
 
     const pName = generatePartyNameWithRules();
     let acronym = "TEAM";

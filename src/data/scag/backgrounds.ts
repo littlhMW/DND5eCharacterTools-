@@ -105,8 +105,21 @@ export const backgrounds: Background[] = [
     id: "urban_bounty_hunter",
     name: "城市赏金猎人",
     description: "你经常与那些你猎物所在社会阶层的人们接触。这些人们可能会关联于某个罪犯里世界、街头暴徒、或是上流社会的成员。",
-    skillProficiencies: ['deception', 'insight', 'persuasion', 'stealth'], // Choose 2, handled in UI normally, we list all possible
-    toolProficiencies: ["一种赌具", "一种乐器", "盗贼工具"], // Choose 2
+    skillProficiencies: [],
+    toolProficiencies: [],
+    choices: [
+      {
+        id: 'urban-bounty-hunter-skills',
+        name: '技能熟练 (任选二)',
+        chooseNumber: 2,
+        options: [
+          { id: 'deception', name: '欺瞒', description: '魅力' },
+          { id: 'insight', name: '洞悉', description: '感知' },
+          { id: 'persuasion', name: '说服', description: '魅力' },
+          { id: 'stealth', name: '隐匿', description: '敏捷' }
+        ]
+      }
+    ],
     languages: 0,
     startingEquipment: ["一套符合你任务的服装", "20 gp"],
     feature: {
@@ -205,8 +218,20 @@ export const backgrounds: Background[] = [
     id: "inheritor",
     name: "继承者",
     description: "你继承了一件具有特殊意义的遗物。和你的DM一起讨论并决定其细节：你的继承物为什么如此重要，它的来龙去脉又是什么？",
-    skillProficiencies: ['survival', 'arcana', 'history', 'religion'], // Survival + 1 from Arcana/History/Religion
-    toolProficiencies: ["一种赌具或乐器"],
+    skillProficiencies: ['survival'],
+    toolProficiencies: [],
+    choices: [
+      {
+        id: 'inheritor-skills',
+        name: '技能熟练 (任选一)',
+        chooseNumber: 1,
+        options: [
+          { id: 'arcana', name: '奥秘', description: '智力' },
+          { id: 'history', name: '历史', description: '智力' },
+          { id: 'religion', name: '宗教', description: '智力' }
+        ]
+      }
+    ],
     languages: 1,
     startingEquipment: ["你所继承的遗产", "一套旅行者服装", "继承的工具", "15 gp"],
     feature: {
@@ -255,8 +280,21 @@ export const backgrounds: Background[] = [
     id: "knight_of_the_order",
     name: "教团骑士",
     description: "你属于一个具有理想或宗教性质的骑士团，代表其执行任务并行使它的意志。",
-    skillProficiencies: ['persuasion', 'arcana', 'history', 'nature', 'religion'], // Persuasion + 1 from others
-    toolProficiencies: ["一种赌具或乐器"],
+    skillProficiencies: ['persuasion'],
+    toolProficiencies: [],
+    choices: [
+      {
+        id: 'knight-order-skills',
+        name: '技能熟练 (任选一)',
+        chooseNumber: 1,
+        options: [
+          { id: 'arcana', name: '奥秘', description: '智力' },
+          { id: 'history', name: '历史', description: '智力' },
+          { id: 'nature', name: '自然', description: '智力' },
+          { id: 'religion', name: '宗教', description: '智力' }
+        ]
+      }
+    ],
     languages: 1,
     startingEquipment: ["一套旅行者服装", "代表你在教团中地位的印信", "10 gp"],
     feature: {
@@ -305,8 +343,30 @@ export const backgrounds: Background[] = [
     id: "faction_agent",
     name: "派系特工",
     description: "作为一名派系特工，你为某个秘密或公开的阵营服务，推行它们的理念。",
-    skillProficiencies: ['insight', '智力/感知/魅力技能'], // Insight + 1
+    skillProficiencies: ['insight'],
     toolProficiencies: [],
+    choices: [
+      {
+        id: 'faction-agent-skills',
+        name: '技能熟练 (任选一)',
+        chooseNumber: 1,
+        options: [
+          { id: 'arcana', name: '奥秘', description: '智力' },
+          { id: 'history', name: '历史', description: '智力' },
+          { id: 'investigation', name: '调查', description: '智力' },
+          { id: 'nature', name: '自然', description: '智力' },
+          { id: 'religion', name: '宗教', description: '智力' },
+          { id: 'animal-handling', name: '驯兽', description: '感知' },
+          { id: 'medicine', name: '医药', description: '感知' },
+          { id: 'perception', name: '察觉', description: '感知' },
+          { id: 'survival', name: '生存', description: '感知' },
+          { id: 'deception', name: '欺瞒', description: '魅力' },
+          { id: 'intimidation', name: '威吓', description: '魅力' },
+          { id: 'performance', name: '表演', description: '魅力' },
+          { id: 'persuasion', name: '说服', description: '魅力' }
+        ]
+      }
+    ],
     languages: 2,
     startingEquipment: ["派系的徽章", "派系文件/密文", "一套寻常服装", "15 gp"],
     feature: {
@@ -504,8 +564,20 @@ export const backgrounds: Background[] = [
   {
     id: "cloistered_scholar",
     name: "修院学士",
-    description: "你在与世隔绝的修道院或图书馆中度过了大量时光，掌握了探寻知识的途径。",
-    skillProficiencies: ['history', 'arcana', 'nature', 'religion'], // History + 1 others
+    description: "你能免费且轻易地使用图书馆中大部分的内容。",
+    skillProficiencies: ['history'],
+    choices: [
+      {
+        id: 'cloistered-scholar-skills',
+        name: '技能熟练 (任选一)',
+        chooseNumber: 1,
+        options: [
+          { id: 'arcana', name: '奥秘', description: '智力' },
+          { id: 'nature', name: '自然', description: '智力' },
+          { id: 'religion', name: '宗教', description: '智力' }
+        ]
+      }
+    ], // History + 1 others
     toolProficiencies: [],
     languages: 2,
     startingEquipment: ["学士长袍", "书写工具组", "一本借来的书", "10 gp"],

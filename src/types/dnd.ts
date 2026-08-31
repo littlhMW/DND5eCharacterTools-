@@ -4,6 +4,8 @@ export interface TraitOption {
   id: string;
   name: string;
   description?: string;
+  level?: number;
+  subclassId?: string;
 }
 
 export interface TraitChoice {
@@ -55,6 +57,7 @@ export interface Subrace {
   toolProficiencies?: string[];
   skillProficiencies?: string[];
   source?: string;
+  replaceBaseAsi?: boolean;
 }
 
 export interface Race {
@@ -127,6 +130,7 @@ export interface DndClass {
   subclassAvailableAtLevel: number;
   subclasses: Subclass[];
   source: string;
+  alternatives?: DndClass[];
 }
 
 export interface Background {
@@ -139,12 +143,13 @@ export interface Background {
   startingEquipment: string[];
   feature: Trait;
   choices?: TraitChoice[]; // For tool/language/extra skill choices
+  spells?: string[]; // IDs of spells granted or added by this background
   specialty?: {
     name: string;
     description?: string;
     options: string[];
   };
-  suggestedCharacteristics: {
+  suggestedCharacteristics?: {
     personalityTraits: string[];
     ideals: string[];
     bonds: string[];
@@ -186,6 +191,7 @@ export interface CharacterData {
   raceSource?: string;
   subraceId?: string;
   classId: string;
+  classSource?: string;
   subclassId?: string;
   backgroundId: string;
   

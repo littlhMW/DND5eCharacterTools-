@@ -19,6 +19,12 @@ import { backgrounds as gosBackgrounds } from './gos/backgrounds';
 import { backgrounds as bgdiaBackgrounds } from './bgdia/backgrounds';
 import { backgrounds as cosBackgrounds } from './cos/backgrounds';
 import { backgrounds as toaBackgrounds } from './toa/backgrounds';
+import { backgrounds as alcosBackgrounds } from './alcos/backgrounds';
+import { backgrounds as psiBackgrounds } from './psi/backgrounds';
+import { backgrounds as aleeBackgrounds } from './alee/backgrounds';
+import { backgrounds as alrodBackgrounds } from './alrod/backgrounds';
+import { backgrounds as psaBackgrounds } from './psa/backgrounds';
+import { backgrounds as dndbBackgrounds } from './dndb/backgrounds';
 
 export const backgrounds: Background[] = [
   ...phbBackgrounds,
@@ -41,4 +47,10 @@ export const backgrounds: Background[] = [
   ...bgdiaBackgrounds,
   ...cosBackgrounds,
   ...toaBackgrounds,
+  ...alcosBackgrounds,
+  ...psiBackgrounds,
+  ...aleeBackgrounds,
+  ...alrodBackgrounds,
+  ...psaBackgrounds,
+  ...dndbBackgrounds,
 ];

@@ -5,7 +5,20 @@ export const backgrounds: Background[] = [
     id: 'haunted-one',
     name: '受诅者',
     description: '你曾经历过难以想象的恐怖，黑暗在你的灵魂上留下了无法磨灭的印记。无论是因一场悲剧、一次宿命的抉择，还是某个邪恶的存在，你的过去充满了黑暗，而你仍被那些阴影所纠缠。',
-    skillProficiencies: ['arcana', 'investigation', 'religion', 'survival'], // 选择两项
+    skillProficiencies: [],
+    choices: [
+      {
+        id: 'haunted-one-skills',
+        name: '受诅者技能熟练熟练项 (任选二)',
+        chooseNumber: 2,
+        options: [
+          { id: 'arcana', name: '奥秘', description: '智力' },
+          { id: 'investigation', name: '调查', description: '智力' },
+          { id: 'religion', name: '宗教', description: '智力' },
+          { id: 'survival', name: '生存', description: '感知' }
+        ]
+      }
+    ],
     toolProficiencies: [],
     languages: 2, // 两种语言，其中一种必须是异界语言（深渊语、天界语、异界语、龙语、炼狱语、原初语、木族语、地底语）
     startingEquipment: [

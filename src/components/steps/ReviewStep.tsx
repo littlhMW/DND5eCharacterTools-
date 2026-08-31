@@ -58,7 +58,7 @@ export function ReviewStep() {
 
   const getAbilityTotal = (ab: typeof allAbilities[keyof typeof allAbilities] | string) => {
     const base = character.baseAbilities[ab as keyof typeof allAbilities] || 10;
-    const raceBonus = (race?.id === 'human' && subrace?.id === 'human-variant') ? 0 : (race?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0);
+    const raceBonus = (subrace?.replaceBaseAsi) ? 0 : (race?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0);
     const subraceBonus = subrace?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0;
     return base + raceBonus + subraceBonus;
   };

@@ -15,6 +15,8 @@ import { getCleanDescription } from '../utils/customRollTraits';
 import { getLevelFromXp, getTierOfPlay, XP_LEVEL_TABLE, getXpRequiredForLevel } from '../utils/xpLevel';
 import { generateTitle } from '../utils/titleGenerator';
 
+import { getSpellcastingConfig } from './steps/SpellsStep';
+
 const TABS = ['概览', '法术', '状态与装备', '背景与细节'];
 
 export function CharacterSheet() {
@@ -61,7 +63,7 @@ export function CharacterSheet() {
   };
 
   const getMod = (ab: Ability) => {
-    const rBonus = (race?.id === 'human' && subrace?.id === 'human-variant') ? 0 : (race?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0);
+    const rBonus = (subrace?.replaceBaseAsi) ? 0 : (race?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0);
     const srBonus = subrace?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0;
     const asiBonus = getAsiBonus(ab);
     const total = c.baseAbilities[ab] + rBonus + srBonus + asiBonus;
@@ -69,7 +71,7 @@ export function CharacterSheet() {
   };
 
   const getScore = (ab: Ability) => {
-    const rBonus = (race?.id === 'human' && subrace?.id === 'human-variant') ? 0 : (race?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0);
+    const rBonus = (subrace?.replaceBaseAsi) ? 0 : (race?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0);
     const srBonus = subrace?.abilityBonuses?.find(b => b.ability === ab)?.bonus || 0;
     const asiBonus = getAsiBonus(ab);
     return c.baseAbilities[ab] + rBonus + srBonus + asiBonus;
@@ -78,8 +80,10 @@ export function CharacterSheet() {
   const { saves, skills, expertise } = getProficiencies(c, cls, race, subrace, bg);
   const profBonus = getProficiencyBonus(c.level);
 
+  const spellcasting = getSpellcastingConfig(cls, subclass, c.level);
+
   // 职业法术列表 ID（现在 spellList 是字符串）
-  const spellListId = (cls?.spellcasting?.spellList as string) || cls?.id || '';
+  const spellListId = (spellcasting?.spellList as string) || (cls?.spellcasting?.spellList as string) || cls?.id || '';
   const availableSpellsIds = useMemo(() => classSpellLists[spellListId] || [], [spellListId]);
 
   // 已准备法术 ID
@@ -135,7 +139,7 @@ const knownIds = useMemo(() => {
     return Array.from(ids);
   }, [c.traitSelections, race, subrace, finalRaceSpells]);
 
-  const isPreparedCaster = cls?.spellcasting?.type === 'prepared';
+  const isPreparedCaster = spellcasting?.type === 'prepared';
 
   /* ---------- 概览 Tab ---------- */
   const renderMainTab = () => (
@@ -368,7 +372,7 @@ const knownIds = useMemo(() => {
     if (!cls) return <p className="text-stone-500 italic">无职业数据。</p>;
 
     // 当前等级法术位
-    const slotArray = cls.spellcasting?.spellSlots?.[c.level - 1] || [];
+    const slotArray = spellcasting?.spellSlots?.[c.level - 1] || [];
     const maxSlotLevel = slotArray.reduce((max, slots, idx) => slots > 0 ? idx + 1 : max, 0);
 
     // 戏法列表

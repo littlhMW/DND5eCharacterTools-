@@ -8,7 +8,7 @@ import { DictyTwisterLink, CustomSpellInput } from '../DictyTwisterLink';
 import { classes } from '../../data/classes';
 import { races, getRaceByIdAndSource } from '../../data/races';
 import { backgrounds } from '../../data/backgrounds';
-import { feats } from '../../data/feats';
+import { getAvailableFeats, getAvailableSpells } from '../../utils/dataHelper';
 import { getSpellcastingConfig, getMaxSpellLevel, calcExpectedCantrips, calcExpectedKnownSpells, calcMaxPrepared } from '../steps/SpellsStep';
 import { getProficiencies } from '../../utils/proficiencies';
 import { isSourceEnabled } from '../../utils/expansionHelper';
@@ -51,6 +51,31 @@ export const TraitSelection: React.FC<TraitSelectionProps> = ({ choice }) => {
     };
 
     const chooseNum = typeof choice.chooseNumber === 'number' ? choice.chooseNumber : 1;
+    const currentLevel = state.character.level || 1;
+    const currentSubclass = state.character.subclassId;
+
+    // Collect all selected IDs of other choice blocks to prevent duplicate selections (e.g. for Crimson Rites, Mutagens, Blood Curses)
+    const otherSelectedIds = Object.entries(state.character.traitSelections)
+      .filter(([key]) => key !== choice.id)
+      .flatMap(([_, ids]) => ids || []);
+
+    // Filter out options that:
+    // 1. Are subclass-specific if they don't match the current subclass
+    // 2. Require a level greater than the character's current level
+    // 3. Are already selected in some other choice list
+    const filteredOptions = (choice.options || []).filter(option => {
+      if (option.subclassId && currentSubclass !== option.subclassId) {
+        return false;
+      }
+      if (option.level && currentLevel < option.level) {
+        return false;
+      }
+      if (otherSelectedIds.includes(option.id)) {
+        return false;
+      }
+      return true;
+    });
+
     return (
       <div className="mt-4 p-4 bg-white border border-amber-200/50 rounded-md">
         <div className="flex items-center justify-between mb-3">
@@ -62,15 +87,25 @@ export const TraitSelection: React.FC<TraitSelectionProps> = ({ choice }) => {
           </span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-          {(choice.options || []).map(option => {
+          {filteredOptions.map(option => {
             const isSelected = selectedIds.includes(option.id);
-            const isDisabled = !isSelected && selectedIds.length >= chooseNum && chooseNum > 1;
+            const isPrereqUnmet = !!(option.level && currentLevel < option.level);
+            const isDisabled = (!isSelected && selectedIds.length >= chooseNum && chooseNum > 1) || isPrereqUnmet;
+            const cursorClass = isPrereqUnmet ? 'cursor-not-allowed' : 'cursor-pointer';
+
             return (
-              <label key={option.id} className={`flex items-start p-2 rounded-lg border cursor-pointer transition-all ${isSelected ? 'border-amber-500 bg-amber-50/70 ring-1 ring-amber-500/20 shadow-sm' : 'border-stone-200 bg-stone-50/50 hover:bg-stone-100'} ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}>
-                <input type={chooseNum === 1 ? 'radio' : 'checkbox'} disabled={isDisabled} checked={isSelected} onChange={() => handleToggle(option.id)} className="w-3.5 h-3.5 mt-0.5 text-amber-600 rounded border-stone-300 focus:ring-amber-500 cursor-pointer" />
+              <label key={option.id} className={`flex items-start p-2 rounded-lg border ${cursorClass} transition-all ${isSelected ? 'border-amber-500 bg-amber-50/70 ring-1 ring-amber-500/20 shadow-sm' : 'border-stone-200 bg-stone-50/50 hover:bg-stone-100'} ${isDisabled ? 'opacity-40' : ''}`}>
+                <input type={chooseNum === 1 ? 'radio' : 'checkbox'} disabled={isDisabled} checked={isSelected} onChange={() => !isPrereqUnmet && handleToggle(option.id)} className="w-3.5 h-3.5 mt-0.5 text-amber-600 rounded border-stone-300 focus:ring-amber-500 cursor-pointer" />
                 <div className="ml-2.5 min-w-0 flex-1">
-                  <span className="block text-xs font-semibold text-stone-900 truncate" title={option.name}>
-                    {choice.id.includes('equip') ? <EquipmentText text={option.name} /> : option.name}
+                  <span className="flex items-center justify-between text-xs font-semibold text-stone-900 gap-1">
+                    <span className="truncate" title={option.name}>
+                      {choice.id.includes('equip') ? <EquipmentText text={option.name} /> : option.name}
+                    </span>
+                    {isPrereqUnmet && (
+                      <span className="text-[9px] font-medium text-red-600 bg-red-50 border border-red-200 rounded px-1 scale-90 whitespace-nowrap">
+                        需{option.level}级
+                      </span>
+                    )}
                   </span>
                   {option.description && <span className="block text-[10px] text-stone-500 mt-0.5 leading-tight line-clamp-2" title={option.description}>{option.description}</span>}
                 </div>
@@ -193,21 +228,33 @@ export const TraitSelection: React.FC<TraitSelectionProps> = ({ choice }) => {
 
   // ========== 动态属性提升或专长选择 ==========
   if (choice.dynamic === 'asi') {
+    const isCustomLineage = choice.id === 'custom-lineage-asi';
+
     const [activeMode, setActiveMode] = useState<'asi' | 'feat'>(
-      selectedIds.some(id => id.startsWith('feat-')) ? 'feat' : 'asi'
+      isCustomLineage ? 'asi' : (selectedIds.some(id => id.startsWith('feat-')) ? 'feat' : 'asi')
     );
     
-    const isFeatMode = activeMode === 'feat';
-    const isAsiMode = activeMode === 'asi';
+    const isFeatMode = !isCustomLineage && activeMode === 'feat';
+    const isAsiMode = isCustomLineage || activeMode === 'asi';
     const asiPoints = selectedIds.filter(id => id.startsWith('asi-')).length;
     
     // Switch between modes
     const handleSetMode = (mode: 'asi' | 'feat') => {
+      if (isCustomLineage) return;
       setActiveMode(mode);
       dispatch({ type: 'SET_TRAIT_SELECTION', payload: { choiceId: choice.id, selectedIds: [] } });
     };
 
     const handleAsiChange = (ab: string, delta: number) => {
+      if (isCustomLineage) {
+        if (delta > 0) {
+          dispatch({ type: 'SET_TRAIT_SELECTION', payload: { choiceId: choice.id, selectedIds: [`asi-${ab}`, `asi-${ab}`] } });
+        } else {
+          dispatch({ type: 'SET_TRAIT_SELECTION', payload: { choiceId: choice.id, selectedIds: [] } });
+        }
+        return;
+      }
+
       const currentAbPoints = selectedIds.filter(id => id === `asi-${ab}`).length;
       if (delta > 0) {
         if (asiPoints < 2 && currentAbPoints < 2) {
@@ -224,6 +271,7 @@ export const TraitSelection: React.FC<TraitSelectionProps> = ({ choice }) => {
     };
 
     const handleFeatToggle = (featId: string) => {
+      if (isCustomLineage) return;
       const fullId = `feat-${featId}`;
       if (selectedIds.includes(fullId)) {
         dispatch({ type: 'SET_TRAIT_SELECTION', payload: { choiceId: choice.id, selectedIds: [] } });
@@ -245,28 +293,30 @@ export const TraitSelection: React.FC<TraitSelectionProps> = ({ choice }) => {
       <div className="mt-4 p-4 bg-white border border-amber-200/50 rounded-md">
         <div className="flex items-center justify-between mb-3 border-b border-stone-100 pb-3">
           <h6 className="font-semibold text-stone-800">{choice.name || '提升属性或专长'}</h6>
-          <div className="flex bg-stone-100 p-1 rounded-lg">
-            <button
-              className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${isAsiMode ? 'bg-white text-amber-700 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
-              onClick={() => handleSetMode('asi')}
-            >
-              提升属性
-            </button>
-            <button
-              className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${isFeatMode ? 'bg-white text-amber-700 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
-              onClick={() => handleSetMode('feat')}
-            >
-              选择专长
-            </button>
-          </div>
+          {!isCustomLineage && (
+            <div className="flex bg-stone-100 p-1 rounded-lg">
+              <button
+                className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${isAsiMode ? 'bg-white text-amber-700 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+                onClick={() => handleSetMode('asi')}
+              >
+                提升属性
+              </button>
+              <button
+                className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${isFeatMode ? 'bg-white text-amber-700 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+                onClick={() => handleSetMode('feat')}
+              >
+                选择专长
+              </button>
+            </div>
+          )}
         </div>
         
         {isAsiMode ? (
           <div>
             <div className="text-xs text-stone-500 mb-3 flex items-center justify-between">
-              <span>分配两点属性值（可各+1，或单项+2）</span>
+              <span>{isCustomLineage ? '选择一项属性增加 2点' : '分配两点属性值（可各+1，或单项+2）'}</span>
               <span className={`font-mono font-bold ${asiPoints === 2 ? 'text-green-600' : 'text-amber-600'}`}>
-                {asiPoints}/2
+                {isCustomLineage ? `${asiPoints === 2 ? '1/1' : '0/1'}` : `${asiPoints}/2`}
               </span>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -286,8 +336,8 @@ export const TraitSelection: React.FC<TraitSelectionProps> = ({ choice }) => {
                       <span className="text-sm font-mono w-4 text-center">{pts > 0 ? `+${pts}` : '0'}</span>
                       <button
                         onClick={() => handleAsiChange(ab.id, 1)}
-                        disabled={pts >= 2 || asiPoints >= 2}
-                        className={`w-6 h-6 flex items-center justify-center rounded-md border ${pts >= 2 || asiPoints >= 2 ? 'opacity-30 cursor-not-allowed border-stone-200 bg-white' : 'border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-700'}`}
+                        disabled={isCustomLineage ? pts >= 2 : (pts >= 2 || asiPoints >= 2)}
+                        className={`w-6 h-6 flex items-center justify-center rounded-md border ${isCustomLineage ? (pts >= 2 ? 'opacity-30 cursor-not-allowed border-stone-200 bg-white' : 'border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-700') : (pts >= 2 || asiPoints >= 2 ? 'opacity-30 cursor-not-allowed border-stone-200 bg-white' : 'border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-700')}`}
                       >
                         +
                       </button>
@@ -306,7 +356,7 @@ export const TraitSelection: React.FC<TraitSelectionProps> = ({ choice }) => {
               </span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-80 overflow-y-auto pr-2">
-              {feats.filter(f => isSourceEnabled(f.source || 'phb')).map(feat => {
+              {getAvailableFeats().map(feat => {
                 const isSelected = selectedIds.includes(`feat-${feat.id}`);
                 const isDisabled = !isSelected && selectedIds.length >= 1;
                 return (
@@ -370,7 +420,7 @@ export const TraitSelection: React.FC<TraitSelectionProps> = ({ choice }) => {
           </span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-2">
-          {feats.filter(f => isSourceEnabled(f.source || 'phb')).map(feat => {
+          {getAvailableFeats().map(feat => {
             const isSelected = selectedIds.includes(feat.id);
             const isDisabled = !isSelected && selectedIds.length >= chooseNum && chooseNum > 1;
             return (
@@ -482,7 +532,7 @@ export const TraitSelection: React.FC<TraitSelectionProps> = ({ choice }) => {
             <div className="text-xs text-stone-500 leading-relaxed">
               填入你所替换的原种族。你将保留该种族的：任何技能熟练，攀爬、飞行或游泳速度。
               <div className="mt-2 flex items-center">
-                参考Wiki种族列表:
+                参考官方种族列表:
                 <DictyTwisterLink type="rule" name="races.html" source="" label="种族总表" />
               </div>
             </div>
@@ -569,7 +619,8 @@ export const TraitSelection: React.FC<TraitSelectionProps> = ({ choice }) => {
       }
     }
 
-    let availableSpells = allSpells.filter(s => availableSpellIds.includes(s.id) && (dynamicMaxLevel === undefined || s.level <= dynamicMaxLevel));
+    const availableSpellsPool = getAvailableSpells();
+    let availableSpells = availableSpellsPool.filter(s => availableSpellIds.includes(s.id) && (dynamicMaxLevel === undefined || s.level <= dynamicMaxLevel));
     
     // 根据 spellType 过滤显示类型：戏法只选戏法，已知/准备只选1环以上
     if (choice.spellType === 'cantrip') {
@@ -582,7 +633,7 @@ export const TraitSelection: React.FC<TraitSelectionProps> = ({ choice }) => {
     const allSpellsToRender = [...availableSpells];
     preselectedIds.forEach(psId => {
       if (!allSpellsToRender.some(s => s.id === psId)) {
-        const psSpell = allSpells.find(s => s.id === psId);
+        const psSpell = availableSpellsPool.find(s => s.id === psId) || allSpells.find(s => s.id === psId);
         if (psSpell) allSpellsToRender.push(psSpell);
       }
     });

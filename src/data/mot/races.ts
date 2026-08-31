@@ -111,16 +111,7 @@ export const races: Race[] = [
       { name: '冲撞', description: '你可以用你的头部和角进行徒手打击。如果你击中目标，你造成钝击伤害，数值为 1d4 + 你的力量调整值。' },
       { name: '魔法抗性', description: '你在对抗法术和其他魔法效果的豁免检定中具有优势。' },
       { name: '欢悦跳跃', description: '每当你进行长跳或高跳时，你可以骰一个 d8 并将骰出的数值加到你可跳跃的尺数上，即使在原地起跳时也可以。此额外距离正常消耗移动力。' },
-      { name: '狂欢者', description: '你拥有表演和说服技能的熟练项，并且拥有一项自选乐器熟练项。',
-        choices: [
-          {
-            id: 'satyr-instrument',
-            name: '选择一种乐器',
-            chooseNumber: 1,
-            dynamic: 'tool'
-          }
-        ]
-      }
+      { name: '狂欢者', description: '你拥有表演和说服技能的熟练项，并且拥有一项自选乐器熟练项。' }
     ],
     spells: [],
     skillProficiencies: ['performance', 'persuasion'],

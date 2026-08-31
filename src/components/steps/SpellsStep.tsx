@@ -4,8 +4,10 @@ import { classes } from '../../data/classes';
 import { spells as allSpells } from '../../data/spells';
 import { classSpellLists } from '../../data/spellLists';
 import { isSourceEnabled } from '../../utils/expansionHelper';
+import { getAvailableSpells } from '../../utils/dataHelper';
 import { DictyTwisterLink } from '../DictyTwisterLink';
 import { races, getRaceByIdAndSource } from '../../data/races';
+import { backgrounds } from '../../data/backgrounds';
 
 export function getMaxSpellLevel(spellSlots: number[][], level: number) {
   const idx = Math.min(level - 1, spellSlots.length - 1);
@@ -152,9 +154,19 @@ const autoSpells = useMemo(() => {
   return Array.from(ids);
 }, [c.traitSelections, cls]);
 
+  const bg = backgrounds.find(b => b.id === c.backgroundId);
+
   // 关键修正：spellList 现在应该是字符串，直接使用；如果没有，退回到职业 id
   const spellListId = spellcasting?.spellList || cls?.id || '';
-  const availableIds = classSpellLists[spellListId] || [];
+  const availableIds = [...(classSpellLists[spellListId] || [])];
+  
+  if (bg?.spells) {
+    bg.spells.forEach(s => {
+      if (!availableIds.includes(s)) {
+        availableIds.push(s);
+      }
+    });
+  }
 
   const selectedPrepared = useMemo(() => c.traitSelections['spells-step-prepared'] || [], [c.traitSelections]);
 
@@ -206,9 +218,9 @@ const autoSpells = useMemo(() => {
   const fullAvailableSpells = useMemo(() => {
     const idsSet = new Set(availableIds);
     const autoIdsSet = new Set(autoSpells.map(s => s.id));
-    return allSpells.filter(s => 
-      ((idsSet.has(s.id) && s.level <= maxSpellLevel) || autoIdsSet.has(s.id)) &&
-      isSourceEnabled(s.source || 'phb')
+    const spellsPool = getAvailableSpells();
+    return spellsPool.filter(s => 
+      ((idsSet.has(s.id) && s.level <= maxSpellLevel) || autoIdsSet.has(s.id))
     );
   }, [availableIds, autoSpells, maxSpellLevel]);
 

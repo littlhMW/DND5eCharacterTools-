@@ -20,6 +20,8 @@ import { classes as bgdiaClasses } from './bgdia/classes';
 import { classes as cosClasses } from './cos/classes';
 import { classes as toaClasses } from './toa/classes';
 
+import { classes as dndbClasses } from './dndb/classes';
+
 const rawClasses: DndClass[] = [
   ...phbClasses,
   ...dmgClasses,
@@ -41,23 +43,53 @@ const rawClasses: DndClass[] = [
   ...bgdiaClasses,
   ...cosClasses,
   ...toaClasses,
+  ...dndbClasses,
 ];
 
-const classesMap = new Map<string, DndClass>();
+export const classes = mergeClasses(rawClasses);
 
-for (const cls of rawClasses) {
-  if (classesMap.has(cls.id)) {
-    const existing = classesMap.get(cls.id)!;
-    // Deduplicate subclasses by id
-    const existingSubIds = new Set(existing.subclasses?.map(s => s.id) || []);
-    const newSubs = (cls.subclasses || []).filter(s => !existingSubIds.has(s.id));
-    classesMap.set(cls.id, {
-      ...existing,
-      subclasses: [...(existing.subclasses || []), ...newSubs]
-    });
-  } else {
-    classesMap.set(cls.id, { ...cls, subclasses: cls.subclasses ? [...cls.subclasses] : [] });
+function mergeClasses(allClasses: DndClass[]): DndClass[] {
+  const map = new Map<string, DndClass>();
+  const alternativesMap = new Map<string, DndClass[]>();
+
+  for (const cls of allClasses) {
+    if (!cls.source) {
+      cls.source = 'phb';
+    }
+
+    if (!alternativesMap.has(cls.id)) {
+      alternativesMap.set(cls.id, []);
+    }
+    alternativesMap.get(cls.id)!.push({ ...cls, subclasses: [] });
+
+    if (map.has(cls.id)) {
+      const existing = map.get(cls.id)!;
+      if (cls.subclasses && cls.subclasses.length > 0) {
+        existing.subclasses = existing.subclasses || [];
+        const existingSubIds = new Set(existing.subclasses.map(s => s.id));
+        const newSubs = cls.subclasses.filter(s => !existingSubIds.has(s.id));
+        existing.subclasses.push(...newSubs);
+      }
+    } else {
+      map.set(cls.id, { ...cls, subclasses: cls.subclasses ? [...cls.subclasses] : [] });
+    }
   }
-}
 
-export const classes = Array.from(classesMap.values());
+  const result = Array.from(map.values());
+  for (const cls of result) {
+    const alts = alternativesMap.get(cls.id);
+    if (!alts) continue;
+
+    const uniqueAlts: DndClass[] = [];
+    const seenSources = new Set<string>();
+    for (const alt of alts) {
+      if (!seenSources.has(alt.source)) {
+        seenSources.add(alt.source);
+        uniqueAlts.push(alt);
+      }
+    }
+    cls.alternatives = uniqueAlts;
+  }
+
+  return result;
+}

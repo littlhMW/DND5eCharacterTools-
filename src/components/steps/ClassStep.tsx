@@ -1,7 +1,7 @@
 import React from 'react';
 import { useCharacter } from '../../context/CharacterContext';
-import { classes } from '../../data/classes';
 import { isSourceEnabled } from '../../utils/expansionHelper';
+import { getAvailableClasses } from '../../utils/dataHelper';
 import { DictyTwisterLink } from '../DictyTwisterLink';
 import { TraitSelection } from '../shared/TraitSelection';
 import { FormattedDescription } from '../shared/FormattedDescription';
@@ -25,10 +25,37 @@ export function ClassStep() {
     setTempLevel(state.character.level);
   }, [state.character.level]);
   
-  const selectedClass = classes.find(c => c.id === state.character.classId);
+  const [viewedSources, setViewedSources] = React.useState<Record<string, string>>({});
+
+  const availableClasses = getAvailableClasses({
+    ...(state.character.classSource && { [state.character.classId]: state.character.classSource }),
+    ...viewedSources
+  });
+  const selectedClass = availableClasses.find(c => c.id === state.character.classId);
   const selectedSubclass = selectedClass?.subclasses?.find(sc => sc.id === state.character.subclassId);
-  
-  const availableClasses = classes.filter(c => isSourceEnabled(c.source || 'phb', 'classes'));
+
+  const cycleSource = (e: React.MouseEvent, cls: any) => {
+    e.stopPropagation();
+    if (!cls.alternatives || cls.alternatives.length <= 1) return;
+    const currentIdx = cls.alternatives.findIndex((a: any) => a.source === cls.source);
+    const nextIdx = (currentIdx + 1) % cls.alternatives.length;
+    const nextSource = cls.alternatives[nextIdx].source;
+    
+    setViewedSources(prev => ({ ...prev, [cls.id]: nextSource }));
+    
+    if (state.character.classId === cls.id) {
+      const isSubclassAvailable = state.character.level >= cls.subclassAvailableAtLevel;
+      dispatch({ 
+         type: 'SET_CLASS', 
+         payload: { 
+           classId: cls.id, 
+           classSource: nextSource, 
+           subclassId: isSubclassAvailable ? cls.subclasses?.[0]?.id : undefined 
+         } 
+      });
+    }
+  };
+
   const getDynamicChooseNumber = (choice: any, level: number, cls: any, subclass: any) => {
     if (choice.dynamic !== 'spell') return choice.chooseNumber;
     
@@ -112,6 +139,7 @@ export function ClassStep() {
                   type: 'SET_CLASS', 
                   payload: { 
                     classId: cls.id, 
+                    classSource: cls.source,
                     subclassId: isSubclassAvailable ? cls.subclasses?.[0]?.id : undefined 
                   } 
                 });
@@ -125,7 +153,15 @@ export function ClassStep() {
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <h3 className="text-xl font-serif text-stone-900">{cls.name}</h3>
-                  {cls.source && <span className="text-[10px] bg-stone-100 text-stone-500 border border-stone-200 px-1.5 py-0.5 rounded uppercase tracking-wider">{cls.source}</span>}
+                  {cls.source && (
+                    <span 
+                      onClick={cls.alternatives && cls.alternatives.length > 1 ? (e) => cycleSource(e, cls) : undefined}
+                      className={`text-[10px] bg-stone-100 text-stone-500 border border-stone-200 px-1.5 py-0.5 rounded uppercase tracking-wider ${cls.alternatives && cls.alternatives.length > 1 ? 'cursor-pointer hover:bg-stone-200 hover:text-stone-700 transition-colors' : ''}`}
+                      title={cls.alternatives && cls.alternatives.length > 1 ? "点击切换该职业的其他扩展版本" : ""}
+                    >
+                      {cls.source}
+                    </span>
+                  )}
                 </div>
                 {cls.source && <DictyTwisterLink type="class" name={cls.name} source={cls.source} />}
               </div>
@@ -139,7 +175,7 @@ export function ClassStep() {
         <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <h2 className="text-2xl font-serif text-amber-600 border-b border-stone-200 pb-3 mb-6">3. 子职业</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {selectedClass.subclasses.filter(sc => isSourceEnabled(sc.source || selectedClass.source || 'phb', 'classes')).map(subclass => (
+            {selectedClass.subclasses.map(subclass => (
               <div 
                  key={subclass.id}
                  onClick={() => dispatch({ type: 'SET_SUBCLASS', payload: subclass.id })}

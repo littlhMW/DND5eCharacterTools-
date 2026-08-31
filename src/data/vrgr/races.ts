@@ -5,12 +5,24 @@ export const races: Race[] = [
     id: 'dhampir',
     name: '半血裔',
     description: '半血裔游走于生者与死者的灰色边界。与死灵领域的脆弱纽带赋予了他们类似吸血鬼的无光伟力、绝尘的蛛行攀爬敏捷与渴求生命的噬咬，无时无刻不在经受着恶毒饥渴的试炼。',
-    abilityBonuses: [{ ability: 'STR', bonus: 2 }, { ability: 'CON', bonus: 1 }],
+    abilityBonuses: [],
     size: 'Medium',
     speed: 35,
     vision: '黑暗视觉 60 尺',
     languages: ['通用语', '自选一门语言'],
     traits: [
+      {
+        name: '属性提升', 
+        description: '你所选择的一项属性增加 2，另一项增加 1；或者你所选择的三项不同属性各增加 1。',
+        choices: [
+          {
+            id: 'dhampir-asi',
+            name: '选择属性提升 (总计+3，单项最高+2)',
+            chooseNumber: 3,
+            dynamic: 'asi'
+          }
+        ]
+      },
       { name: '先祖遗赠', description: '如果你用该族系替换了一个种族，你能保留该种族的以下元素：任何从中获得的技能熟练，攀爬，飞行或是游泳速度。创建角色时，如果你不继承任意一项这些元素的话，你获得两项你所选的技能熟练。', choices: [
         {
           id: 'dhampir-ancestral-legacy',
@@ -31,12 +43,24 @@ export const races: Race[] = [
     id: 'hexblood',
     name: '巫咒之子',
     description: '巫咒之子是体内充盈着精类或鬼婆巫术的超自然个体。由于源远流长的魔能契约，他们生长出怪异肤色与活体冠冕之印，熟稔干扰感官的奇诡法术，执着跨向揭开奥秘的道路。',
-    abilityBonuses: [{ ability: 'CHA', bonus: 2 }, { ability: 'INT', bonus: 1 }],
+    abilityBonuses: [],
     size: 'Medium',
     speed: 30,
     vision: '黑暗视觉 60 尺',
     languages: ['通用语', '自选一门语言'],
     traits: [
+      {
+        name: '属性提升', 
+        description: '你所选择的一项属性增加 2，另一项增加 1；或者你所选择的三项不同属性各增加 1。',
+        choices: [
+          {
+            id: 'hexblood-asi',
+            name: '选择属性提升 (总计+3，单项最高+2)',
+            chooseNumber: 3,
+            dynamic: 'asi'
+          }
+        ]
+      },
       { name: '生物类型', description: '由于你体内寄宿着精类或鬼婆的强烈超自然力量，你在生物类型上被视作精类，而非类人生物。' },
       { name: '先祖遗赠', description: '如果你用该族系替换了一个种族，你能保留该种族的以下元素：任何从中获得的技能熟练，攀爬，飞行或是游泳速度。创建角色时，如果你不继承任意一项这些元素的话，你获得两项你所选的技能熟练。', choices: [
         {
@@ -60,12 +84,24 @@ export const races: Race[] = [
     id: 'reborn',
     name: '重生者',
     description: '重生者是跨过死亡边界、带着未了宿命重回尘世的奇异奇迹。他们或许带着致命伤口、又或是拼凑而成的炼金之躯。破碎记忆促使他们再次上路，在不眠一生中寻觅终极答案。',
-    abilityBonuses: [{ ability: 'CON', bonus: 2 }, { ability: 'WIS', bonus: 1 }],
+    abilityBonuses: [],
     size: 'Medium',
     speed: 30,
     vision: '黑暗视觉 60 尺',
     languages: ['通用语', '自选一门语言'],
     traits: [
+      {
+        name: '属性提升', 
+        description: '你所选择的一项属性增加 2，另一项增加 1；或者你所选择的三项不同属性各增加 1。',
+        choices: [
+          {
+            id: 'reborn-asi',
+            name: '选择属性提升 (总计+3，单项最高+2)',
+            chooseNumber: 3,
+            dynamic: 'asi'
+          }
+        ]
+      },
       { name: '先祖遗赠', description: '如果你用该族系替换了一个种族，你能保留该种族的以下元素：任何从中获得的技能熟练，攀爬，飞行或是游泳速度。创建角色时，如果你不继承任意一项这些元素的话，你获得两项你所选的技能熟练。', choices: [
         {
           id: 'reborn-ancestral-legacy',

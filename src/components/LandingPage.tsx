@@ -17,14 +17,12 @@ import { generateRandomName } from '../utils/nameGenerator';
 import { PartyNameGeneratorModal } from './tools/PartyNameGeneratorModal';
 import { AbilityGeneratorTool } from './tools/AbilityGeneratorTool';
 import { ExpansionsModal } from './modals/ExpansionsModal';
-import { AiConfigModal } from './modals/AiConfigModal';
-import { ThemeSettingsModal } from './modals/ThemeSettingsModal';
-import { XgeStepSettingsModal } from './modals/XgeStepSettingsModal';
+import { GlobalSettingsModal } from './modals/GlobalSettingsModal';
 import { XgeModal } from './tools/XgeModal';
 import { TitleGeneratorModal } from './tools/TitleGeneratorModal';
 import { generateTitle } from '../utils/titleGenerator';
 
-import { getAvailableRaces } from '../utils/raceHelper';
+import { getAvailableRaces, getAvailableClasses, getAvailableBackgrounds } from '../utils/dataHelper';
 
 export function LandingPage() {
   const { dispatch } = useCharacter();
@@ -46,7 +44,9 @@ export function LandingPage() {
   const [themeOpen, setThemeOpen] = useState(false);
   const [openDiceModal, setOpenDiceModal] = useState(false);
   const [openPointBuyModal, setOpenPointBuyModal] = useState(false);
-  const [openAiModal, setOpenAiModal] = useState(false);
+  const [openGlobalSettingsModal, setOpenGlobalSettingsModal] = useState(false);
+  const [globalSettingsTab, setGlobalSettingsTab] = useState<any>('wizard');
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [openXgeModal, setOpenXgeModal] = useState(false);
   const [openExpModal, setOpenExpModal] = useState(false);
   const [openEncounterModal, setOpenEncounterModal] = useState(false);
@@ -55,9 +55,6 @@ export function LandingPage() {
   const [openDetailGenModal, setOpenDetailGenModal] = useState(false);
   const [openPartyNameModal, setOpenPartyNameModal] = useState(false);
   const [openTitleModal, setOpenTitleModal] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [openThemeModal, setOpenThemeModal] = useState(false);
-  const [openXgeStepSettingsModal, setOpenXgeStepSettingsModal] = useState(false);
   const [xgeEnabledInDetails, setXgeEnabledInDetails] = useState(() => {
     const val = localStorage.getItem('xgeEnabledInDetails');
     if (val === null) {
@@ -66,8 +63,8 @@ export function LandingPage() {
     }
     return val === 'true';
   });
-  const [useExpandedXge, setUseExpandedXge] = useState(() => localStorage.getItem('useExpandedXge') === 'true');
-  const [useNonPhbSupportXge, setUseNonPhbSupportXge] = useState(() => localStorage.getItem('useNonPhbSupportXge') === 'true');
+  const [useExpandedXge, setUseExpandedXge] = useState(() => localStorage.getItem('useExpandedXge') !== 'false');
+  const [useNonPhbSupportXge, setUseNonPhbSupportXge] = useState(() => localStorage.getItem('useNonPhbSupportXge') !== 'false');
   const [appGenEnabledInRandom, setAppGenEnabledInRandom] = useState(() => localStorage.getItem('appGenEnabledInRandom') !== 'false');
   const [nameGenEnabledInRandom, setNameGenEnabledInRandom] = useState(() => localStorage.getItem('nameGenEnabledInRandom') !== 'false');
   const [titleEnabledInRandom, setTitleEnabledInRandom] = useState(() => localStorage.getItem('titleEnabledInRandom') !== 'false');
@@ -75,6 +72,7 @@ export function LandingPage() {
   const [showXpOnSheet, setShowXpOnSheet] = useState(() => localStorage.getItem('showXpOnSheet') !== 'false');
   const [appGenEnabledInDetails, setAppGenEnabledInDetails] = useState(() => localStorage.getItem('appGenEnabledInDetails') !== 'false');
   const [nameGenEnabledInTools, setNameGenEnabledInTools] = useState(() => localStorage.getItem('nameGenEnabledInTools') !== 'false');
+  const [allowNewerExpansionOverride, setAllowNewerExpansionOverride] = useState(() => localStorage.getItem('allowNewerExpansionOverride') !== 'false');
   
   // Decoupled detailed states
   const [traitGenEnabledInDetails, setTraitGenEnabledInDetails] = useState(() => localStorage.getItem('traitGenEnabledInDetails') !== 'false');
@@ -262,14 +260,15 @@ export function LandingPage() {
   };
 
   const handleBookMasterToggle = (expId: string, checked: boolean) => {
-    const current = expansionSettings[expId] || { enabled: false, races: false, classes: false, backgrounds: false, other: false };
+    const current = expansionSettings[expId] || { enabled: false, races: false, classes: false, backgrounds: false, other: false, itemOverrides: {} };
     const updated = {
       ...current,
       enabled: checked,
-      races: checked ? true : current.races,
-      classes: checked ? true : current.classes,
-      backgrounds: checked ? true : current.backgrounds,
-      other: checked ? true : current.other,
+      races: checked,
+      classes: checked,
+      backgrounds: checked,
+      other: checked,
+      itemOverrides: {}
     };
     const newSettings = {
       ...expansionSettings,
@@ -281,14 +280,56 @@ export function LandingPage() {
   };
 
   const handleCategoryToggle = (expId: string, category: 'races' | 'classes' | 'backgrounds' | 'other', checked: boolean) => {
-    const current = expansionSettings[expId] || { enabled: false, races: false, classes: false, backgrounds: false, other: false };
+    const current = expansionSettings[expId] || { enabled: false, races: false, classes: false, backgrounds: false, other: false, itemOverrides: {} };
     const updated = {
       ...current,
       [category]: checked
     };
-    if (checked) {
+    
+    if (updated.itemOverrides) {
+      const resetOverrides = { ...updated.itemOverrides };
+      for (const key of Object.keys(resetOverrides)) {
+        if (key.startsWith(`${category}:`)) {
+          delete resetOverrides[key];
+        }
+      }
+      updated.itemOverrides = resetOverrides;
+    }
+
+    if (checked && !current.enabled) {
       updated.enabled = true;
     }
+
+    const newSettings = {
+      ...expansionSettings,
+      [expId]: updated
+    };
+    setExpansionSettings(newSettings);
+    saveExpansionSettings(newSettings);
+    setActiveExpansions(getActiveExpansions());
+  };
+
+  const handleItemToggle = (expId: string, category: 'races' | 'classes' | 'backgrounds' | 'other', itemId: string, checked: boolean) => {
+    const current = expansionSettings[expId] || { enabled: false, races: false, classes: false, backgrounds: false, other: false, itemOverrides: {} };
+    const itemOverrides = { ...(current.itemOverrides || {}) };
+    
+    // Toggle item override
+    itemOverrides[`${category}:${itemId}`] = checked;
+    
+    const updated = {
+      ...current,
+      itemOverrides
+    };
+    
+    // If we enable an item, we also softly ensure book is on so the logic cascades
+    if (checked && !current.enabled) {
+      updated.enabled = true;
+      updated.races = false;
+      updated.classes = false;
+      updated.backgrounds = false;
+      updated.other = false;
+    }
+    
     const newSettings = {
       ...expansionSettings,
       [expId]: updated
@@ -686,8 +727,8 @@ export function LandingPage() {
 
     // 1. Filter valid races, classes, and backgrounds under active sourcebooks
     const validRaces = getAvailableRaces();
-    const validClasses = classes.filter(c => isSourceEnabled(c.source || 'phb', 'classes'));
-    const validBackgrounds = backgrounds.filter(b => isSourceEnabled(b.source || 'phb', 'backgrounds'));
+    const validClasses = getAvailableClasses();
+    const validBackgrounds = getAvailableBackgrounds();
 
     if (validRaces.length === 0 || validClasses.length === 0) return;
 
@@ -707,7 +748,7 @@ export function LandingPage() {
     let randomSubclassId = '';
     const subclassLevel = randomClass.subclassAvailableAtLevel || 3;
     if (subclassLevel <= 3 && randomClass.subclasses && randomClass.subclasses.length > 0) {
-      const validSubclasses = randomClass.subclasses.filter(sc => isSourceEnabled(sc.source || randomClass.source || 'phb', 'classes'));
+      const validSubclasses = randomClass.subclasses;
       if (validSubclasses.length > 0) {
         const randomSubclass = validSubclasses[Math.floor(Math.random() * validSubclasses.length)];
         randomSubclassId = randomSubclass.id;
@@ -1491,7 +1532,7 @@ export function LandingPage() {
                 setToolboxOpen(false);
                 setThemeOpen(false);
               }}
-              title="设置"
+              title="系统设置"
               className={`transition-colors bg-transparent border-none cursor-pointer flex items-center gap-1 font-medium text-sm outline-none ${nv.menuText}`}
             >
               <Settings size={16} />
@@ -1504,20 +1545,62 @@ export function LandingPage() {
                   <button
                     onClick={() => {
                       setSettingsOpen(false);
-                      setOpenAiModal(true);
+                      setGlobalSettingsTab('wizard');
+                      setOpenGlobalSettingsModal(true);
                     }}
                     className={`w-full text-left px-4 py-2.5 text-xs transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent ${nv.dropdownText} ${nv.itemHover}`}
                   >
-                    🤖 AI 辅助书写配置
+                    ⚔️ 基础建卡设置
                   </button>
                   <button
                     onClick={() => {
                       setSettingsOpen(false);
-                      setOpenXgeStepSettingsModal(true);
+                      setGlobalSettingsTab('story');
+                      setOpenGlobalSettingsModal(true);
                     }}
                     className={`w-full text-left px-4 py-2.5 text-xs transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent ${nv.dropdownText} ${nv.itemHover}`}
                   >
-                    ⚙️ 扩展角色功能
+                    📜 扩展身世经历
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSettingsOpen(false);
+                      setGlobalSettingsTab('helpers');
+                      setOpenGlobalSettingsModal(true);
+                    }}
+                    className={`w-full text-left px-4 py-2.5 text-xs transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent ${nv.dropdownText} ${nv.itemHover}`}
+                  >
+                    🎲 快速工具配置
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSettingsOpen(false);
+                      setGlobalSettingsTab('title');
+                      setOpenGlobalSettingsModal(true);
+                    }}
+                    className={`w-full text-left px-4 py-2.5 text-xs transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent ${nv.dropdownText} ${nv.itemHover}`}
+                  >
+                    🎖️ 更多设置
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSettingsOpen(false);
+                      setGlobalSettingsTab('theme');
+                      setOpenGlobalSettingsModal(true);
+                    }}
+                    className={`w-full text-left px-4 py-2.5 text-xs transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent ${nv.dropdownText} ${nv.itemHover}`}
+                  >
+                    🎨 外观与主题
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSettingsOpen(false);
+                      setGlobalSettingsTab('ai');
+                      setOpenGlobalSettingsModal(true);
+                    }}
+                    className={`w-full text-left px-4 py-2.5 text-xs transition-colors flex items-center gap-2 cursor-pointer border-none bg-transparent ${nv.dropdownText} ${nv.itemHover}`}
+                  >
+                    🤖 AI 辅助配置
                   </button>
                 </div>
               </>
@@ -1593,29 +1676,62 @@ export function LandingPage() {
                   <button
                     onClick={() => {
                       setMobileMenuOpen(false);
-                      setOpenAiModal(true);
+                      setGlobalSettingsTab('wizard');
+                      setOpenGlobalSettingsModal(true);
                     }}
                     className={`w-full text-left py-2 px-1 text-xs transition-colors flex items-center gap-1.5 border-none bg-transparent cursor-pointer ${nv.mobileSubText}`}
                   >
-                    🤖 AI 辅助书写配置
+                    ⚔️ 基础建卡设置
                   </button>
                   <button
                     onClick={() => {
                       setMobileMenuOpen(false);
-                      setOpenThemeModal(true);
+                      setGlobalSettingsTab('story');
+                      setOpenGlobalSettingsModal(true);
                     }}
                     className={`w-full text-left py-2 px-1 text-xs transition-colors flex items-center gap-1.5 border-none bg-transparent cursor-pointer ${nv.mobileSubText}`}
                   >
-                    🎨 网页配色方案
+                    📜 扩展身世经历
                   </button>
                   <button
                     onClick={() => {
                       setMobileMenuOpen(false);
-                      setOpenXgeStepSettingsModal(true);
+                      setGlobalSettingsTab('helpers');
+                      setOpenGlobalSettingsModal(true);
                     }}
                     className={`w-full text-left py-2 px-1 text-xs transition-colors flex items-center gap-1.5 border-none bg-transparent cursor-pointer ${nv.mobileSubText}`}
                   >
-                    ⚙️ 生成器选项
+                    🎲 快速工具配置
+                  </button>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setGlobalSettingsTab('title');
+                      setOpenGlobalSettingsModal(true);
+                    }}
+                    className={`w-full text-left py-2 px-1 text-xs transition-colors flex items-center gap-1.5 border-none bg-transparent cursor-pointer ${nv.mobileSubText}`}
+                  >
+                    🎖️ 更多设置
+                  </button>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setGlobalSettingsTab('theme');
+                      setOpenGlobalSettingsModal(true);
+                    }}
+                    className={`w-full text-left py-2 px-1 text-xs transition-colors flex items-center gap-1.5 border-none bg-transparent cursor-pointer ${nv.mobileSubText}`}
+                  >
+                    🎨 外观与主题
+                  </button>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setGlobalSettingsTab('ai');
+                      setOpenGlobalSettingsModal(true);
+                    }}
+                    className={`w-full text-left py-2 px-1 text-xs transition-colors flex items-center gap-1.5 border-none bg-transparent cursor-pointer ${nv.mobileSubText}`}
+                  >
+                    🤖 AI 辅助配置
                   </button>
                 </div>
               )}
@@ -1842,24 +1958,10 @@ export function LandingPage() {
         </div>
       )}
 
-      <AiConfigModal
-        open={openAiModal}
-        onClose={() => setOpenAiModal(false)}
-        aiConfig={aiConfig}
-        setAiConfig={setAiConfig}
-        saveAIConfig={saveAIConfig}
-      />
-
-      <ThemeSettingsModal
-        open={openThemeModal}
-        onClose={() => setOpenThemeModal(false)}
-        currentTheme={currentTheme}
-        setCurrentTheme={setCurrentTheme}
-      />
-
-      <XgeStepSettingsModal
-        open={openXgeStepSettingsModal}
-        onClose={() => setOpenXgeStepSettingsModal(false)}
+      <GlobalSettingsModal
+        open={openGlobalSettingsModal}
+        onClose={() => setOpenGlobalSettingsModal(false)}
+        initialTab={globalSettingsTab}
         appGenEnabledInRandom={appGenEnabledInRandom}
         setAppGenEnabledInRandom={setAppGenEnabledInRandom}
         nameGenEnabledInRandom={nameGenEnabledInRandom}
@@ -1891,6 +1993,14 @@ export function LandingPage() {
         setPartyTitleGenEnabled={setPartyTitleGenEnabled}
         xgeEnabledInDetails={xgeEnabledInDetails}
         setXgeEnabledInDetails={setXgeEnabledInDetails}
+
+        aiConfig={aiConfig}
+        setAiConfig={setAiConfig}
+        saveAIConfig={saveAIConfig}
+        currentTheme={currentTheme}
+        setCurrentTheme={setCurrentTheme}
+        allowNewerExpansionOverride={allowNewerExpansionOverride}
+        setAllowNewerExpansionOverride={setAllowNewerExpansionOverride}
       />
 
       <XgeModal
@@ -1906,8 +2016,10 @@ export function LandingPage() {
         setXgePreviewAge={setXgePreviewAge}
         xgePreviewChaMod={xgePreviewChaMod}
         setXgePreviewChaMod={setXgePreviewChaMod}
-        classes={classes}
-        backgrounds={backgrounds}
+        useExpandedXge={useExpandedXge}
+        setUseExpandedXge={setUseExpandedXge}
+        useNonPhbSupportXge={useNonPhbSupportXge}
+        setUseNonPhbSupportXge={setUseNonPhbSupportXge}
       />
 
       {/* Expansion Books Modal */}
@@ -1920,6 +2032,7 @@ export function LandingPage() {
         setActiveExpansions={setActiveExpansions}
         handleBookMasterToggle={handleBookMasterToggle}
         handleCategoryToggle={handleCategoryToggle}
+        handleItemToggle={handleItemToggle}
         handleExportConfig={handleExportConfig}
         handleImportConfig={handleImportConfig}
         showImportInput={showImportInput}
@@ -1927,6 +2040,8 @@ export function LandingPage() {
         importString={importString}
         setImportString={setImportString}
         expMsg={expMsg}
+        allowNewerExpansionOverride={allowNewerExpansionOverride}
+        setAllowNewerExpansionOverride={setAllowNewerExpansionOverride}
       />
 
       {/* Footer & Credits */}
@@ -1940,9 +2055,12 @@ export function LandingPage() {
             <p className="leading-relaxed">
               本项目由 <strong className="text-stone-900">littlh</strong> 开发维护。工具底层架构与数据库深度参考了 <a href="https://5e.tools/" target="_blank" rel="noreferrer" className="text-amber-700 hover:underline no-referrer">5etools</a>。中文本地化文本来自于 <a href="https://github.com/fvtt-cn" target="_blank" rel="noreferrer" className="text-amber-700 hover:underline no-referrer">FVTT-CN Foundry VTT 中文社区翻译组</a>，感谢所有参与过汉化和维护的无偿贡献者们。
             </p>
+            <p className="leading-relaxed mt-2 text-stone-500 text-xs">
+              <strong>当前版本: 1.9版本</strong>
+            </p>
             <div className="bg-white p-4 rounded-xl border border-stone-200 text-[13px] leading-relaxed relative">
               <strong className="block text-stone-900 mb-1">使用须知:</strong>
-              本工具仅作为辅助参考工具。任何最终的局内结算与法术描述，请以实体出版书籍与官方出具的最新勘误文档为前提准则。
+              本 <strong>Littlh的DND5E角色创建工具</strong> 仅作为辅助参考工具。任何最终的局内结算与法术描述，请以实体出版书籍与官方出具的最新勘误文档为前提准则。
             </div>
           </div>
           

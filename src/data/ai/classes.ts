@@ -3,7 +3,7 @@ import { DndClass } from '../../types/dnd';
 /**
  * 模板说明:
  * 在此添加扩展职业或通过组合方式扩展已有职业的子职业。
- * 请确保 `source` 字段为小写的扩展名 (例如 'ai')，以便正确呈现 Wiki 链接标记。
+ * 请确保 `source` 字段为小写的扩展名 (例如 'ai')，以便正确呈现 外部链接标记。
  */
 export const classes: DndClass[] = [
   /*

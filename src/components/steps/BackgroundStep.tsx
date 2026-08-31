@@ -1,8 +1,11 @@
 import React from 'react';
 import { useCharacter } from '../../context/CharacterContext';
 import { backgrounds } from '../../data/backgrounds';
+import { spells as allSpells } from '../../data/spells';
 import { isSourceEnabled } from '../../utils/expansionHelper';
+import { getAvailableBackgrounds } from '../../utils/dataHelper';
 import { DictyTwisterLink } from '../DictyTwisterLink';
+import { FormattedDescription } from '../shared/FormattedDescription';
 import { TraitSelection } from '../shared/TraitSelection';
 import { Dices } from 'lucide-react';
 
@@ -12,7 +15,7 @@ export function BackgroundStep() {
   const { state, dispatch } = useCharacter();
   
   const selectedBackground = backgrounds.find(bg => bg.id === state.character.backgroundId);
-  const availableBackgrounds = backgrounds.filter(bg => isSourceEnabled(bg.source || 'phb', 'backgrounds'));
+  const availableBackgrounds = getAvailableBackgrounds();
 
   const rollTrait = (field: 'personality' | 'ideals' | 'bonds' | 'flaws', options: string[]) => {
     if (options && options.length > 0) {
@@ -68,12 +71,40 @@ export function BackgroundStep() {
             <div>
               <h4 className="text-sm font-sans uppercase tracking-[0.15em] text-stone-400 mb-4">熟练项</h4>
               <ul className="space-y-3">
-                {selectedBackground.skillProficiencies.length > 0 && (
+                {(selectedBackground.skillProficiencies.length > 0 || (selectedBackground.choices && selectedBackground.choices.filter(c => c.id.includes('skill') || c.name.includes('技能')).length > 0)) && (
                   <li className="flex items-start">
                     <span className="text-amber-600 mr-2 mt-0.5">•</span>
                     <div>
                       <span className="font-semibold text-stone-800 text-sm">技能熟练项: </span>
-                      <span className="text-stone-600 text-sm font-sans">{selectedBackground.skillProficiencies.map(s => SKILL_NAMES[s] || s).join('、')}</span>
+                      <span className="text-stone-600 text-sm font-sans">
+                        {(() => {
+                          const baseSkills = selectedBackground.skillProficiencies.map(s => SKILL_NAMES[s] || s);
+                          const skillChoices = selectedBackground.choices?.filter(c => c.id.includes('skill') || c.name.includes('技能')) || [];
+                          if (skillChoices.length > 0) {
+                            const choiceDesc = skillChoices.map(c => c.name || `自选技能`).join('、');
+                            if (baseSkills.length > 0) {
+                              return `${baseSkills.join('、')}，以及 ${choiceDesc}`;
+                            } else {
+                              return choiceDesc;
+                            }
+                          }
+                          return baseSkills.join('、');
+                        })()}
+                      </span>
+                    </div>
+                  </li>
+                )}
+                {selectedBackground.spells && selectedBackground.spells.length > 0 && (
+                  <li className="flex items-start">
+                    <span className="text-amber-600 mr-2 mt-0.5">•</span>
+                    <div>
+                      <span className="font-semibold text-stone-800 text-sm">背景法术: </span>
+                      <span className="text-stone-600 text-sm font-sans">
+                        {selectedBackground.spells.map(s => {
+                          const spellDetails = allSpells.find(spell => spell.id === s);
+                          return spellDetails ? spellDetails.name : s;
+                        }).join('、')}
+                      </span>
                     </div>
                   </li>
                 )}
@@ -115,7 +146,7 @@ export function BackgroundStep() {
             <h4 className="text-sm font-sans uppercase tracking-[0.15em] text-stone-400 mb-4">背景特性</h4>
             <div className="bg-stone-50 p-4 rounded-md border border-stone-100">
               <h5 className="font-semibold text-amber-600 text-lg">{selectedBackground.feature.name}</h5>
-              <p className="text-stone-600 text-sm mt-2 leading-relaxed font-sans">{selectedBackground.feature.description}</p>
+              <FormattedDescription text={selectedBackground.feature.description} className="text-stone-600 text-sm mt-2 leading-relaxed font-sans" />
             </div>
           </div>
           

@@ -15,18 +15,7 @@ export const races: Race[] = [
       { name: '矮人韧性', description: '你在对抗毒素的豁免检定中具有优势，且你对毒素伤害具有抗性。' },
       { name: '矮人战斗训练', description: '你熟练于战斧、手斧、轻锤和战锤。' },
       { name: '移动速度', description: '你的移动速度并不会因为穿着重甲而减少。' },
-      { name: '工具熟练', description: '你熟练于下列其中一个你所选择的工匠工具：铁匠工具、酿酒工具或泥瓦匠工具。', choices: [
-        {
-          id: 'dwarf-tool',
-          name: '选择一个工具',
-          chooseNumber: 1,
-          options: [
-            { id: 'smithsTools', name: '铁匠工具' },
-            { id: 'brewersSupplies', name: '酿酒工具' },
-            { id: 'masonsTools', name: '泥瓦匠工具' }
-          ]
-        }
-      ] },
+      { name: '工具熟练', description: '你熟练于下列其中一个你所选择的工匠工具：铁匠工具、酿酒工具或泥瓦匠工具。' },
       { name: '岩石熟悉', description: '每当你进行关联于石制品起源的智力（历史）检定时，你被视为熟练于历史技能，并将你二倍的熟练加值代替你原本的熟练加值加入该检定中。' }
     ],
     spells: [],
@@ -165,6 +154,7 @@ export const races: Race[] = [
         name: '人类 (变体)',
         description: '代表了极具天赋发展个性和野心的人类特征。你拥有额外的灵活属性提升、自选一项技能熟练以及一个满足条件的初始专长。',
         abilityBonuses: [], 
+        replaceBaseAsi: true,
         traits: [
           {
             name: '变体属性提升',
@@ -261,15 +251,25 @@ export const races: Race[] = [
     name: '半精灵',
     description: '半精灵分享了来自他们精灵血统的混乱天性。他们游走于两个不同种群的边缘。比起精灵他们拥有人类的适应性，比起人类则保留了优雅、敏锐的感官以及广博长寿的心。',
     abilityBonuses: [
-      { ability: 'CHA', bonus: 2 },
-      { ability: 'DEX', bonus: 1 },
-      { ability: 'CON', bonus: 1 }
+      { ability: 'CHA', bonus: 2 }
     ],
     size: 'Medium',
     speed: 30,
     vision: '黑暗视觉 60 尺',
     languages: ['通用语', '精灵语', '自选语言'],
     traits: [
+      {
+        name: '属性提升', 
+        description: '你的魅力增加 2，另外两项你所选择的不同属性各增加 1。',
+        choices: [
+          {
+            id: 'half-elf-asi',
+            name: '选择两项属性提升 (各+1)',
+            chooseNumber: 2,
+            dynamic: 'asi'
+          }
+        ]
+      },
       { name: '黑暗视觉', description: '多亏于你的精灵血统，你在黑暗与微光环境下仍能保持卓越视觉。你在看距离你60尺范围内的事物时，微光的照明程度对你而言视作明亮，黑暗则视作微光。你无法辨别黑暗中的颜色，而只能看到灰黑的轮廓。' },
       { name: '精类血统', description: '你在对抗魅惑的豁免检定中具有优势，且魔法无法让你入睡。' },
       { name: '多才多艺', description: '你熟练于二个你所选择的技能。', choices: [

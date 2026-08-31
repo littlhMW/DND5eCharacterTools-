@@ -9,6 +9,7 @@ export interface ExpansionBook {
   otherFeatures?: string;
   enabled: boolean;
   isCore?: boolean;
+  bookCategory?: 'core' | 'expansion' | 'setting' | 'adventure';
 }
 
 export const EXPANSIONS: ExpansionBook[] = [
@@ -22,7 +23,8 @@ export const EXPANSIONS: ExpansionBook[] = [
     backgrounds: '基础背景 (共 13 种起步背景，包含侍祭、名门、骗子、隐士、士兵等核心背景)',
     otherFeatures: '基础装备、核心战斗及施法规则、核心法术与天赋专长。',
     enabled: true,
-    isCore: true
+    isCore: true,
+    bookCategory: 'core'
   },
   {
     id: 'dmg',
@@ -33,7 +35,8 @@ export const EXPANSIONS: ExpansionBook[] = [
     classes: '牧师 (死亡领域)、圣骑士 (破誓者) 等特殊城主专属子职业扩展',
     backgrounds: '（未提供新增背景）',
     otherFeatures: '地下城与世界生成表、庞大的魔法物品库与神兵利器、变体属性规则。',
-    enabled: false
+    enabled: false,
+    bookCategory: 'core'
   },
   {
     id: 'xge',
@@ -44,7 +47,20 @@ export const EXPANSIONS: ExpansionBook[] = [
     classes: '野蛮人 (风暴先驱/狂热者/先祖守卫)、吟游诗人 (低语/剑舞/迷惑学院)、牧师 (锻造/坟墓领域)、德鲁伊 (梦境/牧人结社)、战士 (魔射手/骑兵/武士)、武僧 (剑圣/日魂/醉拳宗)、圣骑士 (救赎/征服之誓)、游侠 (怪物杀手/境界行者/幽域追踪者)、游荡者 (策士/斥侯/风流剑客/审讯者)、术士 (暴风术法/神圣之魂/幽影魔法)、契术师 (天界宗主/咒剑士)、法师 (战争魔法) 等27个以上新子职',
     backgrounds: '「这是你的人生」极其详实的生平历史与事件背景生成表',
     otherFeatures: '大量通用新专长、海量实用各级法术。',
-    enabled: false
+    enabled: false,
+    bookCategory: 'core'
+  },
+  {
+    id: 'tce',
+    name: '塔莎的万事锅',
+    shortName: 'TCE',
+    description: '塔莎的万事锅是一本规则扩展书籍，它在《玩家手册》的基础上，为玩家和城主带来了海量的新选项与新规则。',
+    races: '自定义血统（变体）',
+    classes: '奇械师，以及海量的新增子职业（例如星界武僧），几乎每个职业都有新增的子职业选择。',
+    backgrounds: '调查员 等等',
+    otherFeatures: '团队契约，超自然恩赐。',
+    enabled: false,
+    bookCategory: 'core'
   },
   {
     id: 'scag',
@@ -55,7 +71,8 @@ export const EXPANSIONS: ExpansionBook[] = [
     classes: '野蛮人 (战狂道途)、牧师 (奥秘领域)、战士 (紫龙骑士)、武僧 (永亡宗)、圣骑士 (王冠之誓)、契术师 (不朽者)、法师 (剑咏传承)',
     backgrounds: '剑湾势力公会（如竖琴手同盟、散塔林会、无冬城特工等）专属跑团背景设定',
     otherFeatures: '标志性强力近战戏法（如绿焰斩、雷鸣斩）。',
-    enabled: false
+    enabled: false,
+    bookCategory: 'setting'
   },
   {
     id: 'vgm',
@@ -66,7 +83,8 @@ export const EXPANSIONS: ExpansionBook[] = [
     classes: '（未提供新增子职业）',
     backgrounds: '（未提供新增背景）',
     otherFeatures: '怪物诸部落生态背景、怪物相关的特色风俗与起源解构。',
-    enabled: false
+    enabled: false,
+    bookCategory: 'expansion'
   },
   {
     id: 'mtf',
@@ -77,18 +95,20 @@ export const EXPANSIONS: ExpansionBook[] = [
     classes: '（未提供新增子职业）',
     backgrounds: '（未提供新增背景）',
     otherFeatures: '万渊平原与九层地狱领主契约、种族敌对史诗传说。',
-    enabled: false
+    enabled: false,
+    bookCategory: 'expansion'
   },
   {
     id: 'erlw',
     name: '艾伯伦:从终末战争复苏',
     shortName: 'ERLW',
     description: '神秘且科技感十足的魔导朋克 world，充斥着飞空艇与魔法轨道车。',
-    races: '机关人、半梦灵(Kalashtar)、换形兽(Changeling)、半兽化人(野性之魂/长牙/疾步/荒野猎手)、各类龙纹亚种变体、地精、大地精、熊地精、兽人',
+    races: '战俑、半梦灵(Kalashtar)、换形兽(Changeling)、半兽化人(野性之魂/长牙/疾步/荒野猎手)、各类龙纹亚种变体、地精、大地精、熊地精、兽人',
     classes: '独立职业「奇械师」(Artificer) 及其实装子职业（炼金术士、炮兵技师、装甲师、战斗铁匠）',
-    backgrounds: '终末战争老兵、艾伯伦都市势力公会雇员相关专属背景',
+    backgrounds: '家族特工、终末战争老兵、艾伯伦都市势力公会雇员相关专属背景',
     otherFeatures: '龙纹契约机制、庞大魔导奇珍装备、萨恩万桥之城势力设定。',
-    enabled: false
+    enabled: false,
+    bookCategory: 'setting'
   },
   {
     id: 'egw',
@@ -97,9 +117,10 @@ export const EXPANSIONS: ExpansionBook[] = [
     description: '艾克桑德利亚中荒凉神秘的荒洲大陆，操纵重力与时光流逝的奇幻之所。',
     races: '半身人 (莲源半身人)、精灵 (苍白精灵/海精灵)、龙裔 (龙国血统龙裔/拾荒种龙裔)、空栖人(超自然恩赐)、兽人(起源变体)',
     classes: '法师 (时间魔法/重力魔法传承)',
-    backgrounds: '荒洲探险专属背景、暮光之眼监视者、异见者等',
+    backgrounds: '沃斯特拉克特工、暮光之眼监视者、异见者等',
     otherFeatures: '地域专属奇物、时间流逝与重力超凡变体规则。',
-    enabled: false
+    enabled: false,
+    bookCategory: 'setting'
   },
   {
     id: 'ggr',
@@ -110,7 +131,8 @@ export const EXPANSIONS: ExpansionBook[] = [
     classes: '牧师 (秩序领域)、德鲁伊 (孢子结社)',
     backgrounds: '拉尼卡十公会系统专属背景（如俄佐立参议院、奥佐夫辛迪加、波洛斯军团、葛加理群落等）',
     otherFeatures: '各公会的声望与进阶头衔体系、公会盟约法术。',
-    enabled: false
+    enabled: false,
+    bookCategory: 'setting'
   },
   {
     id: 'mot',
@@ -121,7 +143,8 @@ export const EXPANSIONS: ExpansionBook[] = [
     classes: '吟游诗人 (雄辩学院)、圣骑士 (荣耀之誓)',
     backgrounds: '运动员（Athlete）等塞洛斯古典神话背景',
     otherFeatures: '「超神恩赐」机制、十五位塞洛斯神祇的奉献值和信仰恩赐。',
-    enabled: false
+    enabled: false,
+    bookCategory: 'setting'
   },
   {
     id: 'vrgr',
@@ -130,9 +153,10 @@ export const EXPANSIONS: ExpansionBook[] = [
     description: '惊悚刺激的哥特恐怖、黑暗梦魇和怪谈传说。',
     races: '吸血鬼子嗣(半血裔)、巫咒之子(妖婆之裔)、重生者(诡异亡者)',
     classes: '吟游诗人 (灵魂学院)、契术师 (不死宗主)',
-    backgrounds: '灵异巡查员、灾厄幸存者等恐怖怪谈主题背景',
+    backgrounds: '调查员、灵异巡查员、灾厄幸存者等恐怖怪谈主题背景',
     otherFeatures: '「黑暗礼物」机制、数十个独具特色的恐惧领域、哥特惊悚叙事技巧。',
-    enabled: false
+    enabled: false,
+    bookCategory: 'setting'
   },
   {
     id: 'fod',
@@ -143,7 +167,8 @@ export const EXPANSIONS: ExpansionBook[] = [
     classes: '武僧 (龙星流)、游侠 (龙兽守卫)',
     backgrounds: '龙眷者、龙门专属传承背景',
     otherFeatures: '龙之魔法与强大新法术、巨龙魔导器和巨龙赐福。',
-    enabled: false
+    enabled: false,
+    bookCategory: 'expansion'
   },
   {
     id: 'eepc',
@@ -154,7 +179,8 @@ export const EXPANSIONS: ExpansionBook[] = [
     classes: '（未提供新增子职业）',
     backgrounds: '（未提供新增背景）',
     otherFeatures: '数十个耳熟能详的狂暴自然元素法术。',
-    enabled: false
+    enabled: false,
+    bookCategory: 'expansion'
   },
   {
     id: 'ai',
@@ -163,9 +189,10 @@ export const EXPANSIONS: ExpansionBook[] = [
     description: '充满荒诞与恶搞幽默的官方商业大作战，玩家可以开设属于自己的「跑团外包公司」。',
     races: '韦尔丹人',
     classes: '4个公司职务子职（文书/决策/独狼/行政）',
-    backgrounds: '艾奎兹玄专属雇员、特许公司实习生等背景',
+    backgrounds: '艾奎兹玄专属雇员、特许公司实习生等背景，失败商人、赌徒',
     otherFeatures: '特殊的公司员工团队专长、契约商务法术、特许经营权公司升级规则。',
-    enabled: false
+    enabled: false,
+    bookCategory: 'adventure'
   },
   {
     id: 'rot',
@@ -176,7 +203,8 @@ export const EXPANSIONS: ExpansionBook[] = [
     classes: '（未提供新增子职业）',
     backgrounds: '十镇土著、冰风谷幸存者等极寒特殊背景制约',
     otherFeatures: '雪地暴风生存机制、狂雪遭遇野兽、极光神眷特殊能力。',
-    enabled: false
+    enabled: false,
+    bookCategory: 'adventure'
   },
   {
     id: 'gos',
@@ -187,7 +215,8 @@ export const EXPANSIONS: ExpansionBook[] = [
     classes: '（未提供新增子职业）',
     backgrounds: '盐沼渔民、走私客、海难幸存者专属航海背景',
     otherFeatures: '航海与风暴机制、海战变体遭遇、水下废墟探索。',
-    enabled: false
+    enabled: false,
+    bookCategory: 'adventure'
   },
   {
     id: 'bgdia',
@@ -198,7 +227,8 @@ export const EXPANSIONS: ExpansionBook[] = [
     classes: '（未提供新增子职业）',
     backgrounds: '地狱邪教徒、阿弗纳斯拾荒客、天界守卫陷落军人背景',
     otherFeatures: '「魔鬼契约」系统、地狱战车载具改装和燃料规则、终极灵魂钱币。',
-    enabled: false
+    enabled: false,
+    bookCategory: 'adventure'
   },
   {
     id: 'cos',
@@ -209,7 +239,20 @@ export const EXPANSIONS: ExpansionBook[] = [
     classes: '（未提供新增子职业）',
     backgrounds: '受诅者（Haunted One）、迷雾难民背景',
     otherFeatures: '龙卡卡牌神准占卜占星表、特殊心魔恐惧机制。',
-    enabled: false
+    enabled: false,
+    bookCategory: 'adventure'
+  },
+  {
+    id: 'alcos',
+    name: '施特拉德的诅咒 扩展背景',
+    shortName: 'ALCoS',
+    description: '出自《施特拉德的诅咒》冒险模组附加的冒险者联盟可选背景（Curse of Strahd: Optional Backgrounds）。',
+    races: '（未提供新增种族）',
+    classes: '（未提供新增子职业）',
+    backgrounds: '黑拳双面间谍、龙灾幸存者、铁道路匪、法澜反抗者、斯托亚诺夫囚徒、痒腹丘游牧民',
+    otherFeatures: '无',
+    enabled: false,
+    bookCategory: 'adventure'
   },
   {
     id: 'toa',
@@ -220,17 +263,79 @@ export const EXPANSIONS: ExpansionBook[] = [
     classes: '（未提供新增子职业）',
     backgrounds: '考古学家、安斯罗普人类学家专属丛林背景',
     otherFeatures: '「死亡指引」规则、雨林极端野外求生探险机制、失落的蛇神殿与古机关设计。',
-    enabled: false
+    enabled: false,
+    bookCategory: 'adventure'
   },
   {
-    id: 'dndbeyond',
-    name: 'DNDBeyond 内容',
+    id: 'dndb',
+    name: 'DNDB 内容',
     shortName: 'DNDB',
-    description: 'DNDBeyond平台特供的第三方自定义内容扩展。仅收录我感兴趣的内容。:P',
+    description: 'DNDB平台特供的第三方自定义内容扩展。仅收录我感兴趣的内容。:P',
     races: '（未提供新增种族）',
     classes: '血猎者 (Blood Hunter)',
     backgrounds: '（未提供新增背景）',
     otherFeatures: '暂无',
-    enabled: false
+    enabled: false,
+    bookCategory: 'setting'
+  },
+  {
+    id: 'psi',
+    name: '时空之渡：依尼翠',
+    shortName: 'PSI',
+    description: '来自万智牌与DND联动的官方可选规则集《时空之渡：依尼翠》（Plane Shift: Innistrad），在阴郁的哥特恐怖背景下展开冒险。',
+    races: '（未提供新增种族）',
+    classes: '（未提供新增子职业）',
+    backgrounds: '审判官 (Inquisitor)',
+    otherFeatures: '无',
+    enabled: false,
+    bookCategory: 'setting'
+  },
+  {
+    id: 'alee',
+    name: '《邪恶元素》冒险者联盟背景',
+    shortName: 'ALEE',
+    description: '出自《邪恶元素》冒险模组附加的冒险者联盟可选背景（Adventurers League: Elemental Evil Optional Backgrounds）。',
+    races: '（未提供新增种族）',
+    classes: '（未提供新增子职业）',
+    backgrounds: '商队专家、地棘矿工',
+    otherFeatures: '无',
+    enabled: false,
+    bookCategory: 'adventure'
+  },
+  {
+    id: 'alrod',
+    name: '《幽暗毁灭》冒险者联盟背景',
+    shortName: 'ALRoD',
+    description: '出自《幽暗毁灭/怒火狂魔》冒险模组附加的冒险者联盟可选背景（Adventurers League: Rage of Demons Optional Backgrounds）。',
+    races: '（未提供新增种族）',
+    classes: '（未提供新增子职业）',
+    backgrounds: '科曼索难民、希尔斯法尔走私者、阴魂狂热者、贸易治安官',
+    otherFeatures: '无',
+    enabled: false,
+    bookCategory: 'adventure'
+  },
+  {
+    id: 'psa',
+    name: '时空之渡：阿芒凯',
+    shortName: 'PSA',
+    description: '来自万智牌与DND联动的官方可选规则集《时空之渡：阿芒凯》（Plane Shift: Amonkhet），在这个充满埃及神话与试炼的世界中展开冒险。',
+    races: '（未提供新增种族）',
+    classes: '（未提供新增子职业）',
+    backgrounds: '异议者、入门者、维齐尔',
+    otherFeatures: '无',
+    enabled: false,
+    bookCategory: 'setting'
+  },
+  {
+    id: 'mpmm',
+    name: '魔邓肯巨献：多元宇宙的怪物',
+    shortName: 'MPMM',
+    description: '整合并重新平衡了此前出现在各扩展中的玩家种族与多元宇宙的造物。',
+    races: '兔人(Harengon)',
+    classes: '（未提供新增子职业）',
+    backgrounds: '（未提供新增背景）',
+    otherFeatures: '全新平衡性调整的可选种族。',
+    enabled: false,
+    bookCategory: 'expansion'
   }
 ];

@@ -35,7 +35,7 @@ export function AbilitiesStep() {
 
   const getBonus = (ab: Ability) => {
     let bonus = 0;
-    if (!(selectedRace?.id === 'human' && selectedSubrace?.id === 'human-variant')) {
+    if (!(selectedSubrace?.replaceBaseAsi)) {
       selectedRace?.abilityBonuses.forEach(b => {
         if (b.ability === ab) bonus += b.bonus;
       });

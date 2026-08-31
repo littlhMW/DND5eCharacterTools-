@@ -8,6 +8,7 @@ export interface BookSettings {
   classes: boolean;
   backgrounds: boolean;
   other: boolean;
+  itemOverrides?: Record<string, boolean>; // e.g. "race:human": true
 }
 
 const STORAGE_KEY_V1 = 'dnd_toolkit_expansions_v3'; // fallback simple array
@@ -15,16 +16,6 @@ const STORAGE_KEY_SETTINGS = 'dnd_toolkit_expansions_v3_settings_v4'; // new Map
 
 // Helper to get raw settings
 export function getExpansionSettings(): Record<string, BookSettings> {
-  const savedSettings = localStorage.getItem(STORAGE_KEY_SETTINGS);
-  if (savedSettings) {
-    try {
-      return JSON.parse(savedSettings);
-    } catch {
-      // recovery below
-    }
-  }
-
-  // Fallback / Migrate from old string list format
   const savedActiveIds = localStorage.getItem(STORAGE_KEY_V1);
   let activeIds: string[] = EXPANSIONS.filter(e => e.enabled).map(e => e.id);
   if (savedActiveIds) {
@@ -45,7 +36,28 @@ export function getExpansionSettings(): Record<string, BookSettings> {
       classes: isActuallyActive,
       backgrounds: isActuallyActive,
       other: isActuallyActive,
+      itemOverrides: {},
     };
+  }
+
+  const savedSettings = localStorage.getItem(STORAGE_KEY_SETTINGS);
+  if (savedSettings) {
+    try {
+      const parsed = JSON.parse(savedSettings);
+      const merged = { ...initialSettings };
+      for (const k of Object.keys(parsed)) {
+        if (parsed[k]) {
+          merged[k] = {
+            ...initialSettings[k],
+            ...parsed[k],
+            itemOverrides: parsed[k].itemOverrides || {}
+          };
+        }
+      }
+      return merged;
+    } catch {
+      // recovery below
+    }
   }
 
   return initialSettings;
@@ -82,6 +94,7 @@ export function saveActiveExpansions(ids: string[]) {
       classes: isEn,
       backgrounds: isEn,
       other: isEn,
+      itemOverrides: {},
     };
   }
   saveExpansionSettings(settings);
@@ -89,7 +102,9 @@ export function saveActiveExpansions(ids: string[]) {
 
 export function isSourceEnabled(
   sourceId: string,
-  category?: 'races' | 'classes' | 'backgrounds' | 'other'
+  category?: 'races' | 'classes' | 'backgrounds' | 'other',
+  settings?: Record<string, BookSettings>,
+  itemId?: string
 ): boolean {
   if (!sourceId) return true;
   let normSource = sourceId.toLowerCase();
@@ -98,11 +113,19 @@ export function isSourceEnabled(
   }
   if (normSource === 'phb') return true;
 
-  const settings = getExpansionSettings();
-  const bookConfig = settings[normSource];
+  const currentSettings = settings || getExpansionSettings();
+  const bookConfig = currentSettings[normSource];
 
   if (!bookConfig) {
     return false;
+  }
+
+  // Check item level override first if itemId and category provided
+  if (itemId && category && bookConfig.itemOverrides) {
+    const itemKey = `${category}:${itemId}`;
+    if (bookConfig.itemOverrides[itemKey] !== undefined) {
+      return bookConfig.itemOverrides[itemKey];
+    }
   }
 
   if (!bookConfig.enabled) {

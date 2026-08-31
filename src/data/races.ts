@@ -15,6 +15,7 @@ import { races as rotRaces } from './rot/races';
 import { races as aiRaces } from './ai/races';
 import { races as eepcRaces } from './eepc/races';
 import { races as fodRaces } from './fod/races';
+import { races as mpmmRaces } from './mpmm/races';
 import { races as gosRaces } from './gos/races';
 import { races as bgdiaRaces } from './bgdia/races';
 import { races as cosRaces } from './cos/races';
@@ -37,6 +38,7 @@ export const races: Race[] = mergeRaces([
   ...aiRaces,
   ...eepcRaces,
   ...fodRaces,
+  ...mpmmRaces,
   ...gosRaces,
   ...bgdiaRaces,
   ...cosRaces,
